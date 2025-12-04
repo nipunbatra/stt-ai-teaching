@@ -15,10 +15,18 @@ subtitle: "Lecture Slides"
 
 :::{.g-col-12 .g-col-md-6}
 ### Data Collection and Labeling
-Comprehensive coverage of data collection tools, validation techniques, labeling strategies (Label Studio, inter-annotator agreement, active learning), and augmentation methods for images, text, audio, and tabular data.
 
-- [Download PDF Slides](data-collection-labeling.pdf){.btn .btn-primary} (Typst)
-- [View Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/data-collection-labeling.typ){.btn .btn-secondary target="_blank"}
+Comprehensive, code-heavy slides for beginners covering:
+- **Data Collection**: Python logging, web scraping, APIs, databases
+- **Data Validation**: Pydantic, Pandas, handling missing data
+- **Data Labeling**: Label Studio, inter-annotator agreement, active learning
+- **Data Augmentation**: PIL, OpenCV, text augmentation, SMOTE
+
+**Downloads:**
+
+- [Light Theme PDF](data-collection-labeling-light.pdf){.btn .btn-primary} (white background)
+- [Dark Theme PDF](data-collection-labeling-dark.pdf){.btn .btn-secondary} (dark background)
+- [View Source Code](https://github.com/nipunbatra/stt-ai-teaching/blob/master/data-collection-labeling.typ){.btn .btn-outline-secondary target="_blank"}
 :::
 
 :::

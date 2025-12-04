@@ -40,14 +40,14 @@ cargo install --git https://github.com/typst/typst typst-cli
 ### Using Makefile (Recommended)
 
 ```bash
-# Build all PDF slides
-make all
+# Build light theme PDFs (white background, default)
+make light
 
-# Or just
-make pdf
+# Build dark theme PDFs (dark background)
+make dark
 
-# Build specific slide
-make data-collection-labeling.pdf
+# Build both themes
+make both
 
 # List available slides
 make list
@@ -58,9 +58,14 @@ make clean
 
 ### Manual Build
 
-**Compile Typst to PDF:**
+**Compile Typst to PDF (light theme):**
 ```bash
-typst compile data-collection-labeling.typ
+typst compile data-collection-labeling.typ --input dark-mode=false
+```
+
+**Compile Typst to PDF (dark theme):**
+```bash
+typst compile data-collection-labeling.typ data-collection-labeling-dark.pdf --input dark-mode=true
 ```
 
 **Watch mode (auto-rebuild):**

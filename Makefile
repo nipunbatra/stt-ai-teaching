@@ -1,21 +1,40 @@
-.PHONY: all clean help pdf list
+.PHONY: all clean help pdf list light dark
 
 # Find all .typ files (excluding slides.typ and other partials)
 SLIDES := $(filter-out slides.typ, $(wildcard *.typ))
-PDF_FILES := $(SLIDES:.typ=.pdf)
+PDF_LIGHT := $(SLIDES:.typ=-light.pdf)
+PDF_DARK := $(SLIDES:.typ=-dark.pdf)
 
-# Default target
-all: pdf
+# Default target - build light version
+all: light
 	@echo "✓ All slides built successfully"
 
-# Build all PDF slides
-pdf: $(PDF_FILES)
-	@echo "✓ PDF slides built"
+# Build light (white background) PDFs
+light: $(PDF_LIGHT)
+	@echo "✓ Light theme PDFs built"
 
-# Pattern rule for PDF slides
+# Build dark PDFs
+dark: $(PDF_DARK)
+	@echo "✓ Dark theme PDFs built"
+
+# Build both versions
+both: light dark
+	@echo "✓ Both light and dark PDFs built"
+
+# Pattern rule for light PDF
+%-light.pdf: %.typ slides.typ
+	@echo "Compiling $< -> $@ (light theme)"
+	@typst compile $< $@ --input dark-mode=false
+
+# Pattern rule for dark PDF
+%-dark.pdf: %.typ slides.typ
+	@echo "Compiling $< -> $@ (dark theme)"
+	@typst compile $< $@ --input dark-mode=true
+
+# For compatibility: build main PDF as light version
 %.pdf: %.typ slides.typ
 	@echo "Compiling $< -> $@"
-	@typst compile $< $@
+	@typst compile $< $@ --input dark-mode=false
 
 # List available slides
 list:
@@ -23,17 +42,22 @@ list:
 	@for file in $(SLIDES); do \
 		echo "  - $${file%.typ}"; \
 	done
+	@echo ""
+	@echo "Build commands:"
+	@echo "  make light     # Build light theme PDFs (white background)"
+	@echo "  make dark      # Build dark theme PDFs (dark background)"
+	@echo "  make both      # Build both themes"
 
 # Clean generated files
 clean:
 	@echo "Cleaning generated files..."
-	@rm -f $(PDF_FILES)
+	@rm -f $(PDF_LIGHT) $(PDF_DARK) *.pdf
 	@echo "✓ Clean complete"
 
 help:
-	@echo "Usage:"
-	@echo "  make all       # Build all PDF slides"
-	@echo "  make pdf       # Build all PDF slides"
-	@echo "  make <name>    # Build specific slide (e.g., make data-collection-labeling.pdf)"
+	@echo "Available targets:"
+	@echo "  make light     # Build light theme PDFs (default)"
+	@echo "  make dark      # Build dark theme PDFs"
+	@echo "  make both      # Build both light and dark themes"
 	@echo "  make list      # List available slides"
-	@echo "  make clean     # Clean all artifacts"
+	@echo "  make clean     # Remove all generated PDFs"
