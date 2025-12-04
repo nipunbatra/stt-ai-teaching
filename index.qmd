@@ -17,8 +17,11 @@ subtitle: "Lecture Slides"
 ### Data Collection and Labeling
 Comprehensive coverage of data collection tools, validation techniques, labeling strategies (Label Studio, inter-annotator agreement, active learning), and augmentation methods for images, text, audio, and tabular data.
 
-- [View Slides](data-collection-labeling.html){.btn .btn-primary target="_blank"}
-- [Download PDF](data-collection-labeling.pdf){.btn .btn-secondary}
+**Formats:**
+
+- [View HTML Slides](data-collection-labeling.html){.btn .btn-primary target="_blank"}
+- [PDF Slides](data-collection-labeling.pdf){.btn .btn-secondary} (presentation format)
+- [PDF Handout](data-collection-labeling-handout.pdf){.btn .btn-info} (document format)
 :::
 
 :::

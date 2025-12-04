@@ -311,6 +311,7 @@
     }
     .reveal .slide:not(.center) {
       height: 100%;
+      overflow-y: auto;
     }
     .reveal .slide.scrollable {
       overflow-y: auto;
@@ -410,7 +411,7 @@ Prof.&nbsp;Nipun Batra
 <h1>Module Overview</h1>
 
 </section>
-<section id="four-core-components" class="slide level2">
+<section id="four-core-components" class="slide level2 scrollable">
 <h2>Four Core Components</h2>
 <div>
 <ol type="1">
@@ -472,7 +473,7 @@ Prof.&nbsp;Nipun Batra
 </div>
 </div>
 </section>
-<section id="instrumentation-the-foundation" class="slide level2">
+<section id="instrumentation-the-foundation" class="slide level2 scrollable">
 <h2>Instrumentation: The Foundation</h2>
 <p><strong>Instrumentation</strong> = Adding code to collect data about system behavior</p>
 <h3 id="key-principles">Key Principles</h3>
@@ -652,7 +653,7 @@ Prof.&nbsp;Nipun Batra
 <span id="cb11-17"><a></a>                <span class="st">'rating'</span>: product.css(<span class="st">'div.rating::attr(data-rating)'</span>).get()</span>
 <span id="cb11-18"><a></a>            }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="ethical-web-scraping" class="slide level2">
+<section id="ethical-web-scraping" class="slide level2 scrollable">
 <h2>Ethical Web Scraping</h2>
 <div>
 <ol type="1">
@@ -768,7 +769,7 @@ Prof.&nbsp;Nipun Batra
 </div>
 </div>
 </section>
-<section id="types-of-data-quality-issues" class="slide level2">
+<section id="types-of-data-quality-issues" class="slide level2 scrollable">
 <h2>Types of Data Quality Issues</h2>
 <ol type="1">
 <li><strong>Completeness</strong> - Missing or null values</li>
@@ -1162,7 +1163,7 @@ Prof.&nbsp;Nipun Batra
 <span id="cb32-14"><a></a>        <span class="cf">return</span> [unlabeled_data[i] <span class="cf">for</span> i <span class="kw">in</span> indices.flatten()[:n]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Use case:</strong> Finding more examples of a rare class</p>
 </section>
-<section id="active-learning" class="slide level2">
+<section id="active-learning" class="slide level2 scrollable">
 <h2>Active Learning</h2>
 <p><strong>Active Learning:</strong> Intelligently select which examples to label next</p>
 <h3 id="process">Process</h3>
@@ -1511,7 +1512,7 @@ Prof.&nbsp;Nipun Batra
 <span id="cb48-16"><a></a>        <span class="co"># Use cubic spline interpolation</span></span>
 <span id="cb48-17"><a></a>        ...</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="smote-for-tabular-data" class="slide level2">
+<section id="smote-for-tabular-data" class="slide level2 scrollable">
 <h2>SMOTE for Tabular Data</h2>
 <p><strong>SMOTE:</strong> Synthetic Minority Over-sampling Technique</p>
 <div class="sourceCode" id="cb49"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a></a><span class="im">from</span> imblearn.over_sampling <span class="im">import</span> SMOTE</span>
@@ -1677,7 +1678,7 @@ Prof.&nbsp;Nipun Batra
 </div>
 </div>
 </section>
-<section id="hands-on-lab" class="slide level2">
+<section id="hands-on-lab" class="slide level2 scrollable">
 <h2>Hands-On Lab</h2>
 <h3 id="complete-data-pipeline">Complete Data Pipeline</h3>
 <p><strong>Tasks:</strong></p>
@@ -1757,7 +1758,7 @@ Prof.&nbsp;Nipun Batra
 'autoAnimateUnmatched': true,
 'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
 'chalkboard': {"buttons":true},
-'smaller': false,
+'smaller': true,
  
         // Display controls in the bottom right corner
         controls: false,

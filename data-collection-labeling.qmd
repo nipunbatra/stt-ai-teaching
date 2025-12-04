@@ -15,6 +15,15 @@ format:
     code-line-numbers: true
     code-overflow: wrap
     incremental: false
+    scrollable: true
+    smaller: true
+  beamer:
+    theme: Madrid
+    colortheme: dolphin
+    aspectratio: 169
+    navigation: horizontal
+    section-titles: true
+    toc: false
 ---
 
 # Module Overview {background-color="#1e3a8a"}
