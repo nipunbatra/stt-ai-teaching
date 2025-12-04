@@ -1,0 +1,19 @@
+# Node modules
+node_modules/
+.npm/
+
+# Quarto output (temporary files)
+*_files/
+*.tex
+*.log
+*.aux
+/.quarto/
+
+# Bun
+bun.lockb
+bun.lock
+
+# Generated HTML slides (regenerate with quarto render)
+*.html
+
+# Keep: .qmd source files and .pdf documents

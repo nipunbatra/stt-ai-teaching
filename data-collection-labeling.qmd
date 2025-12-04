@@ -1,0 +1,1445 @@
+---
+title: "Data Collection and Labeling"
+subtitle: "CS 203: Software Tools and Techniques for AI"
+author: "Prof. Nipun Batra"
+format:
+  revealjs:
+    theme: moon
+    slide-number: true
+    chalkboard: true
+    preview-links: auto
+    footer: "CS 203: Software Tools and Techniques for AI"
+    transition: slide
+    background-transition: fade
+    highlight-style: monokai
+    code-line-numbers: true
+    code-overflow: wrap
+    incremental: false
+---
+
+# Module Overview {background-color="#1e3a8a"}
+
+## Four Core Components
+
+::: incremental
+1. **Data Collection** - Tools and techniques for gathering data from diverse sources
+2. **Data Validation** - Ensuring data quality and reliability
+3. **Data Labeling** - Annotating datasets with ground truth
+4. **Data Augmentation** - Expanding datasets strategically
+:::
+
+::: {.callout-tip}
+## Key Insight
+Quality data is the foundation of successful AI systems. Garbage in, garbage out!
+:::
+
+# Part 1: Data Collection {background-color="#1e3a8a"}
+
+Instrumenting and Logging Data Sources
+
+## Why Data Collection Matters
+
+::: incremental
+- **Real-world AI systems** depend on continuous data flow
+- **User behavior** changes over time → models need fresh data
+- **Production systems** require automated collection pipelines
+- **Debugging** often requires understanding what data was seen
+:::
+
+## Common Data Sources
+
+::: columns
+::: {.column width="50%"}
+### Digital Sources
+- Web applications
+- Mobile apps
+- IoT devices
+- APIs and databases
+:::
+
+::: {.column width="50%"}
+### Physical Sources
+- Sensors
+- Cameras
+- Microphones
+- Manual entry
+:::
+:::
+
+## Instrumentation: The Foundation
+
+**Instrumentation** = Adding code to collect data about system behavior
+
+### Key Principles
+
+::: incremental
+1. **Minimal Performance Impact** - Don't slow down production systems
+2. **Comprehensive Coverage** - Capture all relevant events
+3. **Privacy-Aware** - Respect user privacy and regulations (GDPR, CCPA)
+4. **Structured Logging** - Consistent formats for easy parsing
+:::
+
+## Basic Instrumentation Example
+
+```python
+import logging
+import json
+from datetime import datetime
+
+def log_user_action(user_id, action, metadata):
+    event = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "user_id": user_id,
+        "action": action,
+        "metadata": metadata
+    }
+    logging.info(json.dumps(event))
+```
+
+## Web Analytics Tools
+
+::: columns
+::: {.column width="50%"}
+### Google Analytics 4
+
+```javascript
+// Track custom events
+gtag('event', 'search', {
+  'search_term': query,
+  'results_count': results.length
+});
+```
+
+**Pros:** Free, Rich ecosystem, Real-time dashboards
+**Cons:** Privacy concerns, Limited customization
+:::
+
+::: {.column width="50%"}
+### Mixpanel
+
+```javascript
+// Track with properties
+mixpanel.track('Video Played', {
+  'video_id': video.id,
+  'duration': video.length,
+  'quality': '1080p'
+});
+```
+
+**Pros:** Detailed analytics, Cohort analysis
+**Cons:** Costly at scale
+:::
+:::
+
+## Self-Hosted Analytics
+
+### Why Self-Host?
+
+::: incremental
+- **Data ownership** - Complete control over your data
+- **Privacy compliance** - GDPR-friendly by design
+- **No tracking cookies** - Lightweight and fast
+- **Cost-effective** - Predictable infrastructure costs
+:::
+
+## Plausible & Umami Examples
+
+```javascript
+// Plausible: Simple, privacy-focused
+<script defer data-domain="yourdomain.com"
+        src="https://plausible.io/js/script.js"></script>
+
+plausible('signup', {props: {plan: 'premium'}});
+```
+
+```javascript
+// Umami: Open-source alternative
+<script async src="https://analytics.yourdomain.com/umami.js"
+        data-website-id="your-website-id"></script>
+
+umami.track('button-click', {button: 'subscribe'});
+```
+
+## Application Performance Monitoring
+
+::: columns
+::: {.column width="50%"}
+### Sentry
+
+```python
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="your-dsn",
+    traces_sample_rate=1.0
+)
+
+try:
+    process_data()
+except Exception as e:
+    sentry_sdk.capture_exception(e)
+```
+:::
+
+::: {.column width="50%"}
+### Datadog
+
+```python
+from datadog import initialize, statsd
+
+initialize(
+    api_key='your-key',
+    app_key='your-app-key'
+)
+
+statsd.increment('api.requests')
+statsd.histogram('api.latency', 245)
+```
+:::
+:::
+
+## Database Event Logging
+
+```sql
+-- PostgreSQL: Track all changes to users table
+CREATE TABLE user_audit (
+    audit_id SERIAL PRIMARY KEY,
+    user_id INT,
+    action VARCHAR(10),
+    old_data JSONB,
+    new_data JSONB,
+    changed_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION audit_user_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'UPDATE') THEN
+        INSERT INTO user_audit(user_id, action, old_data, new_data)
+        VALUES (NEW.id, 'UPDATE', row_to_json(OLD), row_to_json(NEW));
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+## Change Data Capture (CDC)
+
+**CDC** = Capturing and streaming database changes in real-time
+
+### Debezium Example
+
+```yaml
+{
+  "name": "inventory-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "table.include.list": "public.orders,public.customers",
+    "topic.prefix": "dbserver1"
+  }
+}
+```
+
+**Benefits:** Real-time streaming, No app changes, Complete history
+
+## OpenTelemetry: Industry Standard
+
+```python
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+
+trace.set_tracer_provider(TracerProvider())
+tracer = trace.get_tracer(__name__)
+
+@tracer.start_as_current_span("process_request")
+def process_request(user_id):
+    span = trace.get_current_span()
+    span.set_attribute("user.id", user_id)
+    # Your logic here
+```
+
+## Web Scraping with Scrapy
+
+```python
+import scrapy
+
+class ProductSpider(scrapy.Spider):
+    name = 'products'
+    start_urls = ['https://example.com/products']
+
+    custom_settings = {
+        'DOWNLOAD_DELAY': 2,  # Respectful scraping
+        'CONCURRENT_REQUESTS': 1
+    }
+
+    def parse(self, response):
+        for product in response.css('div.product'):
+            yield {
+                'name': product.css('h2::text').get(),
+                'price': product.css('span.price::text').get(),
+                'rating': product.css('div.rating::attr(data-rating)').get()
+            }
+```
+
+## Ethical Web Scraping
+
+::: incremental
+1. **Check robots.txt** - Respect website's scraping policy
+2. **Rate Limiting** - Don't overwhelm servers
+3. **User-Agent** - Identify yourself honestly
+4. **Terms of Service** - Read and comply with ToS
+5. **Personal Data** - Respect privacy laws (GDPR, CCPA)
+:::
+
+::: {.callout-warning}
+Scraping can violate ToS or copyright. Always consult legal counsel for commercial use.
+:::
+
+## Streaming Data with Kafka
+
+```python
+from kafka import KafkaProducer, KafkaConsumer
+import json
+
+# Producer: Collect data
+producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+)
+
+event = {
+    'user_id': '12345',
+    'event_type': 'page_view',
+    'page': '/products'
+}
+producer.send('user-events', event)
+
+# Consumer: Process data
+consumer = KafkaConsumer('user-events')
+for message in consumer:
+    process_event(message.value)
+```
+
+## Data Collection Best Practices
+
+### Schema Design with Pydantic
+
+```python
+from pydantic import BaseModel, Field
+from datetime import datetime
+
+class UserEvent(BaseModel):
+    user_id: str
+    event_type: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    properties: dict
+    session_id: Optional[str] = None
+```
+
+## Sampling Strategies
+
+```python
+import random
+
+class SamplingCollector:
+    def __init__(self, sample_rate=0.1):
+        self.sample_rate = sample_rate
+
+    def should_collect(self, event):
+        if random.random() < self.sample_rate:
+            return True
+        if event.get('priority') == 'high':
+            return True
+        return False
+```
+
+**When to use:** High-traffic systems where full collection is expensive
+
+## Privacy and Compliance
+
+```python
+import hashlib
+
+class PrivacyAwareCollector:
+    def __init__(self, pii_fields=['email', 'phone']):
+        self.pii_fields = pii_fields
+
+    def anonymize(self, data):
+        anonymized = data.copy()
+        for field in self.pii_fields:
+            if field in anonymized:
+                value = str(anonymized[field])
+                hashed = hashlib.sha256(value.encode()).hexdigest()
+                anonymized[field] = hashed
+        return anonymized
+```
+
+# Part 2: Data Validation {background-color="#1e3a8a"}
+
+Ensuring Data Quality and Reliability
+
+## Why Data Validation Matters
+
+::: columns
+::: {.column width="50%"}
+### The Cost of Bad Data
+
+- **Garbage In, Garbage Out**
+- **Silent Failures**
+- **Expensive Debugging**
+- **Lost Trust**
+:::
+
+::: {.column width="50%"}
+### Real-World Impact
+
+**E-commerce:** Missing IDs → 30% drop in CTR
+**Medical:** Wrong units → Misdiagnoses
+**Fraud Detection:** Duplicates → 45% false positives
+:::
+:::
+
+## Types of Data Quality Issues
+
+1. **Completeness** - Missing or null values
+2. **Accuracy** - Incorrect or outdated values
+3. **Consistency** - Contradictory data
+4. **Timeliness** - Stale or outdated data
+5. **Uniqueness** - Duplicate records
+6. **Validity** - Violates business rules
+
+## Data Validation with Pydantic
+
+```python
+from pydantic import BaseModel, Field, validator, EmailStr
+
+class UserEvent(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
+    age: int = Field(..., ge=0, le=150)
+    event_type: str
+
+    @validator('event_type')
+    def validate_event_type(cls, v):
+        allowed = ['click', 'view', 'purchase', 'signup']
+        if v not in allowed:
+            raise ValueError(f'event_type must be one of {allowed}')
+        return v
+
+    @validator('timestamp')
+    def timestamp_not_future(cls, v):
+        if v > datetime.utcnow():
+            raise ValueError('timestamp cannot be in the future')
+        return v
+```
+
+## Using Pydantic
+
+```python
+try:
+    event = UserEvent(
+        user_id="user_123",
+        email="user@example.com",
+        age=25,
+        event_type="click",
+        timestamp=datetime.utcnow()
+    )
+    print("✓ Valid event")
+except ValueError as e:
+    print("✗ Validation errors:", e.json())
+```
+
+## Great Expectations Framework
+
+```python
+import great_expectations as gx
+from great_expectations.dataset import PandasDataset
+
+df = pd.read_csv('user_events.csv')
+dataset = PandasDataset(df)
+
+# Define expectations
+dataset.expect_column_values_to_not_be_null('user_id')
+dataset.expect_column_values_to_be_unique('event_id')
+dataset.expect_column_values_to_be_in_set(
+    'event_type',
+    ['click', 'view', 'purchase']
+)
+dataset.expect_column_values_to_be_between('age', 0, 150)
+
+# Validate
+results = dataset.validate()
+```
+
+## Pandera: Statistical Validation
+
+```python
+import pandera as pa
+from pandera import Column, Check
+
+schema = pa.DataFrameSchema({
+    "user_id": Column(str, checks=[
+        Check.str_length(min_value=1, max_value=100)
+    ]),
+    "age": Column(int, checks=[
+        Check.in_range(min_value=0, max_value=150),
+        Check(lambda s: s.mean() > 18)
+    ]),
+    "purchase_amount": Column(float, checks=[
+        Check.greater_than_or_equal_to(0)
+    ], nullable=True)
+})
+
+validated_df = schema.validate(df)
+```
+
+## Custom Validation Pipelines
+
+```python
+from dataclasses import dataclass
+from typing import List
+
+@dataclass
+class ValidationResult:
+    passed: bool
+    errors: List[str]
+    warnings: List[str]
+
+class DataValidationPipeline:
+    def __init__(self):
+        self.validators = []
+
+    def add_validator(self, validator):
+        self.validators.append(validator)
+        return self
+
+    def validate(self, df):
+        all_errors = []
+        for validator in self.validators:
+            result = validator.validate(df)
+            all_errors.extend(result.errors)
+        return ValidationResult(
+            passed=len(all_errors) == 0,
+            errors=all_errors,
+            warnings=[]
+        )
+```
+
+## Statistical Distribution Validation
+
+```python
+class DistributionValidator:
+    def __init__(self, reference_df, columns):
+        self.reference_stats = {
+            col: {
+                'mean': reference_df[col].mean(),
+                'std': reference_df[col].std()
+            }
+            for col in columns
+        }
+
+    def validate(self, df):
+        errors = []
+        for col, ref_stats in self.reference_stats.items():
+            current_mean = df[col].mean()
+            mean_shift = abs(current_mean - ref_stats['mean']) / ref_stats['std']
+
+            if mean_shift > 2:
+                errors.append(
+                    f"{col}: Mean shifted by {mean_shift:.2f} std deviations"
+                )
+        return ValidationResult(passed=len(errors) == 0, errors=errors, warnings=[])
+```
+
+## Data Quality Monitoring
+
+```python
+import sentry_sdk
+from datadog import statsd
+
+class DataQualityMonitor:
+    def monitor(self, df, dataset_name):
+        result = self.pipeline.validate(df)
+
+        # Send metrics
+        statsd.gauge(f'{dataset_name}.row_count', len(df))
+        statsd.gauge(f'{dataset_name}.validation.errors', len(result.errors))
+
+        # Alert on failures
+        if not result.passed:
+            sentry_sdk.capture_message(
+                f"Data validation failed for {dataset_name}",
+                extras={"errors": result.errors}
+            )
+```
+
+# Part 3: Data Labeling {background-color="#1e3a8a"}
+
+Annotating Datasets with Ground Truth
+
+## What is Data Labeling?
+
+**Data Labeling:** Adding meaningful tags or annotations to raw data
+
+### Why It's Critical
+
+::: incremental
+- **Supervised Learning** requires labeled examples
+- **Quality labels** → Better models
+- **Consistent labels** → Reliable evaluation
+- **Cost:** Often 60-80% of ML project time and budget
+:::
+
+## Types of Labeling Tasks
+
+::: columns
+::: {.column width="50%"}
+### Classification
+- Image: "cat" vs "dog"
+- Text: "spam" vs "not spam"
+- Audio: speaker identification
+
+### Object Detection
+- Bounding boxes
+- Keypoint annotation
+- Polygon segmentation
+:::
+
+::: {.column width="50%"}
+### Sequence Labeling
+- Named Entity Recognition
+- Part-of-speech tagging
+- Time series anomalies
+
+### Structured Prediction
+- Semantic segmentation
+- Dependency parsing
+- Relationship extraction
+:::
+:::
+
+## Label Studio
+
+**Label Studio:** Open-source, multi-modal annotation platform
+
+### Key Features
+
+- Multi-modal: Images, text, audio, video, time series
+- Custom interfaces with XML config
+- ML-assisted labeling and active learning
+- Collaboration features
+- Export: JSON, CSV, COCO, Pascal VOC, YOLO
+
+### Installation
+
+```bash
+pip install label-studio
+label-studio start
+```
+
+## Label Studio: Image Classification
+
+```xml
+<View>
+  <Image name="image" value="$image_url"/>
+  <Choices name="choice" toName="image">
+    <Choice value="Cat"/>
+    <Choice value="Dog"/>
+    <Choice value="Other"/>
+  </Choices>
+</View>
+```
+
+## Label Studio: Object Detection
+
+```xml
+<View>
+  <Image name="image" value="$image_url"
+         zoom="true" zoomControl="true"/>
+  <RectangleLabels name="label" toName="image">
+    <Label value="Person" background="red"/>
+    <Label value="Car" background="blue"/>
+    <Label value="Bicycle" background="green"/>
+  </RectangleLabels>
+</View>
+```
+
+## Label Studio: NER
+
+```xml
+<View>
+  <Text name="text" value="$text"/>
+  <Labels name="label" toName="text">
+    <Label value="Person" background="red"/>
+    <Label value="Organization" background="blue"/>
+    <Label value="Location" background="green"/>
+    <Label value="Date" background="orange"/>
+  </Labels>
+</View>
+```
+
+Example: "Apple Inc. CEO Tim Cook announced the new iPhone in Cupertino"
+
+## Alternative Labeling Tools
+
+::: columns
+::: {.column width="50%"}
+### Labelbox
+- Enterprise features
+- Model-assisted labeling
+- **Cons:** Expensive, vendor lock-in
+
+### CVAT
+- Open-source by Intel
+- Video annotation
+- **Cons:** Setup complexity
+:::
+
+::: {.column width="50%"}
+### Prodigy
+- By spaCy creators
+- Active learning built-in
+- **Cons:** License cost
+
+### Scale AI / SageMaker
+- Managed services
+- Human workforce included
+- **Cons:** Very expensive
+:::
+:::
+
+## Inter-Annotator Agreement
+
+**Problem:** Different annotators may label differently
+
+**Solution:** Measure agreement to ensure quality
+
+### Cohen's Kappa (κ)
+
+Measures agreement between **two annotators** accounting for chance
+
+$$\kappa = \frac{p_o - p_e}{1 - p_e}$$
+
+**Interpretation:**
+
+- 0.0-0.20: Slight
+- 0.21-0.40: Fair
+- 0.41-0.60: Moderate
+- 0.61-0.80: Substantial
+- 0.81-1.00: Almost perfect
+
+## Cohen's Kappa Implementation
+
+```python
+from sklearn.metrics import cohen_kappa_score
+
+annotator1 = ['spam', 'ham', 'spam', 'ham', ...]
+annotator2 = ['spam', 'ham', 'ham', 'ham', ...]
+
+kappa = cohen_kappa_score(annotator1, annotator2)
+print(f"Cohen's Kappa: {kappa:.3f}")
+```
+
+**Example Output:**
+```
+Cohen's Kappa: 0.745
+→ Substantial agreement ✓
+```
+
+## Fleiss' Kappa: Multiple Annotators
+
+```python
+from statsmodels.stats.inter_rater import fleiss_kappa
+import numpy as np
+
+# Matrix: rows = items, columns = category counts
+data = np.array([
+    [3, 0],  # Item 1: all 3 annotators said "ham"
+    [2, 1],  # Item 2: 2 said "ham", 1 said "spam"
+    [0, 3],  # Item 3: all 3 said "spam"
+])
+
+kappa = fleiss_kappa(data, method='fleiss')
+print(f"Fleiss' Kappa: {kappa:.3f}")
+```
+
+## Improving Agreement
+
+### 1. Clear Guidelines
+
+- Define each label precisely
+- Provide examples and counter-examples
+- Document edge cases
+- Create decision trees for ambiguous cases
+
+### 2. Training Phase
+
+- Use gold standard datasets
+- Review disagreements together
+- Iterative calibration sessions
+
+### 3. Regular Consensus Meetings
+
+- Discuss disputed items
+- Update guidelines based on patterns
+- Track improvement over time
+
+## Sampling Strategies
+
+### Random Sampling
+```python
+import random
+random.sample(dataset, n=100)
+```
+**Pros:** Unbiased
+**Cons:** May miss rare classes
+
+### Stratified Sampling
+```python
+from sklearn.model_selection import train_test_split
+_, sampled, _, _ = train_test_split(
+    dataset, labels,
+    train_size=len(dataset)-100,
+    stratify=labels
+)
+```
+**Pros:** Ensures class representation
+
+## Snowball Sampling
+
+```python
+from sklearn.neighbors import NearestNeighbors
+
+class SnowballSampler:
+    def sample(self, labeled_data, unlabeled_data, n=100):
+        # Vectorize
+        labeled_vectors = self.vectorizer.fit_transform(labeled_data)
+        unlabeled_vectors = self.vectorizer.transform(unlabeled_data)
+
+        # Find nearest neighbors
+        nn = NearestNeighbors(n_neighbors=5)
+        nn.fit(unlabeled_vectors)
+        distances, indices = nn.kneighbors(labeled_vectors)
+
+        return [unlabeled_data[i] for i in indices.flatten()[:n]]
+```
+
+**Use case:** Finding more examples of a rare class
+
+## Active Learning
+
+**Active Learning:** Intelligently select which examples to label next
+
+### Process
+
+1. Train model on small labeled set
+2. Find **most informative** unlabeled examples
+3. Label those examples
+4. Retrain model
+5. Repeat
+
+**Goal:** Achieve good performance with minimal labeling
+
+## Uncertainty Sampling
+
+```python
+class UncertaintySampler:
+    def sample(self, X_unlabeled, n=10):
+        probs = self.model.predict_proba(X_unlabeled)
+
+        # Higher entropy = more uncertain
+        uncertainties = -np.sum(probs * np.log(probs + 1e-10), axis=1)
+
+        # Select top-n most uncertain
+        uncertain_indices = np.argsort(uncertainties)[-n:]
+        return uncertain_indices
+```
+
+## Active Learning Loop
+
+```python
+def active_learning_loop(X_labeled, y_labeled, X_unlabeled, budget=100):
+    model = MultinomialNB()
+    sampler = UncertaintySampler(model)
+
+    for iteration in range(budget // 10):
+        # Train model
+        model.fit(X_labeled, y_labeled)
+
+        # Select informative examples
+        indices = sampler.sample(X_unlabeled, n=10)
+
+        # Get human labels
+        new_X = [X_unlabeled[i] for i in indices]
+        new_y = get_human_labels(new_X)
+
+        # Update datasets
+        X_labeled.extend(new_X)
+        y_labeled.extend(new_y)
+
+        # Evaluate
+        accuracy = evaluate_model(model)
+        print(f"Iteration {iteration}: Accuracy = {accuracy:.3f}")
+```
+
+## Active Learning Benefits
+
+::: columns
+::: {.column width="50%"}
+### Cost Reduction
+
+Random Sampling:
+10,000 labels → 85% accuracy
+
+Active Learning:
+2,000 labels → 85% accuracy
+
+**Savings: 80% fewer labels!**
+:::
+
+::: {.column width="50%"}
+### Real-world Savings
+
+- 10k labels × $0.50 = $5,000
+- 2k labels × $0.50 = $1,000
+- **Saved: $4,000**
+:::
+:::
+
+**Key Insight:** Active learning reaches target accuracy with 5-10× fewer labels
+
+## Weak Supervision with Snorkel
+
+**Weak Supervision:** Use noisy/heuristic labels instead of manual annotation
+
+```python
+from snorkel.labeling import labeling_function
+
+SPAM = 1
+HAM = 0
+ABSTAIN = -1
+
+@labeling_function()
+def lf_contains_money(x):
+    money_keywords = ['$', 'money', 'cash', 'prize']
+    return SPAM if any(kw in x.text.lower() for kw in money_keywords) else ABSTAIN
+
+@labeling_function()
+def lf_short_message(x):
+    return SPAM if len(x.text.split()) < 10 else ABSTAIN
+
+@labeling_function()
+def lf_known_sender(x):
+    trusted_domains = ['company.com', 'university.edu']
+    return HAM if any(d in x.sender for d in trusted_domains) else ABSTAIN
+```
+
+## Combining Weak Labels
+
+```python
+from snorkel.labeling.model import LabelModel
+
+# Apply labeling functions
+lfs = [lf_contains_money, lf_short_message, lf_known_sender]
+L_train = applier.apply(df=df)
+
+# Combine noisy labels
+label_model = LabelModel(cardinality=2)
+label_model.fit(L_train=L_train, n_epochs=500)
+
+# Get predictions
+predicted_labels = label_model.predict(L=L_train)
+```
+
+**Advantages:** Fast, Flexible, No manual labeling needed
+
+## Pre-labeling with Models
+
+```python
+class PreLabelingPipeline:
+    def pre_label(self, unlabeled_data, confidence_threshold=0.9):
+        predictions = self.model.predict_proba(unlabeled_data)
+
+        auto_labeled = []
+        needs_review = []
+
+        for i, probs in enumerate(predictions):
+            max_prob = max(probs)
+
+            if max_prob >= confidence_threshold:
+                auto_labeled.append({
+                    'data': unlabeled_data[i],
+                    'label': np.argmax(probs),
+                    'source': 'model'
+                })
+            else:
+                needs_review.append(unlabeled_data[i])
+
+        return auto_labeled, needs_review
+```
+
+# Part 4: Data Augmentation {background-color="#1e3a8a"}
+
+Expanding Training Datasets Strategically
+
+## Why Data Augmentation?
+
+### The Problem
+
+- Limited labeled data is expensive
+- Class imbalance leads to biased models
+- Overfitting on small datasets
+- Rare events underrepresented
+
+### The Solution
+
+**Data Augmentation:** Creating new training examples by applying transformations
+
+**Benefits:** Increase dataset size, Improve generalization, Reduce overfitting, Balance classes
+
+## Image Data Augmentation
+
+```python
+from torchvision import transforms
+
+transform = transforms.Compose([
+    # Geometric
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomRotation(degrees=15),
+    transforms.RandomResizedCrop(size=224, scale=(0.8, 1.0)),
+
+    # Color
+    transforms.ColorJitter(
+        brightness=0.2, contrast=0.2,
+        saturation=0.2, hue=0.1
+    ),
+
+    # Blurring
+    transforms.GaussianBlur(kernel_size=3),
+
+    # Normalization
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                        std=[0.229, 0.224, 0.225])
+])
+```
+
+## Advanced: Albumentations
+
+```python
+import albumentations as A
+
+transform = A.Compose([
+    A.RandomResizedCrop(height=224, width=224),
+    A.HorizontalFlip(p=0.5),
+    A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=15),
+    A.ElasticTransform(p=0.3),
+
+    # Color
+    A.RandomBrightnessContrast(p=0.5),
+    A.HueSaturationValue(p=0.5),
+
+    # Blur and noise
+    A.OneOf([
+        A.MotionBlur(p=0.5),
+        A.GaussianBlur(p=0.5),
+    ], p=0.3),
+    A.GaussNoise(p=0.3),
+
+    # Weather
+    A.RandomRain(p=0.2),
+    A.RandomFog(p=0.2),
+])
+```
+
+## Cutout, Mixup, CutMix
+
+::: columns
+::: {.column width="33%"}
+### Cutout
+Random rectangular masks
+
+```python
+A.CoarseDropout(
+    max_holes=8,
+    max_height=32,
+    p=0.5
+)
+```
+:::
+
+::: {.column width="33%"}
+### Mixup
+Blend two images
+
+```python
+def mixup(x1, y1, x2, y2):
+    lam = np.random.beta(0.2, 0.2)
+    x = lam * x1 + (1 - lam) * x2
+    y = lam * y1 + (1 - lam) * y2
+    return x, y
+```
+:::
+
+::: {.column width="33%"}
+### CutMix
+Paste regions
+
+```python
+def cutmix(x1, y1, x2, y2):
+    # Cut and paste
+    # region from x2 to x1
+    ...
+```
+:::
+:::
+
+## Text Data Augmentation
+
+### Synonym Replacement
+
+```python
+from nltk.corpus import wordnet
+
+def get_synonyms(word):
+    synonyms = set()
+    for syn in wordnet.synsets(word):
+        for lemma in syn.lemmas():
+            synonyms.add(lemma.name())
+    return list(synonyms)
+
+def synonym_replacement(text, n=2):
+    words = text.split()
+    random_indices = random.sample(range(len(words)), n)
+
+    for idx in random_indices:
+        synonyms = get_synonyms(words[idx])
+        if synonyms:
+            words[idx] = random.choice(synonyms)
+
+    return ' '.join(words)
+```
+
+## EDA: Easy Data Augmentation
+
+```python
+class EDA:
+    @staticmethod
+    def random_insertion(words, n=1):
+        """Insert n random synonyms"""
+        ...
+
+    @staticmethod
+    def random_swap(words, n=1):
+        """Swap n pairs of words"""
+        ...
+
+    @staticmethod
+    def random_deletion(words, p=0.1):
+        """Delete each word with probability p"""
+        return [w for w in words if random.random() > p]
+```
+
+## Back-Translation
+
+```python
+from transformers import MarianMTModel, MarianTokenizer
+
+class BackTranslator:
+    def __init__(self, intermediate_lang='fr'):
+        # English → French
+        self.forward_model = MarianMTModel.from_pretrained(
+            f'Helsinki-NLP/opus-mt-en-{intermediate_lang}'
+        )
+        # French → English
+        self.backward_model = MarianMTModel.from_pretrained(
+            f'Helsinki-NLP/opus-mt-{intermediate_lang}-en'
+        )
+
+    def augment(self, text):
+        # Translate to French and back
+        intermediate = self.forward_model.translate(text)
+        return self.backward_model.translate(intermediate)
+```
+
+Result: "The weather is beautiful" → "The weather is nice"
+
+## Contextual Augmentation with BERT
+
+```python
+from transformers import pipeline
+
+class ContextualAugmentor:
+    def __init__(self):
+        self.unmasker = pipeline('fill-mask', model='bert-base-uncased')
+
+    def augment(self, text):
+        words = text.split()
+        mask_idx = random.randint(0, len(words) - 1)
+
+        masked_words = words.copy()
+        masked_words[mask_idx] = '[MASK]'
+
+        predictions = self.unmasker(' '.join(masked_words))
+
+        return [pred['sequence'] for pred in predictions[:3]]
+```
+
+## Audio Augmentation
+
+```python
+import librosa
+
+class AudioAugmentor:
+    @staticmethod
+    def add_noise(audio, noise_factor=0.005):
+        noise = np.random.randn(len(audio))
+        return audio + noise_factor * noise
+
+    @staticmethod
+    def time_stretch(audio, rate=1.0):
+        return librosa.effects.time_stretch(audio, rate=rate)
+
+    @staticmethod
+    def pitch_shift(audio, sr=22050, n_steps=2):
+        return librosa.effects.pitch_shift(audio, sr=sr, n_steps=n_steps)
+```
+
+## Time Series Augmentation
+
+```python
+class TimeSeriesAugmentor:
+    @staticmethod
+    def jittering(x, sigma=0.03):
+        """Add Gaussian noise"""
+        return x + np.random.normal(0, sigma, x.shape)
+
+    @staticmethod
+    def scaling(x, sigma=0.1):
+        """Multiply by random factor"""
+        factor = np.random.normal(1, sigma, size=(x.shape[0], 1))
+        return x * factor
+
+    @staticmethod
+    def time_warping(x, sigma=0.2):
+        """Warp time dimension"""
+        # Use cubic spline interpolation
+        ...
+```
+
+## SMOTE for Tabular Data
+
+**SMOTE:** Synthetic Minority Over-sampling Technique
+
+```python
+from imblearn.over_sampling import SMOTE
+
+# Imbalanced dataset: {0: 900, 1: 100}
+smote = SMOTE(sampling_strategy='auto', random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+
+# Now balanced: {0: 900, 1: 900}
+```
+
+**How it works:**
+
+1. For each minority sample, find k nearest neighbors
+2. Randomly select one neighbor
+3. Create synthetic sample along line segment
+
+## SMOTE Variants
+
+::: columns
+::: {.column width="50%"}
+### ADASYN
+
+Adaptive Synthetic Sampling
+
+```python
+from imblearn.over_sampling import ADASYN
+
+adasyn = ADASYN(random_state=42)
+X_res, y_res = adasyn.fit_resample(X, y)
+```
+
+**Advantage:** Generates more samples in harder-to-learn regions
+:::
+
+::: {.column width="50%"}
+### BorderlineSMOTE
+
+Focus on decision boundary
+
+```python
+from imblearn.over_sampling import BorderlineSMOTE
+
+bsmote = BorderlineSMOTE(random_state=42)
+X_res, y_res = bsmote.fit_resample(X, y)
+```
+
+**Advantage:** More conservative, focuses on boundary
+:::
+:::
+
+## Generative Models
+
+```python
+from diffusers import StableDiffusionPipeline
+
+pipe = StableDiffusionPipeline.from_pretrained(
+    "stabilityai/stable-diffusion-2-1"
+)
+
+def generate_augmented_images(prompt, n=10):
+    images = []
+    for i in range(n):
+        image = pipe(prompt, num_inference_steps=50).images[0]
+        images.append(image)
+    return images
+
+# Generate synthetic training data
+synthetic = generate_augmented_images(
+    "A high-quality photo of a defective product",
+    n=100
+)
+```
+
+**Use cases:** Rare defects, medical imaging, artistic styles
+
+## Best Practices
+
+### 1. Domain-Appropriate
+
+✓ **Good:** Horizontal flip for general images
+✗ **Bad:** Horizontal flip for text/digits (changes meaning)
+
+### 2. Preserve Semantics
+
+✗ **Bad:** Extreme rotation for digits (6 → 9)
+✓ **Good:** Slight rotation (±15°)
+
+### 3. Validation Split First
+
+```python
+# ✓ Correct
+train, val = train_test_split(data)
+aug_train = augment(train)  # Only augment training
+
+# ✗ Wrong (data leakage!)
+aug_data = augment(data)
+train, val = train_test_split(aug_data)
+```
+
+## Monitor Augmentation Impact
+
+```python
+def evaluate_augmentation(model, train_data, val_data, aug_levels):
+    results = []
+
+    for strength in aug_levels:
+        aug_train = augment(train_data, strength=strength)
+        model.fit(aug_train)
+        val_acc = model.evaluate(val_data)
+        results.append({'strength': strength, 'accuracy': val_acc})
+
+    # Plot results to find optimal augmentation
+    plt.plot([r['strength'] for r in results],
+             [r['accuracy'] for r in results])
+    plt.xlabel('Augmentation Strength')
+    plt.ylabel('Validation Accuracy')
+```
+
+## Class-Specific Augmentation
+
+```python
+class ClassBalancedAugmentor:
+    def __init__(self, target_samples_per_class=1000):
+        self.target = target_samples_per_class
+
+    def augment(self, X, y):
+        X_aug, y_aug = [], []
+
+        for cls in np.unique(y):
+            X_cls = X[y == cls]
+            current_count = len(X_cls)
+
+            if current_count < self.target:
+                n_to_generate = self.target - current_count
+                augmented = self.generate_samples(X_cls, n_to_generate)
+                X_aug.extend(augmented)
+                y_aug.extend([cls] * len(augmented))
+
+        return np.array(X_aug), np.array(y_aug)
+```
+
+# Summary {background-color="#1e3a8a"}
+
+## Key Takeaways
+
+### Data Collection
+- Instrument systems for automatic capture
+- Use appropriate tools (analytics, APM, CDC)
+- Implement buffering, batching, error handling
+- Respect privacy and comply with regulations
+
+### Data Validation
+- Validate early and often
+- Use schema validation (Pydantic, Pandera)
+- Monitor data quality metrics
+- Set up alerts for anomalies
+
+## Key Takeaways (cont.)
+
+### Data Labeling
+- Use appropriate tools (Label Studio, CVAT)
+- Measure inter-annotator agreement (Cohen's Kappa)
+- Apply smart sampling (active learning)
+- Leverage weak supervision when possible
+
+### Data Augmentation
+- Choose domain-appropriate transformations
+- Preserve label semantics
+- Augment only training data
+- Monitor impact on performance
+
+::: {.callout-important}
+High-quality data is the foundation of successful AI systems. Invest time in getting it right!
+:::
+
+## Hands-On Lab
+
+### Complete Data Pipeline
+
+**Tasks:**
+
+1. Data Collection (30 min) - Scrape reviews, set up logging
+2. Data Validation (30 min) - Create schemas, build validation pipeline
+3. Data Labeling (45 min) - Label Studio, calculate agreement, active learning
+4. Data Augmentation (30 min) - Apply EDA, back-translation, measure impact
+
+**Deliverable:** Jupyter notebook with complete pipeline
+
+## Additional Resources
+
+### Documentation
+- Label Studio: https://labelstud.io/guide/
+- Great Expectations: https://docs.greatexpectations.io/
+- Albumentations: https://albumentations.ai/docs/
+- Snorkel: https://www.snorkel.org/
+
+### Key Papers
+- "SMOTE: Synthetic Minority Over-sampling Technique" (2002)
+- "Snorkel: Rapid Training Data Creation with Weak Supervision" (2017)
+- "Active Learning Literature Survey" (2009)
+
+# Questions? {background-color="#1e3a8a"}
+
+## Thank You!
+
+**Next:** Reproducibility & Versioning
+
+---
+
+Contact: nipun.batra@iitgn.ac.in
