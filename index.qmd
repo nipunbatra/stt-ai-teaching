@@ -1,40 +1,20 @@
 ---
 title: "CS 203: Software Tools and Techniques for AI"
-subtitle: "Lecture Slides"
-format:
-  html:
-    css: custom.css
 ---
-
-## Course Information
 
 **Instructor:** Prof. Nipun Batra, IIT Gandhinagar
 
 **Course Website:** [nipunbatra.github.io/stt-ai-26](https://nipunbatra.github.io/stt-ai-26/)
 
-## Lecture Slides
-
-:::{.grid}
-
-:::{.g-col-12 .g-col-md-6}
-### Data Collection and Labeling
-
-Comprehensive, code-heavy slides for beginners covering:
-- **Data Collection**: Python logging, web scraping, APIs, databases
-- **Data Validation**: Pydantic, Pandas, handling missing data
-- **Data Labeling**: Label Studio, inter-annotator agreement, active learning
-- **Data Augmentation**: PIL, OpenCV, text augmentation, SMOTE
-
-**Downloads:**
-
-- [Light Theme PDF](data-collection-labeling-marp.pdf){.btn .btn-primary} (white background)
-- [Dark Theme PDF](data-collection-labeling-marp-dark.pdf){.btn .btn-secondary} (dark background)
-- [HTML Slides](data-collection-labeling-marp.html){.btn .btn-success} (interactive)
-- [View Source Code](https://github.com/nipunbatra/stt-ai-teaching/blob/master/data-collection-labeling.md){.btn .btn-outline-secondary target="_blank"}
-:::
-
-:::
-
 ---
 
-*More slides will be added throughout the semester*
+## Lecture Slides
+
+### Data Collection and Labeling
+
+Topics: Data collection, validation, labeling, augmentation
+
+- [PDF (Light)](data-collection-labeling-marp.pdf)
+- [PDF (Dark)](data-collection-labeling-marp-dark.pdf)
+- [HTML](data-collection-labeling-marp.html)
+- [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/data-collection-labeling.md)
