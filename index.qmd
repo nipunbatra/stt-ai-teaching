@@ -18,3 +18,4 @@ Topics: Data collection, validation, labeling, augmentation
 - [PDF (Dark)](data-collection-labeling-marp-dark.pdf)
 - [HTML](data-collection-labeling-marp.html)
 - [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/data-collection-labeling.md)
+- [View other themes](themes.html)

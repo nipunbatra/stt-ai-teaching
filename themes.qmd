@@ -1,0 +1,60 @@
+---
+title: "Marp Theme Previews"
+---
+
+[← Back to main page](index.html)
+
+## Available Themes
+
+Preview the slides in different Marp themes:
+
+### Built-in Themes
+
+- **Default** - [PDF](data-collection-labeling-marp.pdf) | [HTML](data-collection-labeling-marp.html)
+- **Gaia** - [PDF](theme-previews/gaia.pdf) | [HTML](theme-previews/gaia.html)
+
+### Custom Themes
+
+- **Academic** - [PDF](theme-previews/academic.pdf) | [HTML](theme-previews/academic.html)
+  - Clean academic presentation style
+  - Source: [kaisugi/marp-theme-academic](https://github.com/kaisugi/marp-theme-academic)
+
+- **Beam** - [PDF](theme-previews/beam.pdf) | [HTML](theme-previews/beam.html)
+  - LaTeX Beamer-inspired theme
+  - Source: [rnd195/my-marp-themes](https://github.com/rnd195/my-marp-themes)
+
+- **Gradient** - [HTML](theme-previews/gradient.html)
+  - Modern gradient-based design
+  - Source: [rnd195/my-marp-themes](https://github.com/rnd195/my-marp-themes)
+
+## Popular Marp Theme Collections
+
+- [Marp Community Themes](https://rnd195.github.io/marp-community-themes/) - Community theme gallery
+- [Awesome-Marp](https://github.com/favourhong/Awesome-Marp) - LaTeX Beamer replacement with 12+ themes
+- [marpstyle](https://github.com/cunhapaulo/marpstyle) - Themes focused on beauty and simplicity
+- [my-marp-themes](https://github.com/rnd195/my-marp-themes) - Collection of CSS themes
+
+## How to Use Custom Themes
+
+To use a custom theme with Marp:
+
+```bash
+# Download a theme CSS file
+curl -O https://rnd195.github.io/my-marp-themes/beam.css
+
+# Build with custom theme
+marp slides.md --theme beam.css -o output.pdf --pdf
+```
+
+Or add theme to frontmatter and use `--theme-set`:
+
+```markdown
+---
+marp: true
+theme: beam
+---
+```
+
+```bash
+marp slides.md --theme-set beam.css -o output.pdf --pdf
+```
