@@ -6,6 +6,7 @@ style: |
   section {
     background: white;
     font-family: 'Inter', 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif;
+    font-size: 28px;
   }
 
   h1 {
@@ -13,29 +14,41 @@ style: |
     border-bottom: 3px solid #667eea;
     padding-bottom: 0.3em;
     font-weight: 700;
+    font-size: 1.6em;
+    margin-bottom: 0.5em;
   }
 
   h2 {
     color: #334155;
     font-weight: 600;
+    font-size: 1.2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
   }
 
   code {
-    background: #f1f5f9;
-    padding: 0.2em 0.4em;
+    background: #f8f9fa;
+    padding: 0.15em 0.4em;
     border-radius: 3px;
-    font-size: 0.9em;
+    font-size: 0.85em;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    border: 1px solid #e2e8f0;
   }
 
   pre {
-    background: #1e293b;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 1em;
+    border: 1px solid #e2e8f0;
+    margin: 0.5em 0;
   }
 
   pre code {
     background: transparent;
-    color: #e2e8f0;
+    color: #1e293b;
+    font-size: 0.7em;
+    line-height: 1.5;
+    border: none;
   }
 
   .columns {
@@ -45,7 +58,19 @@ style: |
   }
 
   table {
-    font-size: 0.85em;
+    font-size: 0.75em;
+  }
+
+  ul, ol {
+    margin: 0.5em 0;
+  }
+
+  li {
+    margin: 0.3em 0;
+  }
+
+  section {
+    justify-content: flex-start;
   }
 ---
 
@@ -104,14 +129,14 @@ Most interesting data isn't in nice CSV files—it's on websites!
 
 # Legal & Ethical Considerations
 
-## ✅ Generally OK
+## [YES] Generally OK
 
 - Publicly accessible data
 - Respecting `robots.txt`
 - Reasonable request rates (not DDoS)
 - Personal/academic research
 
-## ⚠️ Check First
+## [WARN] Check First
 
 - Terms of Service violations
 - Copyrighted content
@@ -131,10 +156,10 @@ Most interesting data isn't in nice CSV files—it's on websites!
 ## Your Web Scraping Swiss Army Knife
 
 DevTools lets you:
-- 🔍 Inspect how websites load data
-- 📡 See all network requests (APIs!)
-- 🎯 Find the exact data source
-- 🛠️ Generate code to replicate requests
+-  Inspect how websites load data
+-  See all network requests (APIs!)
+-  Find the exact data source
+-  Generate code to replicate requests
 
 **Key Insight**: Most modern websites load data via JavaScript/APIs, not in raw HTML!
 
@@ -223,7 +248,7 @@ Content-Type: application/json
 
 ## Pro Tips
 
-- Use search/filter (🔍) to find keywords
+- Use search/filter () to find keywords
 - Look for URLs with `/api/`, `/data/`, `.json`
 - Check Response tab for raw data
 - Headers tab shows authentication tokens
@@ -244,10 +269,10 @@ Right-click on any request → **Copy** → Choose format:
 ## Why This Matters
 
 Instead of manually constructing requests, DevTools gives you working code with:
-- ✅ Correct headers
-- ✅ Authentication tokens
-- ✅ All parameters
-- ✅ Proper formatting
+- [YES] Correct headers
+- [YES] Authentication tokens
+- [YES] All parameters
+- [YES] Proper formatting
 
 ---
 
@@ -722,10 +747,10 @@ with open('articles.json', 'w') as f:
 
 | Feature | Playwright | Selenium |
 |---------|-----------|----------|
-| Speed | ⚡ Faster | Slower |
-| Modern | ✅ 2020+ | 2004 |
-| Auto-wait | ✅ Built-in | ❌ Manual |
-| API | 🎯 Cleaner | More verbose |
+| Speed |  Faster | Slower |
+| Modern | [YES] 2020+ | 2004 |
+| Auto-wait | [YES] Built-in | [NO] Manual |
+| API |  Cleaner | More verbose |
 | Browsers | Chrome, Firefox, Safari | All browsers |
 | Maintenance | Active (Microsoft) | Community |
 
@@ -927,7 +952,7 @@ with sync_playwright() as p:
 
 <div class="columns">
 
-### Requests + BeautifulSoup ✅
+### Requests + BeautifulSoup [YES]
 - Static HTML content
 - API endpoints available
 - Fast scraping needed
@@ -936,7 +961,7 @@ with sync_playwright() as p:
 
 **Example**: News articles, blogs, product listings (server-rendered)
 
-### Playwright ✅
+### Playwright [YES]
 - JavaScript-rendered content
 - Need to interact (click, scroll)
 - Login required
@@ -982,7 +1007,7 @@ for announcement in announcements[:5]:
 
 # Best Practices Summary
 
-## Do's ✅
+## Do's [YES]
 
 - Check `robots.txt` before scraping
 - Add delays between requests (1-2 seconds)
@@ -991,7 +1016,7 @@ for announcement in announcements[:5]:
 - Cache responses when possible
 - Respect rate limits
 
-## Don'ts ❌
+## Don'ts [NO]
 
 - Don't overwhelm servers (DDoS)
 - Don't scrape personal data without permission
@@ -1092,7 +1117,7 @@ playwright install chromium
 <!-- _class: lead -->
 <!-- _paginate: false -->
 
-# See You in Lab! 🚀
+# See You in Lab! 
 
 **Remember**: With great scraping power comes great responsibility!
 

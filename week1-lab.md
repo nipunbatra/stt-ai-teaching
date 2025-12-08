@@ -6,6 +6,7 @@ style: |
   section {
     background: white;
     font-family: 'Inter', 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif;
+    font-size: 28px;
   }
 
   h1 {
@@ -13,29 +14,57 @@ style: |
     border-bottom: 3px solid #10b981;
     padding-bottom: 0.3em;
     font-weight: 700;
+    font-size: 1.6em;
+    margin-bottom: 0.5em;
   }
 
   h2 {
     color: #334155;
     font-weight: 600;
+    font-size: 1.2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
   }
 
   code {
-    background: #f1f5f9;
-    padding: 0.2em 0.4em;
+    background: #f8f9fa;
+    padding: 0.15em 0.4em;
     border-radius: 3px;
-    font-size: 0.9em;
+    font-size: 0.85em;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    border: 1px solid #e2e8f0;
   }
 
   pre {
-    background: #1e293b;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 1em;
+    border: 1px solid #e2e8f0;
+    margin: 0.5em 0;
   }
 
   pre code {
     background: transparent;
-    color: #e2e8f0;
+    color: #1e293b;
+    font-size: 0.7em;
+    line-height: 1.5;
+    border: none;
+  }
+
+  table {
+    font-size: 0.75em;
+  }
+
+  ul, ol {
+    margin: 0.5em 0;
+  }
+
+  li {
+    margin: 0.3em 0;
+  }
+
+  section {
+    justify-content: flex-start;
   }
 ---
 
@@ -56,11 +85,11 @@ Prof. Nipun Batra & Teaching Assistants
 ## Today's Goals
 
 By the end of this lab, you will:
-- ✅ Master Chrome DevTools for finding data sources
-- ✅ Build scrapers with Requests + BeautifulSoup
-- ✅ Automate browsers with Playwright
-- ✅ Create a real data collection project
-- ✅ Understand ethical scraping practices
+- [YES] Master Chrome DevTools for finding data sources
+- [YES] Build scrapers with Requests + BeautifulSoup
+- [YES] Automate browsers with Playwright
+- [YES] Create a real data collection project
+- [YES] Understand ethical scraping practices
 
 ## Structure
 - **Part 1**: DevTools Exploration (45 min)
@@ -195,10 +224,10 @@ print(response.json())
 
 ### What You've Learned
 
-✅ How to find API endpoints using DevTools
-✅ How to copy requests as cURL
-✅ How to convert cURL to Python
-✅ How to identify request parameters
+[YES] How to find API endpoints using DevTools
+[YES] How to copy requests as cURL
+[YES] How to convert cURL to Python
+[YES] How to identify request parameters
 
 ### Quick Quiz (5 min)
 
@@ -479,10 +508,10 @@ print(common_words)
 
 ### What You've Built
 
-✅ Quotes scraper with pagination
-✅ News aggregator with data analysis
-✅ CSV export and pandas integration
-✅ Basic visualization
+[YES] Quotes scraper with pagination
+[YES] News aggregator with data analysis
+[YES] CSV export and pandas integration
+[YES] Basic visualization
 
 ### Discussion (10 min)
 
@@ -703,7 +732,7 @@ with sync_playwright() as p:
 
     # Verify login
     if page.query_selector('a[href="/logout"]'):
-        print("✓ Successfully logged in!")
+        print("[OK] Successfully logged in!")
     else:
         print("✗ Login failed")
 
@@ -728,11 +757,11 @@ with sync_playwright() as p:
 
 ### Playwright Skills Acquired
 
-✅ Browser automation basics
-✅ Form filling and clicking
-✅ Infinite scroll handling
-✅ Login automation
-✅ Dynamic content extraction
+[YES] Browser automation basics
+[YES] Form filling and clicking
+[YES] Infinite scroll handling
+[YES] Login automation
+[YES] Dynamic content extraction
 
 ### When to Use Playwright
 
@@ -838,12 +867,12 @@ if __name__ == '__main__':
 
 ### Ethical Checklist
 
-- ✅ Checked robots.txt
-- ✅ Added delays between requests
-- ✅ Used appropriate User-Agent
-- ✅ Handled errors gracefully
-- ✅ Didn't overwhelm server
-- ✅ Respects ToS
+- [YES] Checked robots.txt
+- [YES] Added delays between requests
+- [YES] Used appropriate User-Agent
+- [YES] Handled errors gracefully
+- [YES] Didn't overwhelm server
+- [YES] Respects ToS
 
 ---
 
@@ -1260,13 +1289,13 @@ menu_df = tables[0]  # First table is the menu
 <!-- _class: lead -->
 <!-- _paginate: false -->
 
-# Great Work Today! 🎉
+# Great Work Today! 
 
 ## You've Learned:
-✅ Chrome DevTools for finding APIs
-✅ Web scraping with Requests + BeautifulSoup
-✅ Browser automation with Playwright
-✅ Data collection, cleaning, and analysis
+[YES] Chrome DevTools for finding APIs
+[YES] Web scraping with Requests + BeautifulSoup
+[YES] Browser automation with Playwright
+[YES] Data collection, cleaning, and analysis
 
 ## Next Week:
 Data Validation, Labeling, and Quality Control
