@@ -83,6 +83,36 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ---
 
+## Active Learning
+
+**Topics**: Uncertainty sampling, query-by-committee, cost-effective labeling
+
+### Lecture (1.5 hours)
+- [PDF](active-learning-lecture.pdf) | [HTML](active-learning-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/active-learning-lecture.md)
+- Content: Active learning fundamentals, query strategies, oracle simulation, learning curves, modAL library
+
+### Lab (3 hours)
+- [PDF](active-learning-lab.pdf) | [HTML](active-learning-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/active-learning-lab.md)
+- Exercises: Implementing uncertainty sampling, query-by-committee, comparing strategies
+- Project: Build active learning system, measure labeling cost savings
+
+---
+
+## Data Augmentation
+
+**Topics**: Image, text, and audio augmentation techniques
+
+### Lecture (1.5 hours)
+- [PDF](data-augmentation-lecture.pdf) | [HTML](data-augmentation-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/data-augmentation-lecture.md)
+- Content: Augmentation fundamentals, Albumentations, nlpaug, audiomentations, AutoAugment, test-time augmentation
+
+### Lab (3 hours)
+- [PDF](data-augmentation-lab.pdf) | [HTML](data-augmentation-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/data-augmentation-lab.md)
+- Exercises: Image transforms, text paraphrasing, audio manipulation
+- Project: Compare augmentation strategies, measure performance impact
+
+---
+
 ## Reference Materials
 
 ### Data Collection and Labeling (Full Course Content)
