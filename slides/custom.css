@@ -67,3 +67,26 @@ section.lead {
     justify-content: center;
     text-align: center;
 }
+
+/* Diagram Source Attribution Styling */
+/* Styles the italic text after images that shows which Python script generated the diagram */
+section img + em {
+    display: block;
+    text-align: center;
+    font-size: 0.6em;
+    color: #64748b;
+    font-style: italic;
+    margin-top: 0.3em;
+    margin-bottom: 0.8em;
+}
+
+section img + em a {
+    color: #3b82f6;
+    text-decoration: none;
+    border-bottom: 1px dotted #3b82f6;
+}
+
+section img + em a:hover {
+    color: #2563eb;
+    border-bottom: 1px solid #2563eb;
+}

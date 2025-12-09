@@ -28,10 +28,10 @@ $(PDF_DIR)/%.pdf: $(SLIDES_DIR)/%.md
 	@echo "Building PDF: $< -> $@"
 	@marp $< -o $@ --pdf --allow-local-files
 
-# Pattern rule for HTML (with Mermaid support via custom engine)
-$(HTML_DIR)/%.html: $(SLIDES_DIR)/%.md engine.js
-	@echo "Building HTML with Mermaid support: $< -> $@"
-	@npx @marp-team/marp-cli $< -o $@ --html --allow-local-files --engine ./engine.js
+# Pattern rule for HTML
+$(HTML_DIR)/%.html: $(SLIDES_DIR)/%.md
+	@echo "Building HTML: $< -> $@"
+	@marp $< -o $@ --html --allow-local-files
 
 # List available slides
 list:
