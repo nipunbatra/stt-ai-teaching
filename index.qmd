@@ -83,7 +83,7 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ---
 
-## Active Learning
+## Week 6: Active Learning
 
 **Topics**: Uncertainty sampling, query-by-committee, cost-effective labeling
 
@@ -98,7 +98,7 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ---
 
-## Data Augmentation
+## Week 7: Data Augmentation
 
 **Topics**: Image, text, and audio augmentation techniques
 
@@ -113,7 +113,7 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ---
 
-## Reproducibility & Environments
+## Week 8: Reproducibility & Environments
 
 **Topics**: Docker, venv, conda, DVC, MLflow, experiment tracking
 
@@ -128,7 +128,7 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ---
 
-## Testing & CI/CD
+## Week 9: Testing & CI/CD
 
 **Topics**: pytest, GitHub Actions, automated testing for ML, continuous integration
 
@@ -143,7 +143,7 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ---
 
-## Model Deployment
+## Week 10: Model Deployment
 
 **Topics**: Model optimization, quantization, serving, monitoring
 
@@ -155,6 +155,76 @@ title: "CS 203: Software Tools and Techniques for AI"
 - [PDF](pdf/deployment-lab.pdf) | [HTML](html/deployment-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/deployment-lab.md)
 - Exercises: Model optimization, API development, Docker deployment, load testing
 - Project: Deploy production-ready model API
+
+---
+
+## Week 11: Interactive AI Demos
+
+**Topics**: Streamlit, Gradio, Rapid Prototyping, UI/UX for AI
+
+### Lecture (1.5 hours)
+- [PDF](pdf/interactive-demos-lecture.pdf) | [HTML](html/interactive-demos-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/interactive-demos-lecture.md)
+- Content: Building data apps with Streamlit, model demos with Gradio, state management, event loops
+
+### Lab (3 hours)
+- [PDF](pdf/interactive-demos-lab.pdf) | [HTML](html/interactive-demos-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/interactive-demos-lab.md)
+- Exercises: Building a GenAI dashboard, deploying to Streamlit Cloud/Hugging Face Spaces
+
+---
+
+## Week 12: RAG & Vector Databases
+
+**Topics**: Retrieval Augmented Generation, ChromaDB, Embeddings, LangChain
+
+### Lecture (1.5 hours)
+- [PDF](pdf/rag-vector-db-lecture.pdf) | [HTML](html/rag-vector-db-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/rag-vector-db-lecture.md)
+- Content: RAG architecture, vector search fundamentals, embedding models, building a "Chat with PDF" system
+
+### Lab (3 hours)
+- [PDF](pdf/rag-vector-db-lab.pdf) | [HTML](html/rag-vector-db-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/rag-vector-db-lab.md)
+- Exercises: PDF ingestion pipeline, setting up ChromaDB, integrating with Gemini/OpenAI API
+
+---
+
+## Week 13: Cloud Foundations & Orchestration
+
+**Topics**: Docker Compose, Cloud Providers (AWS/Render), Infrastructure as Code
+
+### Lecture (1.5 hours)
+- [PDF](pdf/cloud-orchestration-lecture.pdf) | [HTML](html/cloud-orchestration-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/cloud-orchestration-lecture.md)
+- Content: Multi-container orchestration, networking, deploying to PaaS (Render) vs IaaS (AWS), secrets management
+
+### Lab (3 hours)
+- [PDF](pdf/cloud-orchestration-lab.pdf) | [HTML](html/cloud-orchestration-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/cloud-orchestration-lab.md)
+- Exercises: Writing docker-compose.yml, deploying a full-stack AI app to the cloud
+
+---
+
+## Week 14: Model Monitoring & Observability
+
+**Topics**: Data Drift, Concept Drift, Evidently AI, Prometheus
+
+### Lecture (1.5 hours)
+- [PDF](pdf/model-monitoring-lecture.pdf) | [HTML](html/model-monitoring-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/model-monitoring-lecture.md)
+- Content: Detecting silent model failures, statistical drift tests, monitoring dashboards with Evidently AI
+
+### Lab (3 hours)
+- [PDF](pdf/model-monitoring-lab.pdf) | [HTML](html/model-monitoring-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/model-monitoring-lab.md)
+- Exercises: Simulating production data drift, generating drift reports, setting up alerts
+
+---
+
+## Week 15: LLM Agents & Tool Use
+
+**Topics**: Agents, Function Calling, ReAct Pattern, LangGraph
+
+### Lecture (1.5 hours)
+- [PDF](pdf/llm-agents-lecture.pdf) | [HTML](html/llm-agents-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/llm-agents-lecture.md)
+- Content: From chatbots to agents, tool use/function calling, building autonomous research agents with LangGraph
+
+### Lab (3 hours)
+- [PDF](pdf/llm-agents-lab.pdf) | [HTML](html/llm-agents-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/llm-agents-lab.md)
+- Exercises: Building a multi-step research agent, implementing custom tools
 
 ---
 
