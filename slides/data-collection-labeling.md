@@ -4,29 +4,15 @@ theme: default
 paginate: true
 style: |
   section {
-    background: white;
-    font-family: 'Inter', 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif;
-  }
+  font-size: 28px;
+  padding-top: 0;
+  justify-content: flex-start;
+}
+h1 { margin-top: 0; padding-top: 0; }
+code {
+  background-color: #f4f4f4;
+}
 
-  h1 {
-    color: #1e293b;
-    border-bottom: 3px solid #667eea;
-    padding-bottom: 0.3em;
-    font-weight: 700;
-  }
-
-  h2 {
-    color: #2563eb;
-    font-weight: 600;
-  }
-
-  strong {
-    color: #2563eb;
-  }
-
-  a {
-    color: #667eea;
-  }
 ---
 
 <!-- _class: lead -->
