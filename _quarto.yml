@@ -1,6 +1,9 @@
 project:
   type: website
   output-dir: .
+  render:
+    - "*.qmd"
+    - "!slides/"
 
 website:
   title: "CS 203: Software Tools and Techniques for AI"
