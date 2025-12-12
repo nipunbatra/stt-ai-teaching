@@ -4,25 +4,44 @@ section {
     font-family: 'Inter', sans-serif;
     font-size: 28px;
     
-    /* Align content to top and left */
+    /* Flexbox layout for alignment */
+    display: flex;
+    flex-direction: column;
+    
+    /* Vertical alignment: Top */
     justify-content: flex-start;
+    
+    /* Horizontal alignment: Left */
+    align-items: flex-start;
     text-align: left;
-    padding: 70px; 
+    
+    /* Consistent padding ensures titles stay at the same height */
+    padding: 60px 70px; 
 }
 
 /* Pagination (Slide Numbers) */
+/* Marp adds data-marpit-pagination attributes to sections when paginate: true */
 section::after {
     content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
     position: absolute;
-    bottom: 20px;
-    right: 30px;
-    font-size: 18px;
+    bottom: 25px;
+    right: 35px;
+    font-size: 20px;
     color: #64748b;
+    font-weight: 600;
+    z-index: 100; /* Ensure it's on top */
 }
 
-/* Hide pagination on title slide */
+/* Hide pagination on the first slide (Title Slide) */
 section:first-of-type::after {
-    display: none;
+    content: '';
+}
+
+/* Title Slide Specifics (Class: lead) */
+section.lead {
+    justify-content: center; /* Vertically center */
+    align-items: center;     /* Horizontally center */
+    text-align: center;      /* Center text */
 }
 
 /* Title Styling */
@@ -30,53 +49,90 @@ h1 {
     color: #1e293b;
     border-bottom: 3px solid #f59e0b;
     font-size: 1.6em;
-    margin-bottom: 0.5em;
+    
+    /* Positioning */
     margin-top: 0; 
+    margin-bottom: 0.6em;
+    width: 100%; /* Ensure border spans full width */
 }
 
 /* Heading 2 */
 h2 {
     color: #334155;
-    font-size: 1.2em;
-    margin: 0.5em 0;
+    font-size: 1.3em;
+    margin-top: 0.5em;
+    margin-bottom: 0.3em;
 }
 
-/* Lists - ensure left alignment */
+/* Lists */
 ul, ol {
-    text-align: left;
+    margin-left: 0;
+    padding-left: 1.5em;
+}
+
+li {
+    margin-bottom: 0.3em;
 }
 
 /* Code Blocks */
 code {
-    background: #f8f9fa;
-    font-size: 0.85em;
-    font-family: 'Fira Code', monospace;
-    border: 1px solid #e2e8f0;
+    background: #f1f5f9;
+    color: #0f172a;
+    font-family: 'Fira Code', 'Roboto Mono', monospace;
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
 }
 
 pre {
-    background: #f8f9fa;
-    border-radius: 6px;
-    padding: 1em;
+    background: #1e293b; /* Dark theme for code blocks */
+    color: #f8fafc;
+    padding: 18px;
+    border-radius: 8px;
+    width: 100%; /* Full width */
+    overflow-x: auto;
     margin: 0.5em 0;
-    text-align: left; /* Ensure code is left-aligned */
+    
+    /* Ensure code text is left aligned even if parent is weird */
+    text-align: left;
 }
 
 pre code {
     background: transparent;
-    color: #1e293b;
-    font-size: 0.7em;
-    line-height: 1.5;
+    color: inherit;
+    padding: 0;
+    font-size: 0.75em;
+    border: none;
 }
 
-/* Title Slide Specifics */
-section.lead {
+/* Images */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto; /* Center images by default if they are solitary */
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+th, td {
+    border: 1px solid #cbd5e1;
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f1f5f9;
+    font-weight: bold;
+}
+
+/* Mermaid Diagrams */
+.mermaid {
+    display: flex;
     justify-content: center;
-    text-align: center;
-}
-
-/* Center aligned lists for title slides if needed */
-section.lead ul, section.lead ol {
-    text-align: center;
-    list-style-position: inside;
+    width: 100%;
 }
