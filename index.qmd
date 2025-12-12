@@ -10,14 +10,14 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ## Week 1: Data Collection
 
-**Topics**: HTTP, curl, APIs, OMDb/TMDb, Web Scraping (BeautifulSoup)
+**Topics**: HTTP, curl, APIs, OMDb/TMDb, Web Scraping (BeautifulSoup, Playwright)
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week1-data-collection-lecture.pdf) | [HTML](html/week1-data-collection-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week1-data-collection-lecture.md)
-- Content: The web data pipeline, HTTP fundamentals, using `curl` and DevTools, automating with Python `requests`, parsing HTML with `BeautifulSoup`.
+- [PDF](pdf/week01-data-collection-lecture.pdf) | [HTML](html/week01-data-collection-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week01-data-collection-lecture.md)
+- Content: The web data pipeline, HTTP fundamentals, using `curl` and DevTools, automating with Python `requests`, parsing HTML with `BeautifulSoup`, handling dynamic sites with `Playwright`.
 
 ### Lab (3 hours)
-- [PDF](pdf/week1-data-collection-lab.pdf) | [HTML](html/week1-data-collection-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week1-data-collection-lab.md)
+- [PDF](pdf/week01-data-collection-lab.pdf) | [HTML](html/week01-data-collection-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week01-data-collection-lab.md)
 - Exercises: Building a robust movie data collector using OMDb API, scraping IMDb top lists, saving structured data.
 
 ---
@@ -27,11 +27,11 @@ title: "CS 203: Software Tools and Techniques for AI"
 **Topics**: Data integrity, JSON/CSV tools, Pydantic, Pandas cleaning
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week2-data-validation-lecture.pdf) | [HTML](html/week2-data-validation-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week2-data-validation-lecture.md)
+- [PDF](pdf/week02-data-validation-lecture.pdf) | [HTML](html/week02-data-validation-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week02-data-validation-lecture.md)
 - Content: Command-line inspection with `jq` and `csvkit`, defining data schemas with `Pydantic`, robust data cleaning pipelines with `pandas`.
 
 ### Lab (3 hours)
-- [PDF](pdf/week2-data-validation-lab.pdf) | [HTML](html/week2-data-validation-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week2-data-validation-lab.md)
+- [PDF](pdf/week02-data-validation-lab.pdf) | [HTML](html/week02-data-validation-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week02-data-validation-lab.md)
 - Exercises: Validating the movie dataset, fixing missing/corrupt values, enforcing type constraints, preparing clean data for ML.
 
 ---
@@ -41,11 +41,11 @@ title: "CS 203: Software Tools and Techniques for AI"
 **Topics**: Annotation tasks, Label Studio, Inter-Annotator Agreement, Active Learning
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week3-data-labeling-lecture.pdf) | [HTML](html/week3-data-labeling-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week3-data-labeling-lecture.md)
+- [PDF](pdf/week03-data-labeling-lecture.pdf) | [HTML](html/week03-data-labeling-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week03-data-labeling-lecture.md)
 - Content: Types of labeling (classification, NER, bbox), setting up Label Studio, measuring agreement (Cohen's Kappa), active learning strategies.
 
 ### Lab (3 hours)
-- [PDF](pdf/week3-data-labeling-lab.pdf) | [HTML](html/week3-data-labeling-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week3-data-labeling-lab.md)
+- [PDF](pdf/week03-data-labeling-lab.pdf) | [HTML](html/week03-data-labeling-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week03-data-labeling-lab.md)
 - Exercises: Configuring Label Studio for sentiment analysis, annotating movie plots, calculating agreement metrics, exporting training data.
 
 ---
@@ -55,11 +55,11 @@ title: "CS 203: Software Tools and Techniques for AI"
 **Topics**: Uncertainty sampling, query-by-committee, cost-effective labeling
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week4-active-learning-lecture.pdf) | [HTML](html/week4-active-learning-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week4-active-learning-lecture.md)
+- [PDF](pdf/week04-active-learning-lecture.pdf) | [HTML](html/week04-active-learning-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week04-active-learning-lecture.md)
 - Content: Active learning fundamentals, query strategies, oracle simulation, learning curves, modAL library
 
 ### Lab (3 hours)
-- [PDF](pdf/week4-active-learning-lab.pdf) | [HTML](html/week4-active-learning-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week4-active-learning-lab.md)
+- [PDF](pdf/week04-active-learning-lab.pdf) | [HTML](html/week04-active-learning-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week04-active-learning-lab.md)
 - Exercises: Implementing uncertainty sampling, query-by-committee, comparing strategies
 - Project: Build active learning system, measure labeling cost savings
 
@@ -70,11 +70,11 @@ title: "CS 203: Software Tools and Techniques for AI"
 **Topics**: Image, text, and audio augmentation techniques
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week5-data-augmentation-lecture.pdf) | [HTML](html/week5-data-augmentation-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week5-data-augmentation-lecture.md)
+- [PDF](pdf/week05-data-augmentation-lecture.pdf) | [HTML](html/week05-data-augmentation-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week05-data-augmentation-lecture.md)
 - Content: Augmentation fundamentals, Albumentations, nlpaug, audiomentations, AutoAugment, test-time augmentation.
 
 ### Lab (3 hours)
-- [PDF](pdf/week5-data-augmentation-lab.pdf) | [HTML](html/week5-data-augmentation-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week5-data-augmentation-lab.md)
+- [PDF](pdf/week05-data-augmentation-lab.pdf) | [HTML](html/week05-data-augmentation-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week05-data-augmentation-lab.md)
 - Exercises: Image transforms, text paraphrasing, audio manipulation, comparing augmentation strategies, measuring performance impact.
 
 ---
@@ -84,11 +84,11 @@ title: "CS 203: Software Tools and Techniques for AI"
 **Topics**: Gemini API, text generation, vision models, multimodal understanding
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week6-llm-apis-lecture.pdf) | [HTML](html/week6-llm-apis-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week6-llm-apis-lecture.md)
+- [PDF](pdf/week06-llm-apis-lecture.pdf) | [HTML](html/week06-llm-apis-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week06-llm-apis-lecture.md)
 - Content: LLM API setup, text understanding (NER, sentiment, QA), vision (OCR, object detection), audio/video processing.
 
 ### Lab (3 hours)
-- [PDF](pdf/week6-llm-apis-lab.pdf) | [HTML](html/week6-llm-apis-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week6-llm-apis-lab.md)
+- [PDF](pdf/week06-llm-apis-lab.pdf) | [HTML](html/week06-llm-apis-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week06-llm-apis-lab.md)
 - Exercises: API setup, sentiment analysis, image analysis, OCR, PDF extraction, audio transcription.
 
 ---
@@ -149,45 +149,45 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ---
 
-## Week 11: Git & GitHub Automation
+## Week 11: Git, GitHub Actions & CI/CD
 
-**Topics**: GitHub API, PyGithub, GraphQL, Webhooks, AI-powered Code Review
+**Topics**: Git automation, GitHub Actions, Unit Testing, CI/CD for ML
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week11-github-automation-lecture.pdf) | [HTML](html/week11-github-automation-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week11-github-automation-lecture.md)
-- Content: REST vs GraphQL APIs, Authentication (PATs), PyGithub, Webhooks, Building AI bots for GitHub.
+- [PDF](pdf/week11-git-cicd-lecture.pdf) | [HTML](html/week11-git-cicd-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week11-git-cicd-lecture.md)
+- Content: PyGithub, GitHub API, Actions workflows (CI), Testing strategies (Unit/Integration), Pre-commit hooks.
 
 ### Lab (3 hours)
-- [PDF](pdf/week11-github-automation-lab.pdf) | [HTML](html/week11-github-automation-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week11-github-automation-lab.md)
-- Exercises: Programmatic repo management, fetching PR diffs, building an LLM-based PR Reviewer bot.
+- [PDF](pdf/week11-git-cicd-lab.pdf) | [HTML](html/week11-git-cicd-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week11-git-cicd-lab.md)
+- Exercises: Building an AI code reviewer bot, setting up a CI pipeline for model testing, automated linting.
 
 ---
 
-## Week 12: Testing & CI/CD
+## Week 12: Deployment on Constrained Devices
 
-**Topics**: pytest, GitHub Actions, automated testing for ML, continuous integration
+**Topics**: Model compression, Quantization, Pruning, ONNX, Edge AI
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week12-testing-cicd-lecture.pdf) | [HTML](html/week12-testing-cicd-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week12-testing-cicd-lecture.md)
-- Content: Unit/integration testing, data validation tests, model testing, bias testing, GitHub Actions workflows.
+- [PDF](pdf/week12-deployment-constrained-lecture.pdf) | [HTML](html/week12-deployment-constrained-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week12-deployment-constrained-lecture.md)
+- Content: Post-training quantization (PTQ), quantization-aware training (QAT), structured vs unstructured pruning, ONNX Runtime optimization.
 
 ### Lab (3 hours)
-- [PDF](pdf/week12-testing-cicd-lab.pdf) | [HTML](html/week12-testing-cicd-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week12-testing-cicd-lab.md)
-- Exercises: Writing tests with pytest, creating CI/CD pipelines, using pre-commit hooks for code quality.
+- [PDF](pdf/week12-deployment-constrained-lab.pdf) | [HTML](html/week12-deployment-constrained-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week12-deployment-constrained-lab.md)
+- Exercises: Quantizing a ResNet model, pruning weights, converting to ONNX, benchmarking size and latency reduction.
 
 ---
 
-## Week 13: Model Deployment
+## Week 13: Profiling & Optimization
 
-**Topics**: Model optimization, quantization, serving, monitoring
+**Topics**: Performance profiling, Mixed Precision (AMP), Knowledge Distillation, Data Loading optimization
 
 ### Lecture (1.5 hours)
-- [PDF](pdf/week13-deployment-lecture.pdf) | [HTML](html/week13-deployment-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week13-deployment-lecture.md)
-- Content: Model quantization, ONNX, serving architectures (Batch/Stream/API), Docker deployment strategies.
+- [PDF](pdf/week13-profiling-optimization-lecture.pdf) | [HTML](html/week13-profiling-optimization-lecture.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week13-profiling-optimization-lecture.md)
+- Content: GPU profiling (nvidia-smi, PyTorch Profiler), identifying bottlenecks, Automatic Mixed Precision (AMP), Knowledge Distillation.
 
 ### Lab (3 hours)
-- [PDF](pdf/week13-deployment-lab.pdf) | [HTML](html/week13-deployment-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week13-deployment-lab.md)
-- Exercises: Optimizing models with ONNX, containerizing the API, benchmarking inference speed.
+- [PDF](pdf/week13-profiling-optimization-lab.pdf) | [HTML](html/week13-profiling-optimization-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week13-profiling-optimization-lab.md)
+- Exercises: Profiling a training loop, optimizing DataLoader workers, implementing AMP, distilling a large teacher model into a smaller student.
 
 ---
 
@@ -201,7 +201,7 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ### Lab (3 hours)
 - [PDF](pdf/week14-rag-vector-db-lab.pdf) | [HTML](html/week14-rag-vector-db-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week14-rag-vector-db-lab.md)
-- Exercises: Building an ingestion pipeline, setting up ChromaDB, integrating retrieval with Gemini/OpenAI API.
+- Exercises: PDF ingestion pipeline, setting up ChromaDB, integrating retrieval with Gemini/OpenAI API.
 
 ---
 
@@ -229,7 +229,7 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ### Lab (3 hours)
 - [PDF](pdf/week16-model-monitoring-lab.pdf) | [HTML](html/week16-model-monitoring-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week16-model-monitoring-lab.md)
-- Exercises: Simulating production data drift, generating drift reports, setting up alerts for model decay.
+- Exercises: Simulating production data drift, generating drift reports, setting up alerts.
 
 ---
 
@@ -243,7 +243,7 @@ title: "CS 203: Software Tools and Techniques for AI"
 
 ### Lab (3 hours)
 - [PDF](pdf/week17-llm-agents-lab.pdf) | [HTML](html/week17-llm-agents-lab.html) | [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week17-llm-agents-lab.md)
-- Exercises: Building a multi-step research agent, implementing custom tools for an LLM.
+- Exercises: Building a multi-step research agent, implementing custom tools.
 
 ---
 

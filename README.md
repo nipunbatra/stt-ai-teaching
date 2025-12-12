@@ -20,9 +20,9 @@ This repository contains the lecture slides, lab exercises, and course materials
 | 8 | Reproducibility & Environments | Docker, DVC, MLflow |
 | 9 | Interactive AI Demos | Streamlit, Gradio, Hugging Face |
 | 10 | HTTP, APIs & FastAPI | FastAPI, curl, HTTP |
-| 11 | Git & GitHub Automation | GitHub API, PyGithub, GraphQL |
-| 12 | Testing & CI/CD | pytest, GitHub Actions |
-| 13 | Model Deployment | ONNX, Docker, Serving |
+| 11 | Git, GitHub Actions & CI/CD | GitHub API, PyGithub, Actions |
+| 12 | Deployment on Constrained Devices | ONNX, Quantization, Pruning |
+| 13 | Profiling & Optimization | PyTorch Profiler, AMP, Distillation |
 | 14 | RAG & Vector Databases | ChromaDB, Embeddings, LangChain |
 | 15 | Cloud Foundations & Orchestration | Docker Compose, AWS/Render |
 | 16 | Model Monitoring & Observability | Evidently AI, Data Drift |
