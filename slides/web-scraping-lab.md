@@ -1,15 +1,15 @@
 ---
 marp: true
 theme: default
+class: lead
 paginate: true
-style: @import "custom.css";
-  section { justify-content: flex-start; }
+backgroundColor: #fff
+style: |
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+  @import 'custom.css';
 ---
 
-<!-- _class: lead -->
-<!-- _paginate: false -->
-
-# Week 1 Lab: Web Scraping Workshop
+# Week 1 Lab: Data Collection for ML
 
 **CS 203: Software Tools and Techniques for AI**
 
@@ -20,274 +20,549 @@ Prof. Nipun Batra & Teaching Assistants
 
 # Lab Overview
 
-## Today's Goals
+**Goal**: Build a movie data collection system for our Netflix recommendation problem
 
-By the end of this lab, you will:
-- [YES] Master Chrome DevTools for finding data sources
-- [YES] Build scrapers with Requests + BeautifulSoup
-- [YES] Automate browsers with Playwright
-- [YES] Create a real data collection project
-- [YES] Understand ethical scraping practices
+**What you'll build**:
+- curl commands to test OMDb API
+- Python scripts to collect movie data
+- Web scraper for additional movie information
+- Complete dataset of 50+ movies with features
 
-## Structure
-- **Part 1**: DevTools Exploration (45 min)
-- **Part 2**: Static Scraping with BeautifulSoup (90 min)
-- **Part 3**: Dynamic Scraping with Playwright (45 min)
-- **Part 4**: Mini Project (30 min)
+**Skills practiced**:
+- Using command-line tools (curl, jq)
+- Python requests library
+- BeautifulSoup for HTML parsing
+- Error handling and data validation
 
 ---
 
-# Setup Check (10 minutes)
+# Setup Check
 
-## Verify Your Environment
+Verify your environment:
 
 ```bash
 # Check Python version (need 3.8+)
 python --version
 
 # Install required packages
-pip install requests beautifulsoup4 playwright pandas matplotlib
+pip install requests beautifulsoup4 \
+            python-dotenv pandas
 
-# Install Playwright browsers
-playwright install chromium
-
-# Verify installations
-python -c "import requests, bs4, playwright; print('All packages installed!')"
+# Create project directory
+mkdir movie-collector
+cd movie-collector
 ```
 
-## Troubleshooting
+---
 
-- **Permission errors**: Use `pip install --user ...`
-- **Playwright install fails**: May need admin rights
-- **Mac SSL errors**: `pip install --upgrade certifi`
+# Part 1: Command Line Tools
+
+Getting started with curl and jq
 
 ---
 
-# Part 1: Chrome DevTools Mastery
+# Exercise 1.1: Your First API Call
 
-## Exercise 1.1: Find the Hidden API (15 min)
+**Task**: Get information about "Inception" using curl
 
-**Website**: https://www.goodreads.com or https://www.imdb.com
+**Get an API key first**:
+1. Go to http://www.omdbapi.com/apikey.aspx
+2. Select "FREE" (1,000 requests/day)
+3. Enter your email
+4. Check email for API key
 
-**Your Task**:
-1. Open the website in Chrome
-2. Open DevTools (Cmd+Option+I / Ctrl+Shift+I)
-3. Go to Network tab
-4. Filter by XHR/Fetch
-5. Search for a book/movie
-6. Find the API request that returns search results
-7. Copy the request as cURL
-
-**Deliverable**: Share the API endpoint URL you found
+**Save the key for later use!**
 
 ---
 
-## Exercise 1.1: Solution Example
-
-### IMDB Search Example
+# Exercise 1.1: Solution
 
 ```bash
-# What you might find in Network tab
-https://v3.sg.media-imdb.com/suggestion/x/avengers.json
+# Replace YOUR_KEY with your actual key
+curl "http://www.omdbapi.com/?apikey=YOUR_KEY&t=Inception"
+```
 
-# The response will be JSON like:
+**Output** (unformatted JSON):
+```json
+{"Title":"Inception","Year":"2010","Rated":"PG-13",
+"Released":"16 Jul 2010","Runtime":"148 min",
+"Genre":"Action, Sci-Fi, Thriller","Director":"Christopher Nolan",
+"imdbRating":"8.8","imdbVotes":"2,535,646",...}
+```
+
+**Problem**: Hard to read!
+
+---
+
+# Exercise 1.2: Format with jq
+
+**Task**: Make the JSON readable
+
+**Install jq** (if not already installed):
+```bash
+# Mac
+brew install jq
+
+# Linux
+sudo apt-get install jq
+
+# Windows: download from stedolan.github.io/jq/
+```
+
+**Use it**:
+```bash
+curl "http://www.omdbapi.com/?apikey=YOUR_KEY&t=Inception" | jq
+```
+
+---
+
+# Exercise 1.2: Output
+
+Now it's nicely formatted:
+
+```json
 {
-  "d": [
-    {
-      "i": {"imageUrl": "..."},
-      "l": "Avengers: Endgame",
-      "q": "feature",
-      "rank": 43,
-      "s": "Robert Downey Jr., Chris Evans",
-      "y": 2019
-    },
-    ...
-  ]
+  "Title": "Inception",
+  "Year": "2010",
+  "Rated": "PG-13",
+  "Released": "16 Jul 2010",
+  "Runtime": "148 min",
+  "Genre": "Action, Sci-Fi, Thriller",
+  "Director": "Christopher Nolan",
+  "imdbRating": "8.8",
+  "imdbVotes": "2,535,646",
+  "BoxOffice": "$292,587,330"
 }
 ```
 
-**Key Learning**: Modern websites often use JSON APIs that are easier to scrape than HTML!
+**Much better!**
 
 ---
 
-## Exercise 1.2: cURL to Python (15 min)
+# Exercise 1.3: Extract Specific Fields
 
-**Task**: Convert your cURL command to Python
+**Task**: Get only title, year, and rating
 
-### Step 1: Copy as cURL
-Right-click request → Copy → Copy as cURL
+```bash
+curl "http://www.omdbapi.com/?apikey=YOUR_KEY&t=Inception" | \
+  jq '{title: .Title, year: .Year, rating: .imdbRating}'
+```
 
-### Step 2: Use curlconverter.com (or do manually)
-- Visit https://curlconverter.com
-- Paste your cURL command
-- Select "Python Requests"
-- Get Python code!
+**Output**:
+```json
+{
+  "title": "Inception",
+  "year": "2010",
+  "rating": "8.8"
+}
+```
 
-### Step 3: Test it
+**jq is powerful for filtering JSON!**
+
+---
+
+# Exercise 1.4: Multiple Movies
+
+**Task**: Get data for 3 movies using a loop
+
+```bash
+# Create a file with movie titles
+echo -e "Inception\nThe Matrix\nInterstellar" > movies.txt
+
+# Loop through and fetch each
+while read movie; do
+  echo "Fetching: $movie"
+  curl "http://www.omdbapi.com/?apikey=YOUR_KEY&t=$movie" | \
+    jq '{title: .Title, rating: .imdbRating}'
+  sleep 1  # Be polite to the API
+done < movies.txt
+```
+
+---
+
+# Part 1 Checkpoint
+
+**What you've learned**:
+- Using curl to make HTTP GET requests
+- Formatting JSON with jq
+- Filtering JSON fields with jq syntax
+- Batch processing with shell loops
+
+**Why this matters**:
+- Quick API testing without writing code
+- Understanding API responses before coding
+- Command-line tools are fast and powerful
+
+---
+
+# Part 2: Python Data Collection
+
+Building a production collector
+
+---
+
+# Exercise 2.1: Basic API Call
+
+**Task**: Fetch movie data in Python
+
+Create file: `get_movie.py`
+
 ```python
 import requests
 
-# Paste the converted code here
-response = requests.get(
-    'YOUR_URL_HERE',
-    headers={'User-Agent': '...'}
-)
+api_key = "YOUR_KEY"  # We'll fix this soon!
+title = "Inception"
 
+url = "http://www.omdbapi.com/"
+params = {
+    "apikey": api_key,
+    "t": title
+}
+
+response = requests.get(url, params=params)
 print(response.json())
 ```
 
 ---
 
-## Exercise 1.3: GitHub API Exploration (15 min)
+# Exercise 2.1: Run It
 
-**Task**: Use DevTools to find GitHub's API endpoints
+```bash
+python get_movie.py
+```
 
-1. Go to https://github.com/microsoft/vscode
-2. Open DevTools → Network
-3. Click on "Issues" tab
-4. Find the API call for issues
-5. Examine the response structure
+**Output**:
+```python
+{
+  'Title': 'Inception',
+  'Year': '2010',
+  'imdbRating': '8.8',
+  'Genre': 'Action, Sci-Fi, Thriller',
+  ...
+}
+```
 
-**Questions to Answer**:
-- What's the API endpoint?
-- What parameters does it use?
-- How is pagination handled?
-- What authentication is needed?
-
-**Bonus**: Write Python code to fetch the first page of issues
-
----
-
-## Part 1 Checkpoint
-
-### What You've Learned
-
-[YES] How to find API endpoints using DevTools
-[YES] How to copy requests as cURL
-[YES] How to convert cURL to Python
-[YES] How to identify request parameters
-
-### Quick Quiz (5 min)
-
-1. What's the difference between XHR and Fetch?
-2. Where do you find authentication tokens in DevTools?
-3. Why is copying as cURL useful?
-
-**Share your findings**: Each team shares one interesting API they found!
+**Success!** But hardcoding the API key is bad practice.
 
 ---
 
-# Part 2: Static Scraping with BeautifulSoup
+# Exercise 2.2: Use Environment Variables
 
-## Exercise 2.1: Quotes Scraper (20 min)
+**Task**: Secure your API key with .env file
+
+**Step 1**: Install python-dotenv
+```bash
+pip install python-dotenv
+```
+
+**Step 2**: Create `.env` file
+```
+OMDB_API_KEY=your_actual_key_here
+```
+
+**Step 3**: Add to `.gitignore`
+```
+.env
+```
+
+---
+
+# Exercise 2.2: Updated Code
+
+Update `get_movie.py`:
+
+```python
+import requests
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+api_key = os.getenv("OMDB_API_KEY")
+
+title = "Inception"
+url = "http://www.omdbapi.com/"
+params = {"apikey": api_key, "t": title}
+
+response = requests.get(url, params=params)
+data = response.json()
+
+print(f"Title: {data['Title']}")
+print(f"Year: {data['Year']}")
+print(f"Rating: {data['imdbRating']}")
+```
+
+---
+
+# Exercise 2.3: Add Error Handling
+
+**Task**: Handle network errors and API failures
+
+Create file: `collector.py`
+
+```python
+import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def get_movie_data(title):
+    api_key = os.getenv("OMDB_API_KEY")
+    url = "http://www.omdbapi.com/"
+    params = {"apikey": api_key, "t": title}
+
+    try:
+        response = requests.get(url,
+                               params=params,
+                               timeout=10)
+        response.raise_for_status()
+        data = response.json()
+```
+
+---
+
+# Exercise 2.3: Error Handling (continued)
+
+```python
+        # Check if movie was found
+        if data.get("Response") == "False":
+            print(f"Error: {data.get('Error')}")
+            return None
+
+        return data
+
+    except requests.exceptions.Timeout:
+        print("Request timed out")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return None
+
+# Test it
+movie = get_movie_data("Inception")
+if movie:
+    print(f"Found: {movie['Title']}")
+```
+
+---
+
+# Exercise 2.4: Collect Multiple Movies
+
+**Task**: Build a list of movie data
+
+```python
+import requests
+import os
+import time
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def get_movie_data(title):
+    # [Previous function code here]
+    pass
+
+# List of movies to collect
+movies_to_fetch = [
+    "Inception", "The Matrix", "Interstellar",
+    "The Dark Knight", "Pulp Fiction",
+    "The Shawshank Redemption"
+]
+```
+
+---
+
+# Exercise 2.4: Collection Loop
+
+```python
+collected_movies = []
+
+for i, title in enumerate(movies_to_fetch, 1):
+    print(f"Fetching {i}/{len(movies_to_fetch)}: {title}")
+
+    movie_data = get_movie_data(title)
+
+    if movie_data:
+        collected_movies.append(movie_data)
+        print(f"  Success! Rating: {movie_data['imdbRating']}")
+    else:
+        print(f"  Failed to fetch {title}")
+
+    # Be polite to the API
+    time.sleep(1)
+
+print(f"\nCollected {len(collected_movies)} movies")
+```
+
+---
+
+# Exercise 2.5: Save to JSON
+
+**Task**: Save collected data for later use
+
+```python
+import json
+
+# Save raw data
+with open('movies_raw.json', 'w') as f:
+    json.dump(collected_movies, f, indent=2)
+
+print("Saved to movies_raw.json")
+```
+
+**Why save raw data?**
+- Can reprocess without re-fetching
+- Debugging is easier
+- Keeps original data intact
+
+---
+
+# Exercise 2.6: Extract Features
+
+**Task**: Create a clean dataset with only needed features
+
+```python
+import pandas as pd
+
+# Extract features we need
+features_list = []
+
+for movie in collected_movies:
+    features = {
+        'title': movie.get('Title'),
+        'year': movie.get('Year'),
+        'genre': movie.get('Genre'),
+        'director': movie.get('Director'),
+        'rating': movie.get('imdbRating'),
+        'votes': movie.get('imdbVotes'),
+        'runtime': movie.get('Runtime'),
+        'box_office': movie.get('BoxOffice')
+    }
+    features_list.append(features)
+```
+
+---
+
+# Exercise 2.6: Save to CSV
+
+```python
+# Create DataFrame
+df = pd.DataFrame(features_list)
+
+# Save to CSV
+df.to_csv('movies.csv', index=False)
+
+# Display
+print(df.head())
+```
+
+**Output**:
+```
+              title  year                    genre            director  rating
+0         Inception  2010  Action, Sci-Fi, Thriller  Christopher Nolan     8.8
+1        The Matrix  1999  Action, Sci-Fi           The Wachowskis      8.7
+2      Interstellar  2014  Adventure, Drama, Sci-Fi Christopher Nolan     8.7
+```
+
+---
+
+# Part 2 Checkpoint
+
+**What you've learned**:
+- Making API calls with requests library
+- Handling errors gracefully
+- Using environment variables for secrets
+- Collecting data in batches
+- Saving data to JSON and CSV
+
+**Your progress**: You now have a working movie data collector!
+
+---
+
+# Part 3: Web Scraping
+
+Getting data not available via API
+
+---
+
+# Exercise 3.1: Inspect HTML
+
+**Task**: Understand website structure
 
 **Website**: http://quotes.toscrape.com
 
-**Task**: Build a complete quotes scraper
+1. Open in Chrome
+2. Right-click on a quote
+3. Select "Inspect"
+4. See the HTML structure
 
-```python
-import requests
-from bs4 import BeautifulSoup
-
-# TODO: Write code to scrape:
-# 1. All quotes from the first page
-# 2. Author of each quote
-# 3. Tags for each quote
-# 4. Save to a CSV file
-
-# Starter code:
-url = 'http://quotes.toscrape.com/'
-response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
-
-# Your code here...
-```
-
-**Output**: Save to `quotes.csv` with columns: quote, author, tags
+**Observations**:
+- Each quote is in a `<div class="quote">`
+- Text is in `<span class="text">`
+- Author is in `<small class="author">`
+- Tags are in `<a class="tag">`
 
 ---
 
-## Exercise 2.1: Solution
+# Exercise 3.2: Your First Scraper
+
+**Task**: Scrape quotes from the website
+
+Create file: `scrape_quotes.py`
 
 ```python
 import requests
 from bs4 import BeautifulSoup
-import csv
 
 url = 'http://quotes.toscrape.com/'
 response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
 
-quotes_data = []
+soup = BeautifulSoup(response.text, 'html.parser')
 
 # Find all quote containers
 quotes = soup.find_all('div', class_='quote')
 
-for quote in quotes:
-    text = quote.find('span', class_='text').text
-    author = quote.find('small', class_='author').text
-    tags = [tag.text for tag in quote.find_all('a', class_='tag')]
-
-    quotes_data.append({
-        'quote': text,
-        'author': author,
-        'tags': ', '.join(tags)
-    })
-
-# Save to CSV
-with open('quotes.csv', 'w', newline='', encoding='utf-8') as f:
-    writer = csv.DictWriter(f, fieldnames=['quote', 'author', 'tags'])
-    writer.writeheader()
-    writer.writerows(quotes_data)
-
-print(f"Saved {len(quotes_data)} quotes to quotes.csv")
+print(f"Found {len(quotes)} quotes")
 ```
 
 ---
 
-## Exercise 2.2: Pagination (25 min)
+# Exercise 3.2: Extract Quote Data
 
-**Task**: Extend your scraper to handle multiple pages
-
-**Challenge**:
-1. Scrape quotes from pages 1-10
-2. Add a page number column
-3. Include delay between requests
-4. Handle the case when there are no more pages
-
-**Hints**:
 ```python
-import time
+for quote in quotes:
+    # Extract text
+    text = quote.find('span', class_='text').text
 
-base_url = 'http://quotes.toscrape.com'
-page = 1
+    # Extract author
+    author = quote.find('small', class_='author').text
 
-while True:
-    url = f'{base_url}/page/{page}/'
-    # Your scraping code here...
+    # Extract tags
+    tag_elements = quote.find_all('a', class_='tag')
+    tags = [tag.text for tag in tag_elements]
 
-    # Check if there's a next page
-    # If not, break
-
-    page += 1
-    time.sleep(1)  # Be polite!
+    print(f"\nQuote: {text}")
+    print(f"Author: {author}")
+    print(f"Tags: {', '.join(tags)}")
 ```
 
 ---
 
-## Exercise 2.2: Solution
+# Exercise 3.3: Handle Multiple Pages
+
+**Task**: Scrape quotes from all pages
 
 ```python
 import requests
 from bs4 import BeautifulSoup
-import csv
 import time
 
 base_url = 'http://quotes.toscrape.com'
 all_quotes = []
 page = 1
 
-while page <= 10:  # Limit to 10 pages
+while True:
     url = f'{base_url}/page/{page}/'
     print(f"Scraping page {page}...")
 
@@ -295,963 +570,553 @@ while page <= 10:  # Limit to 10 pages
     soup = BeautifulSoup(response.text, 'html.parser')
 
     quotes = soup.find_all('div', class_='quote')
+```
 
-    if not quotes:  # No more quotes
-        print("No more pages!")
+---
+
+# Exercise 3.3: Pagination Loop
+
+```python
+    # If no quotes found, we're done
+    if not quotes:
+        print("No more quotes found")
         break
 
+    # Process quotes on this page
     for quote in quotes:
         text = quote.find('span', class_='text').text
         author = quote.find('small', class_='author').text
-        tags = [tag.text for tag in quote.find_all('a', class_='tag')]
-
         all_quotes.append({
-            'page': page,
             'quote': text,
-            'author': author,
-            'tags': ', '.join(tags)
+            'author': author
         })
 
     page += 1
-    time.sleep(1)  # Polite delay
-
-# Save to CSV
-with open('all_quotes.csv', 'w', newline='', encoding='utf-8') as f:
-    writer = csv.DictWriter(f, fieldnames=['page', 'quote', 'author', 'tags'])
-    writer.writeheader()
-    writer.writerows(all_quotes)
+    time.sleep(1)  # Be polite
 
 print(f"Total quotes scraped: {len(all_quotes)}")
 ```
 
 ---
 
-## Exercise 2.3: News Aggregator (45 min)
+# Exercise 3.4: Handle Missing Elements
 
-**Task**: Build a news headline aggregator
+**Task**: Make scraper robust to missing data
 
-**Website Options** (choose one):
-- https://news.ycombinator.com (Hacker News)
-- https://www.reddit.com/r/technology (Reddit)
-- https://www.bbc.com/news (BBC News)
+```python
+def extract_quote_data(quote_element):
+    # Safely extract text
+    text_elem = quote_element.find('span', class_='text')
+    text = text_elem.text if text_elem else "No text"
 
-**Requirements**:
-1. Scrape headlines and links
-2. Extract publish date/time if available
-3. Get vote count or popularity metric
-4. Save to CSV
-5. Create a simple visualization with pandas
+    # Safely extract author
+    author_elem = quote_element.find('small', class_='author')
+    author = author_elem.text if author_elem else "Unknown"
 
-**Bonus**:
-- Filter by keyword
-- Sort by popularity
-- Create a word cloud of headlines
+    # Safely extract tags
+    tag_elements = quote_element.find_all('a', class_='tag')
+    tags = [tag.text for tag in tag_elements] if tag_elements else []
+
+    return {
+        'text': text,
+        'author': author,
+        'tags': tags
+    }
+```
 
 ---
 
-## Exercise 2.3: Hacker News Solution
+# Part 3 Checkpoint
+
+**What you've learned**:
+- Inspecting HTML structure with DevTools
+- Using BeautifulSoup to parse HTML
+- Finding elements by tag, class, and id
+- Handling pagination
+- Defensive programming (missing elements)
+
+**Next**: Apply to real movie data!
+
+---
+
+# Part 4: Mini Project
+
+Build your own movie data collector
+
+---
+
+# Project Requirements
+
+**Goal**: Collect data for 50+ movies from OMDb API
+
+**Required features**:
+- Title, year, genre, director
+- IMDb rating, number of votes
+- Runtime, box office revenue
+
+**Bonus features**:
+- Plot summary
+- Main actors
+- Awards
+- Multiple language support
+
+---
+
+# Project Structure
+
+Create this file structure:
+
+```
+movie-collector/
+├── .env                 # API keys (don't commit!)
+├── .gitignore          # Ignore .env
+├── collector.py        # Main collection script
+├── utils.py            # Helper functions
+├── requirements.txt    # Dependencies
+├── data/
+│   ├── raw/           # Raw API responses
+│   └── processed/     # Cleaned CSV
+└── README.md          # Documentation
+```
+
+---
+
+# Step 1: Movie List
+
+Create `movies.txt` with movie titles (one per line):
+
+```
+The Shawshank Redemption
+The Godfather
+The Dark Knight
+Pulp Fiction
+Forrest Gump
+Inception
+Fight Club
+The Matrix
+Goodfellas
+The Lord of the Rings: The Return of the King
+...
+```
+
+**Tip**: Use IMDb Top 250 list for ideas
+
+---
+
+# Step 2: Collector Function
+
+Create `utils.py`:
 
 ```python
 import requests
-from bs4 import BeautifulSoup
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def get_movie_by_title(title):
+    """Fetch movie data from OMDb API"""
+    api_key = os.getenv("OMDB_API_KEY")
+    url = "http://www.omdbapi.com/"
+
+    params = {
+        "apikey": api_key,
+        "t": title,
+        "plot": "full"  # Get full plot
+    }
+
+    try:
+        response = requests.get(url,
+                               params=params,
+                               timeout=10)
+        response.raise_for_status()
+        data = response.json()
+```
+
+---
+
+# Step 2: Error Handling
+
+```python
+        if data.get("Response") == "False":
+            print(f"  Error: {data.get('Error')}")
+            return None
+
+        return data
+
+    except requests.exceptions.Timeout:
+        print("  Request timed out")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"  Request failed: {e}")
+        return None
+```
+
+---
+
+# Step 3: Main Collection Script
+
+Create `collector.py`:
+
+```python
+import json
+import time
+from pathlib import Path
+from utils import get_movie_by_title
+
+# Setup directories
+Path("data/raw").mkdir(parents=True, exist_ok=True)
+Path("data/processed").mkdir(parents=True, exist_ok=True)
+
+# Read movie titles
+with open('movies.txt') as f:
+    titles = [line.strip() for line in f if line.strip()]
+
+print(f"Collecting data for {len(titles)} movies...\n")
+```
+
+---
+
+# Step 3: Collection Loop
+
+```python
+collected = []
+failed = []
+
+for i, title in enumerate(titles, 1):
+    print(f"[{i}/{len(titles)}] Fetching: {title}")
+
+    movie_data = get_movie_by_title(title)
+
+    if movie_data:
+        collected.append(movie_data)
+        print(f"  Success! Rating: {movie_data.get('imdbRating')}")
+
+        # Save individual JSON for debugging
+        filename = title.replace(' ', '_').replace(':', '') + '.json'
+        with open(f'data/raw/{filename}', 'w') as f:
+            json.dump(movie_data, f, indent=2)
+    else:
+        failed.append(title)
+
+    time.sleep(1)  # Rate limiting
+```
+
+---
+
+# Step 3: Save Results
+
+```python
+# Save all collected data
+with open('data/raw/all_movies.json', 'w') as f:
+    json.dump(collected, f, indent=2)
+
+print(f"\n{'='*50}")
+print(f"Collection complete!")
+print(f"Successful: {len(collected)}")
+print(f"Failed: {len(failed)}")
+
+if failed:
+    print(f"\nFailed movies:")
+    for title in failed:
+        print(f"  - {title}")
+
+    # Save failed titles for retry
+    with open('failed_movies.txt', 'w') as f:
+        f.write('\n'.join(failed))
+```
+
+---
+
+# Step 4: Data Processing
+
+Create `process_data.py`:
+
+```python
+import json
 import pandas as pd
-import matplotlib.pyplot as plt
 
-url = 'https://news.ycombinator.com/'
-response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
+# Load raw data
+with open('data/raw/all_movies.json') as f:
+    movies = json.load(f)
 
-stories = []
+# Extract features
+features = []
+for movie in movies:
+    features.append({
+        'title': movie.get('Title'),
+        'year': movie.get('Year'),
+        'genre': movie.get('Genre'),
+        'director': movie.get('Director'),
+        'actors': movie.get('Actors'),
+        'runtime': movie.get('Runtime'),
+```
 
-# Find all story rows
-story_links = soup.find_all('span', class_='titleline')
-subtexts = soup.find_all('td', class_='subtext')
+---
 
-for link_span, subtext in zip(story_links, subtexts):
-    link = link_span.find('a')
-    title = link.text
-    url = link['href']
+# Step 4: Feature Extraction
 
-    # Get points
-    score = subtext.find('span', class_='score')
-    points = int(score.text.split()[0]) if score else 0
-
-    # Get author and time
-    author = subtext.find('a', class_='hnuser')
-    author_name = author.text if author else 'Unknown'
-
-    stories.append({
-        'title': title,
-        'url': url,
-        'points': points,
-        'author': author_name
+```python
+        'rating': movie.get('imdbRating'),
+        'votes': movie.get('imdbVotes'),
+        'box_office': movie.get('BoxOffice'),
+        'awards': movie.get('Awards'),
+        'plot': movie.get('Plot'),
+        'language': movie.get('Language'),
+        'country': movie.get('Country')
     })
 
 # Create DataFrame
-df = pd.DataFrame(stories)
+df = pd.DataFrame(features)
 
 # Save to CSV
-df.to_csv('hackernews.csv', index=False)
+df.to_csv('data/processed/movies.csv', index=False)
 
-# Visualize top stories
-df.nlargest(10, 'points').plot(
-    x='title', y='points', kind='barh',
-    figsize=(10, 6), title='Top 10 HN Stories'
-)
-plt.tight_layout()
-plt.savefig('top_stories.png')
-
-print(f"Scraped {len(stories)} stories")
-print(f"\nTop 5 stories:")
-print(df.nlargest(5, 'points')[['title', 'points']])
+print(f"Processed {len(df)} movies")
+print(f"\nDataset shape: {df.shape}")
+print(f"\nMissing values:\n{df.isnull().sum()}")
 ```
 
 ---
 
-## Data Cleaning & Analysis (10 min)
+# Step 5: Data Validation
 
-**Task**: Clean your scraped data with pandas
+Add validation to `process_data.py`:
 
 ```python
-import pandas as pd
+# Check for missing critical fields
+critical_fields = ['title', 'year', 'rating']
 
-df = pd.read_csv('hackernews.csv')
+for field in critical_fields:
+    missing = df[field].isnull().sum()
+    if missing > 0:
+        print(f"Warning: {missing} movies missing {field}")
 
-# Clean data
-df['title'] = df['title'].str.strip()
-df['points'] = df['points'].fillna(0).astype(int)
+# Check data types
+print("\nData types:")
+print(df.dtypes)
 
-# Analysis
-print("Statistics:")
-print(df['points'].describe())
-
-print("\nMost popular domains:")
-df['domain'] = df['url'].str.extract(r'https?://([^/]+)')
-print(df['domain'].value_counts().head())
-
-print("\nMost prolific authors:")
-print(df['author'].value_counts().head())
-
-# Word frequency in titles
-from collections import Counter
-all_words = ' '.join(df['title']).lower().split()
-common_words = Counter(all_words).most_common(20)
-print("\nMost common words in titles:")
-print(common_words)
+# Check rating range
+df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
+print(f"\nRating range: {df['rating'].min()} to {df['rating'].max()}")
 ```
 
 ---
 
-## Part 2 Checkpoint
+# Step 6: Exploratory Analysis
 
-### What You've Built
-
-[YES] Quotes scraper with pagination
-[YES] News aggregator with data analysis
-[YES] CSV export and pandas integration
-[YES] Basic visualization
-
-### Discussion (10 min)
-
-**Questions**:
-1. What was the hardest part of scraping?
-2. Did you encounter any errors? How did you fix them?
-3. What patterns did you notice in HTML structure?
-
-**Challenge**: Who scraped the most data? Share your stats!
-
----
-
-# Part 3: Playwright for Dynamic Content
-
-## Exercise 3.1: First Playwright Script (15 min)
-
-**Task**: Scrape Google search results
+Create `analyze.py`:
 
 ```python
-from playwright.sync_api import sync_playwright
-
-with sync_playwright() as p:
-    # Launch browser (headless=False to see what's happening)
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-
-    # Search on Google
-    page.goto('https://www.google.com')
-
-    # TODO:
-    # 1. Find search box and type "web scraping python"
-    # 2. Click search button
-    # 3. Wait for results
-    # 4. Extract first 10 result titles and URLs
-    # 5. Print them
-
-    browser.close()
-```
-
-**Hint**: Use `page.fill()`, `page.click()`, `page.query_selector_all()`
-
----
-
-## Exercise 3.1: Solution
-
-```python
-from playwright.sync_api import sync_playwright
-import time
-
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-
-    # Go to Google
-    page.goto('https://www.google.com')
-
-    # Search
-    page.fill('textarea[name="q"]', 'web scraping python')
-    page.press('textarea[name="q"]', 'Enter')
-
-    # Wait for results
-    page.wait_for_selector('h3')
-
-    # Extract results
-    results = page.query_selector_all('h3')
-
-    print("Top 10 results:")
-    for i, result in enumerate(results[:10], 1):
-        title = result.inner_text()
-        # Get parent link
-        link_elem = result.query_selector('xpath=ancestor::a')
-        url = link_elem.get_attribute('href') if link_elem else 'No URL'
-
-        print(f"{i}. {title}")
-        print(f"   {url}\n")
-
-    time.sleep(2)  # Pause to see results
-    browser.close()
-```
-
----
-
-## Exercise 3.2: Infinite Scroll (15 min)
-
-**Task**: Scrape content from an infinite scroll page
-
-**Website**: https://www.reddit.com or similar
-
-```python
-from playwright.sync_api import sync_playwright
-import time
-
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-
-    page.goto('https://www.reddit.com/r/programming/')
-
-    # TODO:
-    # 1. Scroll down 5 times to load more posts
-    # 2. Wait between scrolls for content to load
-    # 3. Extract all post titles
-    # 4. Save to CSV
-
-    # Hint: use page.evaluate() to scroll
-    # page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-
-    browser.close()
-```
-
----
-
-## Exercise 3.2: Solution
-
-```python
-from playwright.sync_api import sync_playwright
-import time
-import csv
-
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-
-    page.goto('https://www.reddit.com/r/programming/')
-
-    # Wait for initial content
-    page.wait_for_selector('h3')
-
-    # Scroll 5 times
-    for i in range(5):
-        print(f"Scroll {i+1}/5...")
-
-        # Get current height
-        previous_height = page.evaluate('document.body.scrollHeight')
-
-        # Scroll to bottom
-        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-
-        # Wait for new content
-        time.sleep(2)
-
-        # Wait for height to change (new content loaded)
-        new_height = page.evaluate('document.body.scrollHeight')
-        if new_height == previous_height:
-            print("No more content to load")
-            break
-
-    # Extract all posts
-    posts = page.query_selector_all('h3')
-
-    results = []
-    for post in posts:
-        title = post.inner_text()
-        results.append({'title': title})
-
-    # Save to CSV
-    with open('reddit_posts.csv', 'w', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=['title'])
-        writer.writeheader()
-        writer.writerows(results)
-
-    print(f"Scraped {len(results)} posts")
-    browser.close()
-```
-
----
-
-## Exercise 3.3: Login & Authentication (15 min)
-
-**Task**: Automate login to a website
-
-**Practice Site**: http://quotes.toscrape.com/login
-
-```python
-from playwright.sync_api import sync_playwright
-
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-
-    # Go to login page
-    page.goto('http://quotes.toscrape.com/login')
-
-    # TODO:
-    # 1. Fill in username (any username works)
-    # 2. Fill in password (any password works)
-    # 3. Click login button
-    # 4. Verify you're logged in
-    # 5. Navigate to a protected page
-    # 6. Scrape content only available to logged-in users
-
-    browser.close()
-```
-
-**Real-world note**: Many sites use CSRF tokens and complex auth—this is simplified practice!
-
----
-
-## Exercise 3.3: Solution
-
-```python
-from playwright.sync_api import sync_playwright
-import time
-
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-
-    # Login
-    page.goto('http://quotes.toscrape.com/login')
-
-    page.fill('input[name="username"]', 'admin')
-    page.fill('input[name="password"]', 'admin')
-    page.click('input[type="submit"]')
-
-    # Wait for redirect
-    page.wait_for_url('**/quotes.toscrape.com/')
-
-    # Verify login
-    if page.query_selector('a[href="/logout"]'):
-        print("[OK] Successfully logged in!")
-    else:
-        print("✗ Login failed")
-
-    # Now scrape protected content
-    response = page.goto('http://quotes.toscrape.com/')
-
-    # Extract quotes (same as before, but now we're authenticated)
-    quotes = page.query_selector_all('div.quote')
-
-    for quote in quotes[:5]:
-        text = quote.query_selector('span.text').inner_text()
-        author = quote.query_selector('small.author').inner_text()
-        print(f"{text}\n  — {author}\n")
-
-    time.sleep(2)
-    browser.close()
-```
-
----
-
-## Part 3 Checkpoint
-
-### Playwright Skills Acquired
-
-[YES] Browser automation basics
-[YES] Form filling and clicking
-[YES] Infinite scroll handling
-[YES] Login automation
-[YES] Dynamic content extraction
-
-### When to Use Playwright
-
-**Use Playwright when**:
-- Content loads via JavaScript
-- Need to interact with page
-- Infinite scroll or lazy loading
-- Login required
-
-**Use Requests+BS4 when**:
-- Static HTML content
-- Simple page structure
-- Speed is critical
-- Low resource usage needed
-
----
-
-# Part 4: Mini Project (30 minutes)
-
-## Your Own Scraping Project!
-
-**Task**: Choose a website and build a complete scraper
-
-### Requirements
-
-1. **Choose** a website you're interested in
-2. **Decide** what data to collect
-3. **Build** a scraper (Requests+BS4 or Playwright)
-4. **Collect** at least 50 data points
-5. **Clean** and analyze with pandas
-6. **Visualize** one insight
-7. **Present** to the class (2 min each)
-
-### Ideas
-- Movie ratings (IMDB)
-- Job postings (LinkedIn, Indeed)
-- Product prices (Amazon, Flipkart)
-- Research papers (arXiv, Google Scholar)
-- Sports stats (ESPN, Cricinfo)
-- Weather data
-- News headlines by topic
-
----
-
-## Project Template
-
-```python
-"""
-Project: [Your Project Name]
-Goal: [What you're scraping]
-Website: [URL]
-"""
-
-import requests
-from bs4 import BeautifulSoup
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Configuration
-BASE_URL = 'https://...'
-OUTPUT_FILE = 'data.csv'
+# Load data
+df = pd.read_csv('data/processed/movies.csv')
 
-# 1. Scraping function
-def scrape_data():
-    # Your scraping code here
-    data = []
-    # ...
-    return data
+# Basic statistics
+print("Dataset Statistics:")
+print(f"Total movies: {len(df)}")
+print(f"Average rating: {df['rating'].mean():.2f}")
+print(f"Year range: {df['year'].min()} - {df['year'].max()}")
 
-# 2. Data cleaning
-def clean_data(raw_data):
-    df = pd.DataFrame(raw_data)
-    # Clean data...
-    return df
-
-# 3. Analysis & Visualization
-def analyze(df):
-    print(df.describe())
-    # Create plot...
-
-# 4. Main execution
-if __name__ == '__main__':
-    raw_data = scrape_data()
-    df = clean_data(raw_data)
-    df.to_csv(OUTPUT_FILE, index=False)
-    analyze(df)
+# Most common genres
+print("\nTop 5 Genres:")
+genres = df['genre'].str.split(', ').explode()
+print(genres.value_counts().head())
 ```
 
 ---
 
-## Project Rubric
-
-### Grading Criteria (for reference)
-
-| Criteria | Points |
-|----------|--------|
-| Data collection works | 30% |
-| Code quality & comments | 20% |
-| Data cleaning | 15% |
-| Analysis/Visualization | 15% |
-| Follows ethical practices | 10% |
-| Presentation | 10% |
-
-### Ethical Checklist
-
-- [YES] Checked robots.txt
-- [YES] Added delays between requests
-- [YES] Used appropriate User-Agent
-- [YES] Handled errors gracefully
-- [YES] Didn't overwhelm server
-- [YES] Respects ToS
-
----
-
-## Case Study 1: Price Tracking
-
-### Real-World Application
-
-**Scenario**: Track laptop prices across e-commerce sites
+# Step 6: Visualizations
 
 ```python
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
-from datetime import datetime
+# Rating distribution
+plt.figure(figsize=(10, 5))
+df['rating'].hist(bins=20)
+plt.xlabel('IMDb Rating')
+plt.ylabel('Number of Movies')
+plt.title('Distribution of Movie Ratings')
+plt.savefig('data/processed/rating_distribution.png')
+plt.close()
 
-def scrape_amazon_price(product_url):
-    headers = {'User-Agent': 'Mozilla/5.0...'}
-    response = requests.get(product_url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
+# Movies per year
+plt.figure(figsize=(12, 5))
+df['year'].value_counts().sort_index().plot(kind='bar')
+plt.xlabel('Year')
+plt.ylabel('Number of Movies')
+plt.title('Movies per Year')
+plt.savefig('data/processed/movies_per_year.png')
+plt.close()
 
-    # Find price element
-    price = soup.find('span', class_='a-price-whole')
-    if price:
-        return float(price.text.replace(',', ''))
-    return None
-
-# Track multiple products
-products = {
-    'Laptop A': 'https://amazon.in/...',
-    'Laptop B': 'https://flipkart.com/...'
-}
-
-# Scrape daily and save to CSV
-price_data = []
-for name, url in products.items():
-    price = scrape_amazon_price(url)
-    price_data.append({
-        'date': datetime.now(),
-        'product': name,
-        'price': price
-    })
-
-df = pd.DataFrame(price_data)
-df.to_csv('prices.csv', mode='a', header=False, index=False)
+print("\nVisualizations saved!")
 ```
 
 ---
 
-## Case Study 2: Research Paper Monitoring
+# Step 7: Documentation
 
-### Academic Use Case
-
-**Scenario**: Track new papers on arXiv by topic
-
-```python
-import requests
-from bs4 import BeautifulSoup
-import re
-
-def scrape_arxiv_recent(category='cs.AI', max_results=10):
-    """Scrape recent papers from arXiv"""
-
-    url = f'https://arxiv.org/list/{category}/recent'
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    papers = []
-    paper_divs = soup.find_all('dt')
-    desc_divs = soup.find_all('dd')
-
-    for paper, desc in zip(paper_divs[:max_results], desc_divs[:max_results]):
-        # Extract arXiv ID
-        arxiv_id = paper.find('a', title='Abstract')
-        if not arxiv_id:
-            continue
-
-        arxiv_id = arxiv_id.text.strip()
-
-        # Extract title and authors
-        title = desc.find('div', class_='list-title').text
-        title = re.sub(r'^Title:\s*', '', title).strip()
-
-        authors = desc.find('div', class_='list-authors').text
-        authors = re.sub(r'^Authors:\s*', '', authors).strip()
-
-        papers.append({
-            'arxiv_id': arxiv_id,
-            'title': title,
-            'authors': authors,
-            'url': f'https://arxiv.org/abs/{arxiv_id}'
-        })
-
-    return papers
-
-# Use it
-papers = scrape_arxiv_recent('cs.LG', max_results=5)
-for paper in papers:
-    print(f"{paper['title']}")
-    print(f"  Authors: {paper['authors']}")
-    print(f"  URL: {paper['url']}\n")
-```
-
----
-
-## Case Study 3: Social Media Monitoring
-
-### Marketing Use Case
-
-**Scenario**: Track brand mentions on Reddit
-
-```python
-from playwright.sync_api import sync_playwright
-import time
-
-def monitor_reddit_mentions(keyword, subreddit='all', limit=20):
-    """Monitor Reddit for keyword mentions"""
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-
-        # Search Reddit
-        search_url = f'https://www.reddit.com/search/?q={keyword}&sort=new'
-        page.goto(search_url)
-
-        # Wait for results
-        page.wait_for_selector('h3', timeout=10000)
-
-        # Scroll to load more
-        for _ in range(3):
-            page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-            time.sleep(2)
-
-        # Extract posts
-        posts = page.query_selector_all('div[data-testid="post-container"]')
-
-        mentions = []
-        for post in posts[:limit]:
-            try:
-                title_elem = post.query_selector('h3')
-                if not title_elem:
-                    continue
-
-                title = title_elem.inner_text()
-
-                # Get metadata
-                author = post.query_selector('[data-testid="post_author_link"]')
-                author = author.inner_text() if author else 'Unknown'
-
-                # Get score
-                score = post.query_selector('[id^="vote-arrows"]')
-                score_text = score.inner_text() if score else '0'
-
-                mentions.append({
-                    'title': title,
-                    'author': author,
-                    'score': score_text
-                })
-            except Exception as e:
-                continue
-
-        browser.close()
-        return mentions
-
-# Monitor brand
-mentions = monitor_reddit_mentions('ChatGPT', limit=10)
-print(f"Found {len(mentions)} mentions")
-for m in mentions:
-    print(f"• {m['title']} (by {m['author']}, score: {m['score']})")
-```
-
----
-
-## Debugging Common Issues
-
-### Problem 1: Empty Results
-
-```python
-# Issue: soup.find_all() returns empty list
-soup.find_all('div', class_='item')  # []
-
-# Debug steps:
-print(soup.prettify())  # See actual HTML
-print(len(response.text))  # Check if page loaded
-
-# Common causes:
-# 1. Wrong selector
-# 2. JavaScript-rendered content (use Playwright)
-# 3. Need to login first
-# 4. Blocked by anti-scraping (add headers)
-```
-
-### Problem 2: 403 Forbidden
-
-```python
-# Issue: requests.get() returns 403
-
-# Solution: Add headers
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5',
-    'Referer': 'https://www.google.com/',
-}
-response = requests.get(url, headers=headers)
-```
-
----
-
-## Debugging Common Issues (Continued)
-
-### Problem 3: Element Not Found
-
-```python
-# Issue: AttributeError: 'NoneType' object has no attribute 'text'
-
-# Bad code:
-title = soup.find('h1').text  # Crashes if h1 not found
-
-# Good code:
-title_elem = soup.find('h1')
-if title_elem:
-    title = title_elem.text
-else:
-    title = 'No title found'
-
-# Or use get_text with default:
-title = soup.find('h1').get_text(default='No title') if soup.find('h1') else 'No title'
-
-# Better: Use try-except
-try:
-    title = soup.find('h1').text
-except AttributeError:
-    title = 'No title'
-```
-
-### Problem 4: Rate Limiting
-
-```python
-# Issue: Getting 429 Too Many Requests
-
-# Solution: Add delays and exponential backoff
-import time
-
-def scrape_with_retry(url, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 429:
-                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
-                print(f"Rate limited. Waiting {wait_time}s...")
-                time.sleep(wait_time)
-            else:
-                raise
-    raise Exception("Max retries exceeded")
-```
-
----
-
-## Best Practices Checklist
-
-### Before You Scrape
-
-- [ ] Check if API exists (easier than scraping!)
-- [ ] Read `robots.txt` (site.com/robots.txt)
-- [ ] Review Terms of Service
-- [ ] Check data usage licenses
-- [ ] Plan your rate limiting strategy
-
-### While Scraping
-
-- [ ] Use descriptive User-Agent
-- [ ] Add delays between requests (1-2s minimum)
-- [ ] Handle errors gracefully
-- [ ] Log your activities
-- [ ] Save raw data before processing
-- [ ] Test on small sample first
-
-### After Scraping
-
-- [ ] Clean and validate data
-- [ ] Remove duplicates
-- [ ] Document your sources
-- [ ] Respect data privacy
-- [ ] Store data securely
-
----
-
-## Presentation Guidelines
-
-### What to Present (2 minutes)
-
-1. **What** did you scrape? (10 sec)
-   - Website and data type
-
-2. **How** did you scrape it? (30 sec)
-   - Requests or Playwright?
-   - Main challenges overcome
-
-3. **What** did you find? (60 sec)
-   - Show your data (table or visualization)
-   - One interesting insight
-
-4. **Code snippet** (20 sec)
-   - Show the most interesting part of your code
-
-**Tips**: Focus on insights, not just code!
-
----
-
-## Sample Presentation Structure
+Create `README.md`:
 
 ```markdown
-# Project: IITGN Mess Menu Scraper
+# Movie Data Collector
 
-## What
-Scraped weekly mess menu from IITGN website
+Collects movie data from OMDb API for machine learning.
 
-## How
-- Used Requests + BeautifulSoup
-- Challenge: Menu in table format with merged cells
-- Solution: Used pandas.read_html()
+## Setup
 
-## Findings
-- 73 unique dishes over 4 weeks
-- Most common: "Dal Fry" (appears 12 times)
-- Visualization: Word cloud of dishes
+1. Get API key from http://www.omdbapi.com/apikey.aspx
+2. Create `.env` file with `OMDB_API_KEY=your_key`
+3. Install dependencies: `pip install -r requirements.txt`
 
-## Code Highlight
-```python
-# pandas.read_html() saved the day!
-tables = pd.read_html(url)
-menu_df = tables[0]  # First table is the menu
+## Usage
+
+1. Add movie titles to `movies.txt`
+2. Run collector: `python collector.py`
+3. Process data: `python process_data.py`
+4. Analyze: `python analyze.py`
+
+## Dataset
+
+- **Size**: 50+ movies
+- **Features**: title, year, genre, director, rating, etc.
+- **Format**: CSV file in `data/processed/movies.csv`
 ```
 
 ---
 
-## Resources for Continued Learning
+# Step 8: Requirements File
 
-### Documentation
-- **Requests**: https://docs.python-requests.org/
-- **BeautifulSoup**: https://www.crummy.com/software/BeautifulSoup/
-- **Playwright**: https://playwright.dev/python/
-- **pandas**: https://pandas.pydata.org/docs/
+Create `requirements.txt`:
 
-### Practice Sites
-- http://quotes.toscrape.com - Practice scraping
-- http://books.toscrape.com - E-commerce practice
-- https://scrapethissite.com - Various challenges
-- https://webscraper.io/test-sites - Test different patterns
+```
+requests==2.31.0
+beautifulsoup4==4.12.2
+python-dotenv==1.0.0
+pandas==2.1.0
+matplotlib==3.7.2
+```
 
-### Advanced Topics (Next Week)
-- Data validation with Pydantic
-- Data labeling tools
-- Data augmentation
-- Working with databases
+Install with:
+```bash
+pip install -r requirements.txt
+```
 
 ---
 
-## Lab Submission
+# Testing Your Collector
 
-### What to Submit
+**Run the complete pipeline**:
 
-1. **Code** (Python files or Jupyter notebook)
-   - Well-commented
-   - Includes requirements.txt
+```bash
+# 1. Collect data
+python collector.py
 
-2. **Data** (CSV file)
-   - Cleaned and formatted
-   - At least 50 data points
+# 2. Process data
+python process_data.py
 
-3. **Report** (README.md or PDF)
-   - What you scraped
-   - How you did it
-   - One insight/visualization
-   - Challenges faced
-   - Ethical considerations
+# 3. Analyze data
+python analyze.py
 
-### Deadline
-- Submit by end of day (11:59 PM)
-- Upload to course portal
+# 4. Check results
+cat data/processed/movies.csv
+```
+
+**Expected output**: CSV file with 50+ movies and all features
 
 ---
 
-## Homework for Next Week
+# Common Issues and Solutions
 
-### Assignments
+**Issue**: API returns 401 Unauthorized
+**Solution**: Check your API key in .env file
 
-1. **Extend your scraper**
-   - Collect 200+ data points
-   - Add error handling
-   - Create 3 visualizations
+**Issue**: Some movies not found
+**Solution**: Check spelling in movies.txt, some titles need exact match
 
-2. **Read**
-   - Requests documentation (focus on sessions)
-   - BeautifulSoup CSS selectors guide
-   - Web scraping ethics article (link on course site)
+**Issue**: Missing box office data
+**Solution**: Not all movies have this field, that's OK
 
-3. **Install for next week**
-   ```bash
-   pip install pydantic pandas-profiling label-studio
-   ```
-
-4. **Think about**
-   - What data quality issues did you encounter?
-   - How would you validate your scraped data?
-   - What labels/annotations would be useful?
+**Issue**: Rate limit errors
+**Solution**: Increase sleep time between requests
 
 ---
 
-<!-- _class: lead -->
-<!-- _paginate: false -->
+# Extending the Project
 
-# Great Work Today! 
+**Ideas to make it better**:
 
-## You've Learned:
-[YES] Chrome DevTools for finding APIs
-[YES] Web scraping with Requests + BeautifulSoup
-[YES] Browser automation with Playwright
-[YES] Data collection, cleaning, and analysis
-
-## Next Week:
-Data Validation, Labeling, and Quality Control
-
-**Questions? Office hours tomorrow 3-5 PM**
+1. **Add TMDb API**: Get additional features like budget
+2. **Web scraping**: Get critic reviews from Rotten Tomatoes
+3. **Async collection**: Use `httpx` for faster collection
+4. **Caching**: Don't re-fetch movies you already have
+5. **Resume capability**: Continue from where you stopped
+6. **Logging**: Better tracking of collection progress
+7. **Data cleaning**: Handle missing values systematically
 
 ---
 
-## Quick Feedback (5 min)
+# Lab Wrap-up
 
-### Anonymous Poll
+**What you've accomplished**:
+- Built command-line data collection tools
+- Created a production Python collector
+- Learned web scraping with BeautifulSoup
+- Collected a complete movie dataset
+- Validated and analyzed the data
 
-1. **Pace**: Too fast / Just right / Too slow
-2. **Difficulty**: Too easy / Just right / Too hard
-3. **Most useful**: DevTools / Requests / Playwright
-4. **What to improve**: [Open feedback]
+**Next week**: Data Validation
+- Clean and validate the collected data
+- Use Pydantic for schema validation
+- Analyze with csvkit and pandas
+- Handle missing values and outliers
 
-### Scan QR code or visit:
-[feedback link]
+---
 
-**Thank you! See you next week!**
+# Homework
+
+**Before next class**:
+
+1. **Extend your dataset**: Collect 100+ movies
+2. **Add features**: Get plot summaries, awards
+3. **Explore the data**: Find interesting patterns
+4. **Document**: Update README with findings
+
+**Bonus challenges**:
+- Collect data from TMDb API
+- Scrape critic reviews from a website
+- Create visualizations of your dataset
+- Share your dataset with classmates
+
+---
+
+# Resources
+
+**APIs**:
+- OMDb API: http://www.omdbapi.com/
+- TMDb API: https://www.themoviedb.org/documentation/api
+
+**Documentation**:
+- requests: https://requests.readthedocs.io/
+- BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
+- pandas: https://pandas.pydata.org/
+
+**Tools**:
+- curl: https://curl.se/
+- jq: https://stedolan.github.io/jq/
+
+---
+
+# Questions?
+
+**Remember**:
+- Start small, test with 5-10 movies first
+- Save raw data before processing
+- Handle errors gracefully
+- Respect API rate limits
+- Document your code
+
+**Get help**:
+- Teaching assistants during lab
+- Discussion forum for questions
+- Office hours this week

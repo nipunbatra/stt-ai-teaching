@@ -1,15 +1,15 @@
 ---
 marp: true
 theme: default
+class: lead
 paginate: true
-style: @import "custom.css";
-  section { justify-content: flex-start; }
+backgroundColor: #fff
+style: |
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+  @import 'custom.css';
 ---
 
-<!-- _class: lead -->
-<!-- _paginate: false -->
-
-# Week 1: Web Scraping & Data Collection
+# Week 1: Data Collection for Machine Learning
 
 **CS 203: Software Tools and Techniques for AI**
 
@@ -18,1046 +18,1282 @@ IIT Gandhinagar
 
 ---
 
-# Today's Agenda (90 minutes)
+# The Netflix Movie Recommendation Problem
 
-1. **Introduction** (10 min)
-   - Why web scraping matters for AI/ML
-   - Legal and ethical considerations
+**Scenario**: You work at Netflix as a data scientist.
 
-2. **Chrome DevTools Deep Dive** (25 min)
-   - Network tab, XHR inspection
-   - Copying requests as cURL/fetch
-   - Hands-on demo
+Your manager asks:
 
-3. **Python Requests + BeautifulSoup** (30 min)
-   - Making HTTP requests
-   - Parsing HTML
-   - Live coding examples
+> "We need to decide which movies to add to our catalog next month. Build a system to predict which movies will be successful with our subscribers."
 
-4. **Browser Automation with Playwright** (20 min)
-   - Why Playwright over Selenium
-   - Basic automation examples
+**This is a machine learning problem.**
 
-5. **Wrap-up + Lab Preview** (5 min)
+But before we can build any model, we need data.
 
 ---
 
-# Why Web Scraping for AI/ML?
+# The ML Pipeline
 
-## Real-world AI needs real-world data
+Every machine learning project follows this pipeline:
 
-- **Training datasets**: Reviews, images, text for NLP/CV models
-- **Live predictions**: Stock prices, weather, news sentiment
-- **Feature engineering**: Enriching data with external sources
-- **Monitoring**: Tracking competitors, prices, trends
-
-## The Challenge
-
-> "80% of data science is data collection and cleaning"
-
-Most interesting data isn't in nice CSV files—it's on websites!
-
----
-
-# Legal & Ethical Considerations
-
-## [YES] Generally OK
-
-- Publicly accessible data
-- Respecting `robots.txt`
-- Reasonable request rates (not DDoS)
-- Personal/academic research
-
-## [WARN] Check First
-
-- Terms of Service violations
-- Copyrighted content
-- Personal data (GDPR, privacy laws)
-- Authentication-required data
-
-## 🚫 Never Do
-
-- Bypassing security measures
-- Ignoring cease & desist notices
-- Selling scraped data without permission
-
----
-
-# Part 1: Chrome DevTools
-
-## Your Web Scraping Swiss Army Knife
-
-DevTools lets you:
--  Inspect how websites load data
--  See all network requests (APIs!)
--  Find the exact data source
--  Generate code to replicate requests
-
-**Key Insight**: Most modern websites load data via JavaScript/APIs, not in raw HTML!
-
----
-
-# Opening Chrome DevTools
-
-## Three Ways
-
-1. **Right-click** → "Inspect"
-2. **Keyboard**: `Cmd+Option+I` (Mac) / `Ctrl+Shift+I` (Windows)
-3. **Menu**: View → Developer → Developer Tools
-
-## Key Tabs for Web Scraping
-
-- **Network**: See all requests (XHR/Fetch for APIs)
-- **Elements**: Inspect HTML structure
-- **Console**: Test JavaScript, debug
-
----
-
-# Demo: Network Tab Basics
-
-## Let's scrape a weather website
-
-**Goal**: Find how the site loads weather data
-
-1. Open https://weather.com (example)
-2. Open DevTools → Network tab
-3. Refresh page (Cmd+R)
-4. Look for XHR/Fetch requests
-5. Click on a request → Preview tab
-6. See JSON data!
-
-**Key Filters**:
-- `XHR` - API calls made by JavaScript
-- `Fetch` - Modern API calls
-- `Doc` - HTML pages
-- `JS` - JavaScript files
-
----
-
-# Understanding Network Requests
-
-## Anatomy of an HTTP Request
-
-**Request**
-```http
-GET /api/weather?city=Ahmedabad HTTP/1.1
-Host: api.weather.com
-User-Agent: Mozilla/5.0...
-Accept: application/json
+```
+DATA COLLECTION → DATA CLEANING → FEATURE ENGINEERING →
+MODEL TRAINING → EVALUATION → DEPLOYMENT → MONITORING
 ```
 
-**Response**
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
+**Week 1 (Today)**: Data Collection - the foundation of everything
 
-{
-  "city": "Ahmedabad",
-  "temp": 28,
-  "humidity": 65
-}
+**The principle**: "Garbage in, garbage out"
+- Bad data leads to bad models
+- No amount of sophisticated algorithms can fix poor quality data
+
+---
+
+# What Data Do We Need?
+
+To predict movie success, we need features:
+
+**Basic Information**:
+- Title, year, genre, runtime
+- Director, main actors
+- Plot summary
+
+**Performance Metrics**:
+- IMDb rating, number of votes
+- Rotten Tomatoes score
+- Box office revenue
+
+---
+
+# What Data Do We Need? (continued)
+
+**Production Details**:
+- Budget, production companies
+- Country of origin
+- Language
+
+**Audience Signals**:
+- User reviews and sentiment
+- Social media mentions
+- Awards and nominations
+
+**Question**: Where can we get all this data?
+
+---
+
+# Data Sources on the Web
+
+**Option 1: Public APIs**
+- IMDb API, OMDb API, TMDb API
+- Structured, reliable, well-documented
+- Rate limits, authentication required
+
+**Option 2: Web Scraping**
+- Extract data directly from HTML pages
+- Flexible, can get data not available via API
+- More fragile, can break if site changes
+
+**Today**: We'll learn both approaches
+
+---
+
+# Part 1: Understanding the Web
+
+How does the web actually work?
+
+---
+
+# Client-Server Architecture
+
+![width:800px](diagrams/client-server-architecture.png)
+*Source: [diagrams/generate_client_server.py](diagrams/generate_client_server.py)*
+
+**Client**: Your web browser (Chrome, Firefox, Safari)
+**Server**: Computer hosting the website (e.g., netflix.com)
+
+Communication happens via HTTP protocol
+
+---
+
+# HTTP Request-Response Cycle
+
+**Step 1**: You type URL in browser or click a link
+**Step 2**: Browser sends HTTP request to server
+**Step 3**: Server processes request
+**Step 4**: Server sends HTTP response back
+**Step 5**: Browser renders the page
+
+**Key insight**: Every web page you see is the result of this cycle
+
+---
+
+# Anatomy of a URL
+
+```
+https://www.omdbapi.com/?apikey=abc123&t=Inception
+└─┬─┘  └────────┬─────────┘ └──────────┬─────────────┘
+  │            │                        │
+Scheme      Domain              Query Parameters
 ```
 
-**Key Parts**: Method (GET/POST), URL, Headers, Body (for POST)
+**Scheme**: Protocol (http vs https)
+**Domain**: Server address
+**Query Parameters**: Data sent to server (key=value pairs)
 
 ---
 
-# Finding the Data You Need
+# HTTP Methods
 
-## Step-by-Step Process
+**GET**: Retrieve data from server
+- Example: Get movie information
+- Safe operation, doesn't change server state
 
-1. **Clear Network Log**: Click 🚫 icon to clear
-2. **Trigger Action**: Scroll, click, search on the website
-3. **Look for XHR/Fetch**: Filter by type
-4. **Preview Data**: Click request → Preview tab
-5. **Check Headers**: See URL, parameters, cookies
+**POST**: Send data to server
+- Example: Submit a form, upload a file
+- Can modify server state
 
-## Pro Tips
-
-- Use search/filter () to find keywords
-- Look for URLs with `/api/`, `/data/`, `.json`
-- Check Response tab for raw data
-- Headers tab shows authentication tokens
+**Others**: PUT, DELETE, PATCH
+- For updating and deleting resources
 
 ---
 
-# Copying Requests as Code
+# HTTP Status Codes
 
-## The Magic Feature: "Copy as..."
+**2xx - Success**:
+- `200 OK`: Request succeeded
+- `201 Created`: Resource created successfully
 
-Right-click on any request → **Copy** → Choose format:
-
-- **Copy as cURL**: Shell command
-- **Copy as fetch**: JavaScript code
-- **Copy as PowerShell**: Windows
-- **Copy as Node.js fetch**: Node.js code
-
-## Why This Matters
-
-Instead of manually constructing requests, DevTools gives you working code with:
-- [YES] Correct headers
-- [YES] Authentication tokens
-- [YES] All parameters
-- [YES] Proper formatting
+**4xx - Client Error**:
+- `400 Bad Request`: Invalid request
+- `401 Unauthorized`: Authentication required
+- `404 Not Found`: Resource doesn't exist
 
 ---
 
-# Demo: Copy as cURL
+# HTTP Status Codes (continued)
 
-## Example: GitHub API
+**5xx - Server Error**:
+- `500 Internal Server Error`: Server crashed
+- `503 Service Unavailable`: Server overloaded
 
-**Shell**:
+**Why this matters**: Your data collection code needs to handle these!
+
+---
+
+# HTTP Headers
+
+Headers provide metadata about the request/response
+
+**Common Request Headers**:
+```
+User-Agent: Mozilla/5.0 (identifies your browser)
+Accept: application/json (what format you want)
+Authorization: Bearer token123 (authentication)
+```
+
+**Common Response Headers**:
+```
+Content-Type: application/json (what format you're getting)
+Content-Length: 1234 (size in bytes)
+```
+
+---
+
+# Data Formats on the Web
+
+**HTML**: Markup language for web pages
+```html
+<h1>Inception</h1>
+<p>Rating: 8.8</p>
+```
+
+**JSON**: JavaScript Object Notation (most common for APIs)
+```json
+{"title": "Inception", "rating": 8.8}
+```
+
+**XML**: Extensible Markup Language (older APIs)
+```xml
+<movie><title>Inception</title></movie>
+```
+
+---
+
+# Part 2: curl - Command Line HTTP
+
+Testing APIs from the terminal
+
+---
+
+# What is curl?
+
+**curl**: Command-line tool for making HTTP requests
+
+**Why use it?**
+- Quick API testing without writing code
+- See exact request/response data
+- Debug API issues
+- Works on any platform
+
+**Installation**: Already on Mac/Linux, Windows: download from curl.se
+
+---
+
+# Basic curl Syntax
+
 ```bash
-# Copied from DevTools
-curl 'https://api.github.com/users/nipunbatra' \
-  -H 'Accept: application/json' \
-  -H 'User-Agent: Mozilla/5.0 (Macintosh)' \
-  --compressed
+curl "https://api.example.com/movies"
+```
+
+This sends a GET request and prints the response to terminal
+
+**Common options**:
+```bash
+-X POST          # Specify HTTP method
+-H "Header"      # Add custom header
+-d "data"        # Send data in request body
+-o file.json     # Save response to file
 ```
 
 ---
 
-# Demo: Copy as Python
+# curl Example: OMDb API
 
-**Python**:
-```python
-import requests
+Get information about "Inception":
 
-response = requests.get(
-    'https://api.github.com/users/nipunbatra',
-    headers={
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Macintosh)'
-    }
-)
-print(response.json())
+```bash
+curl "http://www.omdbapi.com/?apikey=YOUR_KEY&t=Inception"
 ```
 
----
-
-# Live Demo: Real Website
-
-## Let's scrape together!
-
-**Website**: IITGN Course Catalog (or similar)
-
-**Steps**:
-1. Open DevTools Network tab
-2. Navigate to courses page
-3. Identify API request for course data
-4. Examine request/response
-5. Copy as cURL
-6. We'll convert to Python next!
-
-**Your turn**: Try with any website you're interested in!
-
----
-
-# Part 2: Python Requests
-
-## The HTTP Library for Python
-
-```python
-import requests
-
-# GET request
-response = requests.get('https://api.github.com/users/nipunbatra')
-
-# Check status
-print(response.status_code)  # 200 = success
-
-# Parse JSON
-data = response.json()
-print(data['name'])  # "Nipun Batra"
-
-# Get raw text
-html = response.text
-```
-
-**Install**: `pip install requests`
-
----
-
-# HTTP Methods in Requests
-
-## Common Operations
-
-```python
-import requests
-
-# GET - Retrieve data
-response = requests.get('https://api.example.com/items')
-
-# POST - Submit data
-response = requests.post(
-    'https://api.example.com/items',
-    json={'name': 'New Item', 'price': 100}
-)
-
-# PUT - Update data
-response = requests.put('https://api.example.com/items/1',
-    json={'price': 150})
-
-# DELETE - Remove data
-response = requests.delete('https://api.example.com/items/1')
-```
-
-**For web scraping**: Mostly GET requests!
-
----
-
-# Working with Headers
-
-## Why Headers Matter
-
-Headers tell the server:
-- What format you accept (`Accept: application/json`)
-- Who you are (`User-Agent`)
-- Authentication (`Authorization`)
-- Cookies for sessions
-
-```python
-import requests
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    'Accept': 'application/json',
-    'Accept-Language': 'en-US,en;q=0.9',
+Response (JSON):
+```json
+{
+  "Title": "Inception",
+  "Year": "2010",
+  "Rated": "PG-13",
+  "imdbRating": "8.8",
+  "Genre": "Action, Sci-Fi, Thriller"
 }
-
-response = requests.get(
-    'https://api.example.com/data',
-    headers=headers
-)
 ```
-
-**Pro tip**: Copy headers from DevTools!
 
 ---
 
-# Query Parameters
+# Making curl Output Readable
 
-## Two Ways to Add Parameters
+Raw JSON is hard to read. Use `jq` to format it:
 
-### Method 1: In URL
-```python
-url = 'https://api.example.com/search?q=python&limit=10'
-response = requests.get(url)
+```bash
+curl "http://www.omdbapi.com/?apikey=KEY&t=Inception" | jq
 ```
 
-### Method 2: params dict
+**jq**: JSON processor that pretty-prints and filters JSON
+
+Output is now nicely formatted with colors and indentation
+
+---
+
+# Extracting Specific Fields with jq
+
+Get only the title and rating:
+
+```bash
+curl "http://www.omdbapi.com/?apikey=KEY&t=Inception" | \
+  jq '{title: .Title, rating: .imdbRating}'
+```
+
+Output:
+```json
+{
+  "title": "Inception",
+  "rating": "8.8"
+}
+```
+
+**jq syntax**: `.FieldName` accesses a field
+
+---
+
+# Part 3: Chrome DevTools
+
+Inspecting web traffic in your browser
+
+---
+
+# What is Chrome DevTools?
+
+**DevTools**: Built-in browser tool for web development and debugging
+
+**How to open**:
+- Mac: `Cmd + Option + I`
+- Windows/Linux: `F12` or `Ctrl + Shift + I`
+- Right-click on page then "Inspect"
+
+**Key tabs**: Elements, Network, Console
+
+---
+
+# The Network Tab
+
+**Purpose**: See all HTTP requests your browser makes
+
+**How to use**:
+1. Open DevTools
+2. Go to Network tab
+3. Reload the page
+4. See list of all requests
+
+**What you can see**: URL, method, status, size, time
+
+---
+
+# Inspecting a Request
+
+Click on any request in Network tab to see:
+
+**Headers tab**:
+- Request URL, method, status code
+- Request headers (what you sent)
+- Response headers (what you got back)
+
+**Preview/Response tab**:
+- Actual data returned by server
+- Preview shows formatted version
+
+---
+
+# Finding API Calls
+
+**Technique**: Look for XHR/Fetch requests
+
+1. Filter by "Fetch/XHR" in Network tab
+2. These are AJAX requests (data fetched after page load)
+3. Click to see the API endpoint
+4. Copy the URL to use in your code
+
+**Example**: Go to IMDb, search for a movie, watch Network tab
+
+---
+
+# Copying as curl
+
+**Useful trick**: Right-click request then "Copy as curl"
+
+This gives you exact curl command to reproduce the request:
+```bash
+curl 'https://api.example.com/data' \
+  -H 'authorization: Bearer token' \
+  -H 'user-agent: Mozilla/5.0...'
+```
+
+Now you can test API outside the browser!
+
+---
+
+# The Elements Tab
+
+**Purpose**: Inspect HTML structure of a page
+
+**How to use**:
+1. Right-click element then "Inspect"
+2. DevTools opens with that element highlighted
+3. See HTML structure and CSS styles
+
+**Why this matters**: Essential for web scraping!
+
+---
+
+# Part 4: Python requests Library
+
+Making HTTP requests programmatically
+
+---
+
+# Why Python for Data Collection?
+
+**Automation**: Collect data for hundreds of movies
+**Error Handling**: Retry on failure, handle rate limits
+**Data Processing**: Clean and structure data immediately
+**Integration**: Save to database, CSV, or use in ML pipeline
+
+**requests library**: Most popular HTTP library for Python
+
+---
+
+# Installing requests
+
+```bash
+pip install requests
+```
+
+Import in your code:
 ```python
-url = 'https://api.example.com/search'
+import requests
+```
+
+**Documentation**: https://requests.readthedocs.io/
+
+---
+
+# Basic GET Request
+
+```python
+import requests
+
+url = "http://www.omdbapi.com/"
 params = {
-    'q': 'python',
-    'limit': 10,
-    'sort': 'stars'
+    "apikey": "YOUR_KEY",
+    "t": "Inception"
 }
+
 response = requests.get(url, params=params)
-# Actual URL: /search?q=python&limit=10&sort=stars
+print(response.status_code)  # 200
+print(response.json())        # Python dict
 ```
 
-**Recommended**: Use `params` dict—cleaner and handles encoding!
+**Note**: `params` dict is converted to query string automatically
 
 ---
 
-# Handling Authentication
-
-## Common Auth Methods
+# Handling the Response
 
 ```python
-import requests
-
-# 1. API Key in header
-headers = {'Authorization': 'Bearer YOUR_API_KEY'}
-response = requests.get(url, headers=headers)
-
-# 2. API Key in params
-params = {'api_key': 'YOUR_API_KEY'}
 response = requests.get(url, params=params)
 
-# 3. Basic Auth
-from requests.auth import HTTPBasicAuth
-response = requests.get(url,
-    auth=HTTPBasicAuth('username', 'password'))
+# Status code
+if response.status_code == 200:
+    print("Success!")
+
+# Headers
+print(response.headers["Content-Type"])
+
+# Body as text
+print(response.text)
+
+# Body as JSON (parsed into Python dict)
+data = response.json()
+print(data["Title"])  # "Inception"
 ```
 
 ---
 
-# Handling Authentication (Cookies)
+# Error Handling: Network Errors
+
+Network requests can fail! Always handle exceptions:
 
 ```python
-# 4. Session cookies (we'll use this later)
-session = requests.Session()
-session.post('/login', data={'user': 'me', 'pass': 'secret'})
-response = session.get('/protected-page')  # cookies sent automatically
-```
-
----
-
-# Error Handling
-
-## Always Check for Errors!
-
-```python
-import requests
-
 try:
-    response = requests.get('https://api.example.com/data', timeout=10)
-
-    # Raise exception for 4xx/5xx status codes
+    response = requests.get(url, timeout=10)
     response.raise_for_status()
-
     data = response.json()
-    print(f"Success! Got {len(data)} items")
-
 except requests.exceptions.Timeout:
-    print("Request timed out!")
-
+    print("Request timed out")
+except requests.exceptions.ConnectionError:
+    print("Network error")
 except requests.exceptions.HTTPError as e:
     print(f"HTTP error: {e}")
-
-except requests.exceptions.RequestException as e:
-    print(f"Error: {e}")
-
-except ValueError:
-    print("Invalid JSON response")
 ```
 
 ---
 
-# Rate Limiting & Being Polite
+# Error Handling: Invalid JSON
 
-## Don't Overwhelm Servers!
+API might return invalid JSON:
+
+```python
+try:
+    data = response.json()
+except requests.exceptions.JSONDecodeError:
+    print("Response is not valid JSON")
+    print(response.text)  # Print raw response
+```
+
+**Common cause**: API returned error page in HTML instead of JSON
+
+---
+
+# Error Handling: Missing Fields
+
+API might not return expected fields:
+
+```python
+data = response.json()
+
+# Bad: Will crash if Title doesn't exist
+title = data["Title"]
+
+# Good: Provide default value
+title = data.get("Title", "Unknown")
+
+# Better: Check if key exists
+if "Title" in data:
+    title = data["Title"]
+else:
+    print("No title in response")
+```
+
+---
+
+# Complete Example: Fetch Movie Data
 
 ```python
 import requests
+
+def get_movie_data(title, api_key):
+    url = "http://www.omdbapi.com/"
+    params = {"apikey": api_key, "t": title}
+    try:
+        response = requests.get(url,
+                               params=params,
+                               timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        if data.get("Response") == "False":
+            return None
+        return data
+    except requests.exceptions.RequestException:
+        return None
+```
+
+---
+
+# Using the Function
+
+```python
+api_key = "YOUR_KEY"
+movie = get_movie_data("Inception", api_key)
+
+if movie:
+    print(f"Title: {movie['Title']}")
+    print(f"Year: {movie['Year']}")
+    print(f"Rating: {movie['imdbRating']}")
+    print(f"Genre: {movie['Genre']}")
+```
+
+Output:
+```
+Title: Inception
+Year: 2010
+Rating: 8.8
+Genre: Action, Sci-Fi, Thriller
+```
+
+---
+
+# Collecting Multiple Movies
+
+```python
+titles = ["Inception", "The Matrix", "Interstellar"]
+movies = []
+
+for title in titles:
+    movie = get_movie_data(title, api_key)
+    if movie:
+        movies.append(movie)
+
+print(f"Collected {len(movies)} movies")
+```
+
+**Problem**: What if we have 1000 movies? This is slow!
+
+---
+
+# Rate Limiting
+
+**Problem**: APIs limit how many requests you can make
+
+**OMDb Free Tier**: 1000 requests per day
+
+**Solution**: Add delay between requests
+
+```python
 import time
 
-urls = ['https://api.example.com/item/' + str(i) for i in range(100)]
-
-for url in urls:
-    response = requests.get(url)
-    data = response.json()
-
-    # Process data...
-
-    # IMPORTANT: Wait between requests
-    time.sleep(1)  # 1 second delay
+for title in titles:
+    movie = get_movie_data(title, api_key)
+    if movie:
+        movies.append(movie)
+    time.sleep(1)  # Wait 1 second between requests
 ```
-
-## Best Practices
-
-- Add delays between requests (1-2 seconds)
-- Check for `Retry-After` header if rate limited
-- Cache responses when possible
-- Respect `robots.txt`
 
 ---
 
-# Part 3: BeautifulSoup
+# Exponential Backoff
 
-## Parsing HTML Like a Pro
+**Better solution**: Retry with increasing delays
 
-**When to use**: When data is in HTML, not JSON APIs
+```python
+import time
 
+def get_movie_with_retry(title, api_key, max_retries=3):
+    for attempt in range(max_retries):
+        movie = get_movie_data(title, api_key)
+        if movie:
+            return movie
+        wait_time = 2 ** attempt
+        print(f"Retry {attempt + 1} after {wait_time}s")
+        time.sleep(wait_time)
+    return None
+```
+
+---
+
+# Part 5: BeautifulSoup - Web Scraping
+
+Extracting data from HTML pages
+
+---
+
+# When to Use Web Scraping
+
+**Use scraping when**:
+- No API available
+- API doesn't provide all needed data
+- API is too expensive or restrictive
+
+**Example**: Rotten Tomatoes audience reviews
+- No public API
+- Must scrape from website
+
+---
+
+# How Web Scraping Works
+
+1. Send HTTP request to get HTML page
+2. Parse HTML into a tree structure
+3. Find specific elements (e.g., all movie titles)
+4. Extract text or attributes
+5. Clean and structure the data
+
+**Tool**: BeautifulSoup library
+
+---
+
+# Installing BeautifulSoup
+
+```bash
+pip install beautifulsoup4
+pip install lxml  # HTML parser
+```
+
+Import:
 ```python
 from bs4 import BeautifulSoup
 import requests
-
-# Fetch page
-response = requests.get('https://example.com/articles')
-html = response.text
-
-# Parse HTML
-soup = BeautifulSoup(html, 'html.parser')
-
-# Find elements
-title = soup.find('h1').text
-articles = soup.find_all('article', class_='post')
-
-for article in articles:
-    title = article.find('h2').text
-    link = article.find('a')['href']
-    print(f"{title}: {link}")
 ```
-
-**Install**: `pip install beautifulsoup4`
 
 ---
 
-# BeautifulSoup Selectors
-
-## Finding Elements
+# Basic BeautifulSoup Example
 
 ```python
-from bs4 import BeautifulSoup
+html = """
+<html>
+  <h1>Inception</h1>
+  <p class="rating">Rating: 8.8</p>
+  <p class="genre">Sci-Fi</p>
+</html>
+"""
 
-soup = BeautifulSoup(html, 'html.parser')
+soup = BeautifulSoup(html, 'lxml')
 
-# By tag name
-soup.find('h1')              # First <h1>
-soup.find_all('p')           # All <p> tags
+# Find first h1 tag
+title = soup.find('h1')
+print(title.text)  # "Inception"
 
-# By class
-soup.find('div', class_='content')
-soup.find_all('a', class_='link')
-
-# By id
-soup.find('div', id='main')
-
-# By CSS selector
-soup.select('div.content p')     # All <p> inside <div class="content">
-soup.select_one('h1.title')      # First match
-
-# By attribute
-soup.find_all('a', href=True)    # All links with href
-soup.find('img', alt='Logo')
+# Find element by class
+rating = soup.find('p', class_='rating')
+print(rating.text)  # "Rating: 8.8"
 ```
 
 ---
 
-# Extracting Data from Elements
+# Scraping a Real Website
 
-## Common Operations
+```python
+url = "https://www.imdb.com/title/tt1375666/"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, 'lxml')
+
+# Find movie title
+title_elem = soup.find('h1')
+if title_elem:
+    title = title_elem.text.strip()
+    print(f"Title: {title}")
+```
+
+**Warning**: Websites change! This might break.
+
+---
+
+# Finding Elements
+
+**By tag name**:
+```python
+soup.find('h1')           # First h1
+soup.find_all('p')        # All p tags
+```
+
+**By class**:
+```python
+soup.find('div', class_='movie-info')
+soup.find_all('span', class_='rating')
+```
+
+**By id**:
+```python
+soup.find('div', id='main-content')
+```
+
+---
+
+# Finding Elements (continued)
+
+**By CSS selector**:
+```python
+soup.select('div.movie > h1')
+soup.select('#main-content')
+soup.select('.rating')
+```
+
+**CSS selectors** are very powerful for complex queries
+
+---
+
+# Extracting Data
 
 ```python
 # Get text content
-title = soup.find('h1').text
-title_clean = soup.find('h1').get_text(strip=True)
+elem = soup.find('h1')
+text = elem.text.strip()
 
 # Get attribute value
-link = soup.find('a')['href']
-link_alt = soup.find('a').get('href')  # Safer—returns None if missing
+link = soup.find('a')
+href = link['href']
+# or: href = link.get('href')
 
-# Get all text from element and children
-content = soup.find('article').get_text(separator='\n', strip=True)
-
-# Check if element exists
-if soup.find('div', class_='error'):
-    print("Error found!")
-
-# Navigate the tree
-parent = element.parent
-siblings = element.find_next_siblings()
-next_elem = element.find_next()
+# Get all text in children
+div = soup.find('div', class_='info')
+all_text = div.get_text(strip=True)
 ```
 
 ---
 
-# Real Example: Scraping Quotes
-
-## Let's scrape http://quotes.toscrape.com
+# Finding Multiple Elements
 
 ```python
-import requests
-from bs4 import BeautifulSoup
+# Find all movie cards on a page
+movies = soup.find_all('div', class_='movie-card')
 
-url = 'http://quotes.toscrape.com/'
-response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
-
-# Find all quote containers
-quotes = soup.find_all('div', class_='quote')
-
-for quote in quotes:
-    # Extract text, author, tags
-    text = quote.find('span', class_='text').text
-    author = quote.find('small', class_='author').text
-    tags = [tag.text for tag in quote.find_all('a', class_='tag')]
-
-    print(f"\n{text}")
-    print(f"— {author}")
-    print(f"Tags: {', '.join(tags)}")
+for movie in movies:
+    title = movie.find('h2').text.strip()
+    rating = movie.find('span', class_='rating').text
+    print(f"{title}: {rating}")
 ```
+
+**Pattern**: Find container elements, then extract data from each
 
 ---
 
-# Handling Pagination
-
-## Scraping Multiple Pages
+# Handling Missing Elements
 
 ```python
-import requests
-from bs4 import BeautifulSoup
-import time
+movie = soup.find('div', class_='movie-card')
 
-base_url = 'http://quotes.toscrape.com'
-page = 1
-all_quotes = []
+# Bad: Crashes if h2 doesn't exist
+title = movie.find('h2').text
 
-while True:
-    url = f'{base_url}/page/{page}/'
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    quotes = soup.find_all('div', class_='quote')
-    if not quotes:  # No more quotes
-        break
-
-    all_quotes.extend(quotes)
-
-    page += 1
-    time.sleep(1)  # Be polite!
-
-print(f"Scraped {len(all_quotes)} quotes from {page-1} pages")
-```
-
----
-
-# Common BeautifulSoup Patterns
-
-## Tips & Tricks
-
-```python
-# Handle missing elements safely
-title = soup.find('h1')
-if title:
-    print(title.text)
+# Good: Check if element exists
+title_elem = movie.find('h2')
+if title_elem:
+    title = title_elem.text.strip()
 else:
-    print("No title found")
+    title = "Unknown"
 
-# Or use .get_text() with default
-title = (soup.find('h1') or {}).get_text(default='No title')
-
-# Extract URLs (handle relative paths)
-from urllib.parse import urljoin
-
-link = soup.find('a')['href']
-absolute_url = urljoin(base_url, link)  # Converts relative to absolute
-
-# Remove unwanted elements before extracting text
-for script in soup.find_all('script'):
-    script.decompose()  # Remove from tree
-text = soup.get_text()
+# Alternative: Use try-except
+try:
+    title = movie.find('h2').text.strip()
+except AttributeError:
+    title = "Unknown"
 ```
 
 ---
 
-# Combining Requests + BeautifulSoup
-
-## Complete Scraping Workflow
+# Complete Scraping Example
 
 ```python
-import requests
-from bs4 import BeautifulSoup
-import time
-import json
-
-def scrape_article(url):
-    """Scrape a single article"""
+def scrape_imdb_top_movies():
+    url = "https://www.imdb.com/chart/top/"
     response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = BeautifulSoup(response.text, 'lxml')
+    movies = []
 
-    return {
-        'title': soup.find('h1').text.strip(),
-        'author': soup.find('span', class_='author').text,
-        'content': soup.find('article').get_text(strip=True),
-        'url': url
-    }
+    for row in soup.select('tbody.lister-list tr')[:10]:
+        title_col = row.find('td', class_='titleColumn')
+        rating_col = row.find('td', class_='ratingColumn')
+        if title_col and rating_col:
+            title = title_col.a.text
+            rating = rating_col.strong.text
+            movies.append({'title': title,
+                         'rating': rating})
+    return movies
 ```
 
 ---
 
-# Batch Scraping (cont.)
+# Web Scraping Ethics
 
-```python
-# Scrape multiple articles
-article_urls = ['https://blog.com/post1', 'https://blog.com/post2']
-articles = []
+**Important rules**:
 
-for url in article_urls:
-    article = scrape_article(url)
-    articles.append(article)
-    time.sleep(2)
+1. **Check robots.txt**: `example.com/robots.txt`
+   - Specifies what bots can/can't scrape
 
-# Save to JSON
-with open('articles.json', 'w') as f:
-    json.dump(articles, f, indent=2)
-```
+2. **Respect rate limits**: Don't overload servers
+   - Add delays between requests
+
+3. **Check Terms of Service**: Some sites prohibit scraping
+
+4. **Use APIs when available**: They're designed for this!
 
 ---
 
-# Part 4: Browser Automation with Playwright
+# Part 6: Playwright - JavaScript-Heavy Sites
 
-## Why Playwright?
-
-### Playwright vs Selenium
-
-| Feature | Playwright | Selenium |
-|---------|-----------|----------|
-| Speed |  Faster | Slower |
-| Modern | [YES] 2020+ | 2004 |
-| Auto-wait | [YES] Built-in | [NO] Manual |
-| API |  Cleaner | More verbose |
-| Browsers | Chrome, Firefox, Safari | All browsers |
-| Maintenance | Active (Microsoft) | Community |
-
-**Bottom line**: Playwright is the modern choice for web automation!
+When requests/BeautifulSoup isn't enough
 
 ---
 
-# When Do You Need Browser Automation?
+# The JavaScript Problem
 
-## Use Cases
+**Problem**: Many modern sites load data dynamically with JavaScript
 
-1. **JavaScript-rendered content**
-   - Single Page Applications (React, Vue, Angular)
-   - Infinite scroll
-   - Content loaded after page load
+**Example**: Netflix loads movie thumbnails after page loads
 
-2. **User interactions**
-   - Click buttons, fill forms
-   - Login flows
-   - Navigate multiple pages
+When you use `requests.get()`:
+- You get initial HTML
+- JavaScript hasn't run yet
+- Data you want isn't in the HTML!
 
-3. **Dynamic content**
-   - Wait for elements to appear
-   - Handle popups/modals
-   - Screenshot generation
+**Solution**: Use a real browser that runs JavaScript
 
-**Rule of thumb**: If you can't see it in "View Page Source", you might need automation!
+---
+
+# What is Playwright?
+
+**Playwright**: Library to control a real browser programmatically
+
+**Features**:
+- Supports Chrome, Firefox, Safari
+- Runs JavaScript, waits for elements
+- Can screenshot, interact with page
+- Much slower than requests!
+
+**When to use**: Only when necessary (JS-heavy sites)
 
 ---
 
 # Installing Playwright
 
-## Quick Setup
-
 ```bash
-# Install Playwright
 pip install playwright
-
-# Install browsers (Chrome, Firefox, WebKit)
-playwright install
-
-# Or install specific browser
 playwright install chromium
 ```
 
-**Size warning**: Downloads ~300MB of browsers, but you only do this once!
+This downloads Chromium browser (100+ MB)
 
 ---
 
-# Your First Playwright Script
-
-## Basic Example
+# Basic Playwright Example
 
 ```python
 from playwright.sync_api import sync_playwright
 
 with sync_playwright() as p:
-    # Launch browser
-    browser = p.chromium.launch(headless=False)  # headless=True for no GUI
-
-    # Create new page
+    browser = p.chromium.launch()
     page = browser.new_page()
-
-    # Navigate to URL
-    page.goto('https://example.com')
-
-    # Get page title
-    title = page.title()
-    print(f"Page title: {title}")
-
-    # Take screenshot
-    page.screenshot(path='screenshot.png')
-
-    # Close browser
+    page.goto("https://www.example.com")
+    page.wait_for_selector('h1')
+    html = page.content()
     browser.close()
 ```
 
 ---
 
-# Finding & Interacting with Elements
-
-## Playwright Selectors
+# Playwright with BeautifulSoup
 
 ```python
 from playwright.sync_api import sync_playwright
-
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-    page.goto('https://google.com')
-
-    # Find element and type
-    page.fill('input[name="q"]', 'web scraping')
-
-    # Click button
-    page.click('input[value="Google Search"]')
-
-    # Wait for navigation
-    page.wait_for_load_state('networkidle')
-
-    # Extract data
-    results = page.query_selector_all('h3')
-    for result in results[:5]:
-        print(result.inner_text())
-
-    browser.close()
-```
-
----
-
-# Common Playwright Patterns
-
-## Waiting for Elements
-
-```python
-# Wait for element to appear (auto-waits up to 30s)
-page.click('button')  # Automatically waits for button to be clickable
-
-# Explicit wait
-page.wait_for_selector('div.results', timeout=10000)  # 10 seconds
-
-# Wait for network to be idle
-page.wait_for_load_state('networkidle')
-
-# Wait for specific URL
-page.wait_for_url('**/results')
-
-# Wait for function to return true
-page.wait_for_function('() => document.querySelectorAll(".item").length > 10')
-```
-
-**Key advantage**: Playwright auto-waits for most actions—less flaky tests!
-
----
-
-# Extracting Data with Playwright
-
-## Getting Content
-
-```python
-from playwright.sync_api import sync_playwright
-
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    page = browser.new_page()
-    page.goto('https://news.ycombinator.com')
-
-    # Get all story titles
-    stories = page.query_selector_all('span.titleline > a')
-
-    for story in stories[:10]:
-        title = story.inner_text()
-        url = story.get_attribute('href')
-        print(f"{title}\n  {url}\n")
-
-    browser.close()
-```
-
-**Methods**:
-- `inner_text()` - visible text
-- `text_content()` - all text (including hidden)
-- `get_attribute('href')` - attribute value
-- `inner_html()` - HTML content
-
----
-
-# Handling JavaScript-Heavy Sites
-
-## Example: Infinite Scroll
-
-```python
-from playwright.sync_api import sync_playwright
-import time
-
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-    page.goto('https://twitter.com/explore')
-
-    # Scroll down 5 times to load more content
-    for _ in range(5):
-        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-        time.sleep(2)  # Wait for content to load
-
-    # Now extract all loaded tweets
-    tweets = page.query_selector_all('article')
-    print(f"Loaded {len(tweets)} tweets")
-
-    browser.close()
-```
-
-**Key**: `page.evaluate()` runs JavaScript in the browser!
-
----
-
-# Playwright vs Requests+BeautifulSoup
-
-## When to Use What?
-
-<div class="columns">
-
-### Requests + BeautifulSoup [YES]
-- Static HTML content
-- API endpoints available
-- Fast scraping needed
-- Low resource usage
-- Simple pagination
-
-**Example**: News articles, blogs, product listings (server-rendered)
-
-### Playwright [YES]
-- JavaScript-rendered content
-- Need to interact (click, scroll)
-- Login required
-- Dynamic content
-- Screenshot/PDF generation
-
-**Example**: SPAs, social media, web apps
-
-</div>
-
-**Start simple**: Try Requests first, use Playwright if needed!
-
----
-
-# Practical Example: IITGN Announcements
-
-## Let's Build a Real Scraper
-
-**Goal**: Scrape latest announcements from IITGN website
-
-```python
-import requests
 from bs4 import BeautifulSoup
 
-url = 'https://iitgn.ac.in/news'
-response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
-
-announcements = soup.find_all('div', class_='announcement-item')
-
-for announcement in announcements[:5]:
-    title = announcement.find('h3').text.strip()
-    date = announcement.find('span', class_='date').text.strip()
-    link = announcement.find('a')['href']
-
-    print(f"{date}: {title}")
-    print(f"   Link: {link}\n")
+def scrape_js_site(url):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(url)
+        page.wait_for_selector('.movie-card')
+        html = page.content()
+        browser.close()
+    soup = BeautifulSoup(html, 'lxml')
+    return soup
 ```
 
-**Your turn**: Try adapting this for your favorite website!
+---
+
+# When to Use Playwright vs requests
+
+**Use requests + BeautifulSoup**:
+- Simple static websites
+- Speed is important
+- Scraping many pages
+
+**Use Playwright**:
+- JavaScript-heavy sites
+- Need to interact (click, scroll, type)
+- Data loads after page load
+
+**Rule of thumb**: Try requests first, use Playwright if needed
 
 ---
 
-# Best Practices Summary
+# Part 7: Working with APIs
 
-## Do's [YES]
-
-- Check `robots.txt` before scraping
-- Add delays between requests (1-2 seconds)
-- Use appropriate User-Agent headers
-- Handle errors gracefully
-- Cache responses when possible
-- Respect rate limits
-
-## Don'ts [NO]
-
-- Don't overwhelm servers (DDoS)
-- Don't scrape personal data without permission
-- Don't ignore Terms of Service
-- Don't bypass authentication illegally
-- Don't scrape without error handling
+Best practices for production data collection
 
 ---
 
-# Debugging Tips
+# REST API Basics
 
-## Common Issues & Solutions
+**REST**: Representational State Transfer
+
+**Key concepts**:
+- Resources identified by URLs
+- HTTP methods indicate action (GET, POST, PUT, DELETE)
+- Stateless (each request independent)
+- Responses usually in JSON
+
+**Example**: OMDb API is a REST API
+
+---
+
+# API Authentication
+
+**Why**: Prevent abuse, track usage, monetize
+
+**Common methods**:
+
+1. **API Key** (simplest):
+```python
+params = {"apikey": "YOUR_KEY"}
+```
+
+2. **Bearer Token**:
+```python
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+```
+
+3. **OAuth** (complex): Multi-step authentication flow
+
+---
+
+# API Keys Best Practices
+
+**Never hardcode API keys!**
 
 ```python
-# 1. 403 Forbidden → Add User-Agent
-headers = {'User-Agent': 'Mozilla/5.0...'}
-response = requests.get(url, headers=headers)
+# Bad
+api_key = "sk_live_abc123xyz"
 
-# 2. 429 Too Many Requests → Add delay
-import time
-time.sleep(2)
+# Good: Use environment variables
+import os
+api_key = os.environ.get("OMDB_API_KEY")
 
-# 3. Empty results → Check if JavaScript-rendered
-# Use Playwright instead of Requests
-
-# 4. Connection timeout → Increase timeout
-response = requests.get(url, timeout=30)
-
-# 5. SSL errors → Disable verification (careful!)
-response = requests.get(url, verify=False)
-
-# 6. Element not found → Check selector
-print(soup.prettify())  # See HTML structure
+# Better: Use python-dotenv
+from dotenv import load_dotenv
+load_dotenv()
+api_key = os.getenv("OMDB_API_KEY")
 ```
 
 ---
 
-# Tools & Resources
+# Using .env Files
 
-## Essential Tools
+Create `.env` file:
+```
+OMDB_API_KEY=your_key_here
+TMDB_API_KEY=another_key
+```
 
-- **Chrome DevTools**: Built into Chrome
-- **Postman**: Test API requests
-- **curl**: Command-line HTTP client
-- **jq**: Command-line JSON processor
-- **HTTPie**: User-friendly curl alternative
+Add to `.gitignore`:
+```
+.env
+```
 
-## Learning Resources
+Load in code:
+```python
+from dotenv import load_dotenv
+import os
 
-- [requests docs](https://docs.python-requests.org/)
-- [BeautifulSoup docs](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
-- [Playwright docs](https://playwright.dev/python/)
-- [HTTP status codes](https://httpstatuses.com/)
+load_dotenv()
+api_key = os.getenv("OMDB_API_KEY")
+```
 
 ---
 
-# Lab Preview (3 hours)
+# Rate Limiting
 
-## What You'll Build Today
+**APIs limit requests to prevent abuse**
 
-### Part 1: DevTools Practice (45 min)
-- Find hidden APIs on real websites
-- Convert cURL to Python
+**OMDb**: 1000/day (free tier)
+**TMDb**: 40 requests per 10 seconds
 
-### Part 2: Requests + BeautifulSoup (90 min)
-- Scrape quotes website (practice)
-- Build a news aggregator
-- Handle pagination
+**How to handle**:
+1. Read API documentation
+2. Add delays between requests
+3. Implement exponential backoff
+4. Cache responses locally
 
-### Part 3: Playwright (45 min)
-- Scrape a JavaScript-heavy site
-- Automate a login flow
-- Extract dynamic content
+---
 
-### Part 4: Mini Project (30 min)
-- Choose your own website to scrape
-- Present findings to the class
+# Implementing Rate Limiting
+
+```python
+import time
+from datetime import datetime, timedelta
+
+class RateLimiter:
+    def __init__(self, max_calls, period):
+        self.max_calls = max_calls
+        self.period = period
+        self.calls = []
+
+    def wait_if_needed(self):
+        now = datetime.now()
+        self.calls = [c for c in self.calls
+                     if now - c <
+                     timedelta(seconds=self.period)]
+        if len(self.calls) >= self.max_calls:
+            sleep_time = self.period - \
+                        (now - self.calls[0]).seconds
+            time.sleep(sleep_time)
+        self.calls.append(now)
+```
+
+---
+
+# Pagination
+
+**Problem**: APIs don't return all data at once
+
+**Example**: TMDb returns 20 movies per request
+
+**Solution**: Make multiple requests with page parameter
+
+```python
+all_movies = []
+for page in range(1, 6):  # Get 5 pages
+    params = {"apikey": key, "page": page}
+    response = requests.get(url, params=params)
+    data = response.json()
+    all_movies.extend(data["results"])
+    time.sleep(1)  # Rate limiting
+```
+
+---
+
+# Caching API Responses
+
+**Why**: Avoid redundant requests, save API quota
+
+```python
+import json
+import os
+
+def get_cached_or_fetch(movie_id, api_key):
+    cache_file = f"cache/{movie_id}.json"
+    if os.path.exists(cache_file):
+        with open(cache_file) as f:
+            return json.load(f)
+    data = get_movie_data(movie_id, api_key)
+    os.makedirs("cache", exist_ok=True)
+    with open(cache_file, 'w') as f:
+        json.dump(data, f)
+    return data
+```
+
+---
+
+# Combining Multiple APIs
+
+**Strategy**: Use IMDb ID as common key
+
+```python
+def enrich_movie_data(imdb_id):
+    omdb_data = get_omdb_data(imdb_id)
+    tmdb_data = get_tmdb_data(imdb_id)
+
+    movie = {
+        "title": omdb_data.get("Title"),
+        "year": omdb_data.get("Year"),
+        "rating_imdb": omdb_data.get("imdbRating"),
+        "rating_tmdb": tmdb_data.get("vote_average"),
+        "budget": tmdb_data.get("budget"),
+        "revenue": tmdb_data.get("revenue")
+    }
+    return movie
+```
+
+---
+
+# Handling API Changes
+
+**APIs change!** Be defensive:
+
+1. **Version your API calls**:
+```python
+url = "https://api.example.com/v3/movies"
+```
+
+2. **Validate responses**:
+```python
+required_fields = ["title", "year", "rating"]
+if not all(field in data for field in required_fields):
+    print("API response missing required fields")
+```
+
+3. **Monitor for errors**: Log when structure changes
+
+---
+
+# Data Collection Best Practices
+
+**1. Start small**: Test with 5-10 items before scaling
+
+**2. Save raw responses**: Keep original JSON for debugging
+
+**3. Handle errors gracefully**: Don't crash on one failure
+
+**4. Log progress**: Know where you stopped if interrupted
+
+**5. Validate data**: Check for missing/invalid fields
+
+**6. Document your process**: Future you will thank you!
+
+---
+
+# Building a Production Collector
+
+```python
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def collect_movies(movie_ids, api_key):
+    results = []
+    for i, movie_id in enumerate(movie_ids):
+        logger.info(f"Collecting {i+1}/{len(movie_ids)}")
+        try:
+            data = get_movie_data(movie_id, api_key)
+            if data:
+                results.append(data)
+            if i % 10 == 0:
+                save_results(results,
+                           "partial_results.json")
+        except Exception as e:
+            logger.error(f"Failed: {e}")
+    return results
+```
+
+---
+
+# Saving Progress
+
+```python
+import json
+
+def save_results(results, filename):
+    with open(filename, 'w') as f:
+        json.dump(results, f, indent=2)
+
+def load_results(filename):
+    try:
+        with open(filename) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+# Resume from where you left off
+existing = load_results("partial_results.json")
+existing_ids = {r["imdbID"] for r in existing}
+remaining = [id for id in all_ids
+            if id not in existing_ids]
+```
+
+---
+
+# Summary: Data Collection Workflow
+
+For our Netflix movie dataset:
+
+1. **Identify data sources**: OMDb API, TMDb API, IMDb scraping
+2. **Test with small sample**: 5-10 movies
+3. **Implement collectors**: Functions for each source
+4. **Handle errors**: Try-except, retries, validation
+5. **Respect rate limits**: Delays, exponential backoff
+6. **Combine data**: Merge using IMDb ID
+7. **Save incrementally**: Don't lose progress
+8. **Validate output**: Check for missing fields
+
+---
+
+# Next Steps
+
+**Week 2**: Data Validation
+- Clean and validate the collected data
+- Handle missing values and inconsistencies
+- Use Pydantic for validation
+- Analyze with csvkit and pandas
+
+**Week 3**: Data Labeling
+- Learn about annotation tasks
+- Use Label Studio for labeling
+- Measure inter-annotator agreement
+- Build high-quality training datasets
+
+---
+
+# Key Takeaways
+
+1. **Data collection is foundational**: Bad data = bad models
+
+2. **Multiple approaches**: APIs (preferred) and web scraping
+
+3. **Error handling is critical**: Network issues, missing fields, rate limits
+
+4. **Be a good citizen**: Respect robots.txt, rate limits, ToS
+
+5. **Save raw data**: You can always reprocess
+
+6. **Start small, scale gradually**: Test thoroughly before running at scale
+
+---
+
+# Resources
+
+**APIs**:
+- OMDb API: http://www.omdbapi.com/
+- TMDb API: https://www.themoviedb.org/documentation/api
+
+**Libraries**:
+- requests: https://requests.readthedocs.io/
+- BeautifulSoup: https://www.crummy.com/software/BeautifulSoup/
+- Playwright: https://playwright.dev/python/
+
+**Tools**:
+- curl: https://curl.se/
+- jq: https://stedolan.github.io/jq/
 
 ---
 
 # Questions?
 
-## Get Ready for Lab!
-
-**What to have installed**:
-```bash
-pip install requests beautifulsoup4 playwright pandas
-playwright install chromium
-```
-
-**What to bring**:
-- Laptop with Python 3.8+
-- Curiosity about websites you use daily
-- Ideas for data you want to collect
-
----
-
-<!-- _class: lead -->
-<!-- _paginate: false -->
-
-# See You in Lab! 
-
-**Remember**: With great scraping power comes great responsibility!
-
-Next week: Data validation, cleaning, and labeling
+**Next class**: Lab session - hands-on data collection practice

@@ -9,19 +9,27 @@ section {
     padding: 70px; /* Standard Marp padding is ~70px. This ensures consistency. */
 }
 
-/* Pagination (Slide Numbers) */
+/* Pagination (Slide Numbers) - Always visible */
 section::after {
     content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
     position: absolute;
     bottom: 20px;
     right: 30px;
-    font-size: 18px;
+    font-size: 16px;
     color: #64748b;
+    font-weight: 500;
 }
 
-/* Hide pagination on title slide (first slide usually doesn't have it) */
+/* Show pagination on all slides including title slides */
 section:first-of-type::after {
-    display: none;
+    display: block;
+}
+
+/* Lead slides (title slides) - show numbers but less prominent */
+section.lead::after {
+    display: block;
+    font-size: 14px;
+    color: #94a3b8;
 }
 
 /* Title Styling */
