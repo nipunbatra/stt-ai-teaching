@@ -10,7 +10,7 @@ style: |
 
 <!-- _class: lead -->
 
-# Week 2: Data Validation
+# Week 2: Data Validation & Quality
 
 **CS 203: Software Tools and Techniques for AI**
 
@@ -19,1835 +19,2625 @@ IIT Gandhinagar
 
 ---
 
-# The Data Quality Crisis
+<!-- _class: lead -->
 
-**Reality Check**:
-- You collected 1,000 movies from OMDb.
-- You try to train a model.
-- **Crash!** `ValueError: could not convert string to float: 'N/A'`
+# Part 1: The Motivation
 
-**Common Issues**:
-1.  **Missing Data**: `NULL`, `NaN`, `""`, `"N/A"`, `"-"`.
-2.  **Type Mismatches**: Rating `"8.5"` (string) instead of `8.5` (float).
-3.  **Outliers**: A movie from year `20250` (typo).
-4.  **Drift**: Last month's data format $\neq$ today's data format.
+*What did we actually collect?*
 
 ---
 
-# Data Quality Dimensions
+# Last Week: We Collected Data!
 
-**Six dimensions of data quality**:
-
-1. **Accuracy**: Values correctly represent the real-world entity
-2. **Completeness**: All required data is present
-3. **Consistency**: No contradictions (e.g., age=5, birth_year=1950)
-4. **Timeliness**: Data is up-to-date and relevant
-5. **Validity**: Data conforms to defined formats and constraints
-6. **Uniqueness**: No unwanted duplicates
-
-**ML Impact**: Poor quality in any dimension → degraded model performance.
-
----
-
-# Types of Data Quality Issues
-
-**Structural issues**:
-- Missing values (nulls, empty strings)
-- Wrong data types (strings instead of numbers)
-- Invalid formats (dates, emails, phone numbers)
-
-**Semantic issues**:
-- Outliers and anomalies
-- Inconsistent units (km vs miles)
-- Invalid categories
-- Logical contradictions
-
-**Temporal issues**:
-- Data drift (distribution changes)
-- Schema drift (structure changes)
-- Concept drift (target relationship changes)
-
----
-
-# The Cost of Poor Data Quality
-
-**Training time**:
-- Model fails to converge
-- Excessive debugging time
-- Wasted compute resources
-
-**Production time**:
-- Incorrect predictions
-- Model failures and crashes
-- Data pipeline failures
-- User trust erosion
-
-**Rule**: **1 hour of validation saves 10 hours of debugging.**
-
----
-
-# The Validation Pipeline
-
-![width:900px](../figures/data_validation_pipeline.png)
-*[diagram-generators/data_validation_pipeline.py](../diagram-generators/data_validation_pipeline.py)*
-
-**Tools**:
-- **Inspect**: `jq` (JSON), `csvkit` (CSV).
-- **Schema**: `Pydantic` (Row-level), `Pandera` (Batch-level).
-- **Clean**: `pandas`.
-
----
-
-# Part 1: Inspection (CLI Tools)
-
-Look at your data *before* loading it into Python.
-
----
-
-# Data Profiling: First Look
-
-**Before writing any code, ask**:
-
-1. How many records?
-2. How many features?
-3. What are the data types?
-4. How many nulls per column?
-5. What's the value distribution?
-
-**Tools**: `head`, `wc`, `jq`, `csvstat`
-
-**Why CLI first?**
-- Fast for large files (GB-scale)
-- No Python dependencies
-- Quick sanity checks
-- Scriptable and pipeable
-
----
-
-# jq: JSON Power Tool
-
-**Find Broken Records**:
-Movies where `BoxOffice` is missing ("N/A").
-
-```bash
-cat movies.json | jq '.[] | select(.BoxOffice == "N/A") | .Title'
-```
-
-**Check Distribution**:
-Count movies by Year.
-
-```bash
-cat movies.json | jq '.[].Year' | sort | uniq -c
-```
-
-**Quick Sanity Check**:
-Are there any ratings > 10?
-
-```bash
-cat movies.json | jq '.[] | select(.imdbRating | tonumber > 10)'
-```
-
-**Extract specific fields**:
-```bash
-cat movies.json | jq '.[] | {title: .Title, year: .Year, rating: .imdbRating}'
-```
-
----
-
-# jq Advanced Patterns
-
-**Compute statistics**:
-```bash
-# Average rating
-cat movies.json | jq '[.[].imdbRating | tonumber] | add/length'
-
-# Find max budget
-cat movies.json | jq '[.[].Budget | tonumber] | max'
-```
-
-**Filter and transform**:
-```bash
-# High-rated recent movies
-cat movies.json | jq '
-  .[] |
-  select(.Year | tonumber > 2020) |
-  select(.imdbRating | tonumber > 8.0) |
-  {title: .Title, rating: .imdbRating}
-'
-```
-
-**Why jq matters**: Debug API responses before writing Python code.
-
----
-
-# csvkit: SQL for CSVs
-
-**Statistics (`csvstat`)**:
-Gives mean, median, null count, unique values.
-
-```bash
-csvstat movies.csv
-```
-
-**Output**:
-```
-  1. "Title"
-        Type of data:          Text
-        Contains null values:  False
-        Unique values:         1000
-
-  2. "Year"
-        Type of data:          Number
-        Contains null values:  False
-        Min:                   1920
-        Max:                   2024
-        Mean:                  1995.3
-```
-
----
-
-# csvkit: More Commands
-
-**Query (`csvsql`)**:
-Run SQL directly on CSV!
-
-```bash
-csvsql --query "SELECT Title FROM movies WHERE Rating > 9" movies.csv
-```
-
-**Cut columns (`csvcut`)**:
-```bash
-csvcut -c Title,Year,Rating movies.csv
-```
-
-**Look at specific rows (`csvlook`)**:
-```bash
-head -20 movies.csv | csvlook
-```
-
-**Join CSVs (`csvjoin`)**:
-```bash
-csvjoin -c movie_id movies.csv reviews.csv
-```
-
----
-
-# Data Profiling with pandas-profiling
-
-**Automatic report generation**:
+Remember our Netflix movie prediction project?
 
 ```python
-from ydata_profiling import ProfileReport
+# We wrote this beautiful code
+movies = []
+for title in movie_list:
+    response = requests.get(OMDB_API, params={"t": title})
+    movies.append(response.json())
+
+df = pd.DataFrame(movies)
+df.to_csv("netflix_movies.csv")
+print(f"Collected {len(df)} movies!")
+```
+
+**Output**: `Collected 1000 movies!`
+
+**Feeling**: Victory! Time to train models!
+
+---
+
+# Reality Check: Let's Look at the Data
+
+```python
 import pandas as pd
-
-df = pd.read_csv("movies.csv")
-profile = ProfileReport(df, title="Movie Dataset Report")
-profile.to_file("report.html")
+df = pd.read_csv("netflix_movies.csv")
+print(df.head())
 ```
 
-**Generates**:
-- Overview (rows, columns, missing %, duplicates)
-- Variable distributions (histograms)
-- Correlations (heatmap)
-- Missing value patterns
-- Warnings (high cardinality, high correlation, skewness)
+```
+   Title          Year    Runtime   imdbRating  BoxOffice
+0  Inception      2010    148 min   8.8         $292,576,195
+1  Avatar         2009    162 min   7.9         $760,507,625
+2  The Room       2003    99 min    3.9         N/A
+3  Inception      2010    148 min   8.8         $292,576,195
+4  Tenet          N/A     150 min   7.3         N/A
+```
 
-**Use case**: Initial data exploration before validation.
+**Wait... something's wrong here.**
 
 ---
 
-# Part 2: Schema Validation (Pydantic)
+# The Problems Emerge
 
-**The Contract**: Define what valid data *looks* like.
-
-```python
-from pydantic import BaseModel, Field, validator
-from typing import Optional
-
-class Movie(BaseModel):
-    title: str
-    year: int = Field(gt=1888, lt=2030) # Constraints
-    rating: float = Field(ge=0, le=10)
-    genre: str
-
-    # Custom Validator
-    @validator('genre')
-    def genre_must_be_valid(cls, v):
-        allowed = {'Action', 'Comedy', 'Drama'}
-        if v not in allowed:
-            raise ValueError(f"Unknown genre: {v}")
-        return v
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                      DATA QUALITY ISSUES                          │
+├───────────────────────────────────────────────────────────────────┤
+│  1. DUPLICATES:    Inception appears twice (rows 0 and 3)         │
+│  2. MISSING:       Year is "N/A" for Tenet (row 4)                │
+│  3. WRONG TYPES:   Runtime is "148 min" not integer 148           │
+│  4. INCONSISTENT:  BoxOffice has "$" and commas                   │
+│  5. N/A VALUES:    Some BoxOffice entries are literally "N/A"     │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Why Pydantic?
-
-1.  **Type Coercion**: Converts `"2010"` (str) -> `2010` (int) automatically.
-2.  **Early Failure**: Errors catch invalid data immediately.
-3.  **Documentation**: The code *is* the documentation of your data format.
+# Let's Dig Deeper
 
 ```python
-try:
-    # This will fail (Year out of bounds)
-    m = Movie(title="Future", year=3000, rating=5.0, genre="Action")
-except ValueError as e:
-    print(e)
-    # Output: 1 validation error for Movie
-    # year: ensure this value is less than 2030
+print(df.info())
+```
+
+```
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 1000 entries, 0 to 999
+Data columns (total 5 columns):
+ #   Column      Non-Null Count  Dtype
+---  ------      --------------  -----
+ 0   Title       1000 non-null   object    <- All strings!
+ 1   Year        987 non-null    object    <- String, not int!
+ 2   Runtime     1000 non-null   object    <- "148 min" string
+ 3   imdbRating  892 non-null    object    <- String, not float!
+ 4   BoxOffice   634 non-null    object    <- "$292,576,195" string
+```
+
+**Every column is a string (object)!**
+**366 movies have no BoxOffice data!**
+
+---
+
+# What Happens If We Ignore This?
+
+```python
+# Naive approach: just train the model!
+from sklearn.linear_model import LinearRegression
+
+X = df[['Year', 'Runtime', 'imdbRating']]
+y = df['BoxOffice']
+
+model = LinearRegression()
+model.fit(X, y)
+```
+
+```
+ValueError: could not convert string to float: '148 min'
+```
+
+**The model refuses to train.**
+
+---
+
+# Or Worse: Silent Failures
+
+```python
+# "Fix" by forcing numeric conversion
+df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
+df['Rating'] = pd.to_numeric(df['imdbRating'], errors='coerce')
+
+# Now 13 movies have NaN year, 108 have NaN rating
+# We lost data silently!
+
+# Train anyway
+model.fit(df[['Year', 'Rating']].dropna(), y.dropna())
+# Model trains on 521 movies instead of 1000!
+```
+
+**You trained on half your data without realizing.**
+
+---
+
+# Real-World Data Quality Disasters
+
+| Company | What Happened | Cost |
+|---------|--------------|------|
+| **NASA Mars Orbiter** | Metric vs Imperial units | $125 million |
+| **Knight Capital** | Bad data in trading algorithm | $440 million in 45 min |
+| **UK COVID Stats** | Excel row limit (65,536) | 16,000 missing cases |
+| **Zillow** | Bad data in home value model | $500 million loss |
+
+**Data quality is not optional. It's survival.**
+
+---
+
+# The Data Quality Pyramid
+
+```
+                         ┌─────────────┐
+                         │   MODELS    │  <- What we want to build
+                         ├─────────────┤
+                      ┌──┴─────────────┴──┐
+                      │    ANALYTICS      │  <- Insights & reports
+                      ├───────────────────┤
+                   ┌──┴───────────────────┴──┐
+                   │      CLEAN DATA         │  <- Validated, typed
+                   ├─────────────────────────┤
+                ┌──┴─────────────────────────┴──┐
+                │       VALIDATED DATA          │  <- Schema-compliant
+                ├───────────────────────────────┤
+             ┌──┴───────────────────────────────┴──┐
+             │          RAW DATA                    │  <- What we collected
+             └──────────────────────────────────────┘
+```
+
+**You can't skip layers. Each depends on the one below.**
+
+---
+
+# Today's Mission
+
+**Transform messy raw data into clean, validated data.**
+
+Tools we'll learn:
+- **Unix commands**: `head`, `tail`, `wc`, `file`, `sort`, `uniq`
+- **jq**: JSON processing powerhouse
+- **CSVkit**: CSV Swiss Army knife
+- **JSON Schema**: Language-agnostic data contracts
+- **Pydantic**: Pythonic data validation
+
+**Principle**: Inspect before you trust. Validate before you use.
+
+---
+
+<!-- _class: lead -->
+
+# Part 2: Types of Data Problems
+
+*Know your enemy*
+
+---
+
+# A Taxonomy of Data Problems
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                     DATA QUALITY DIMENSIONS                       │
+├───────────────────────────────────────────────────────────────────┤
+│   COMPLETENESS  - Is all expected data present?                   │
+│   ACCURACY      - Is the data correct?                            │
+│   CONSISTENCY   - Does data agree across sources?                 │
+│   VALIDITY      - Does data conform to rules?                     │
+│   UNIQUENESS    - Are there duplicates?                           │
+│   TIMELINESS    - Is data up-to-date?                             │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+Let's see examples of each...
+
+---
+
+# Problem 1: Missing Values
+
+**The data simply isn't there.**
+
+```csv
+title,year,rating,revenue
+Inception,2010,8.8,292576195
+Avatar,2009,7.9,2923706026
+The Room,2003,3.9,
+Tenet,,7.3,363656624
+```
+
+**Types of missingness:**
+- **Empty string**: `""`
+- **Null/None**: `null` in JSON
+- **Sentinel value**: `"N/A"`, `"NULL"`, `-1`, `9999`
+- **Missing key**: Key doesn't exist in JSON
+
+**Why it matters**: ML models can't handle missing values directly.
+
+---
+
+# Problem 2: Wrong Data Types
+
+**Data exists but in wrong format.**
+
+```json
+{
+  "title": "Inception",
+  "year": "2010",          // String, should be integer
+  "rating": "8.8",         // String, should be float
+  "runtime": "148 min",    // String with unit, should be integer
+  "released": "16 Jul 2010" // String, should be date
+}
+```
+
+**Common type issues:**
+- Numbers stored as strings
+- Dates in various string formats
+- Booleans as "true"/"false"/"yes"/"no"/"1"/"0"
+- Lists stored as comma-separated strings
+
+---
+
+# Problem 3: Inconsistent Formats
+
+**Same concept, different representations.**
+
+```csv
+# Date formats
+2010-07-16
+07/16/2010
+16 Jul 2010
+July 16, 2010
+
+# Currency formats
+$292,576,195
+292576195
+$292.5M
+292,576,195 USD
+
+# Boolean formats
+true, True, TRUE, 1, yes, Yes, Y
+```
+
+**Why it matters**: Can't compare or aggregate inconsistent data.
+
+---
+
+# Problem 4: Duplicates
+
+**Same record appears multiple times.**
+
+```csv
+title,year,rating
+Inception,2010,8.8
+Avatar,2009,7.9
+Inception,2010,8.8      <- Exact duplicate
+The Matrix,1999,8.7
+inception,2010,8.8      <- Case variation duplicate
+Inception,2010,8.9      <- Near duplicate (different rating?)
+```
+
+**Types of duplicates:**
+- **Exact**: Identical in every field
+- **Partial**: Same key, different values (which is correct?)
+- **Fuzzy**: Similar but not identical ("Spiderman" vs "Spider-Man")
+
+---
+
+# Problem 5: Outliers and Anomalies
+
+**Values that are technically valid but suspicious.**
+
+```csv
+title,year,rating,budget
+Inception,2010,8.8,160000000
+Avatar,2009,7.9,237000000
+The Room,2003,3.9,6000000
+Avengers,2012,8.0,-50000000     <- Negative budget?
+Unknown,2025,9.9,999999999999   <- Future year, impossible rating
+```
+
+**Questions to ask:**
+- Is this value within reasonable range?
+- Is this value possible given business rules?
+- Is this value consistent with other fields?
+
+---
+
+# Problem 6: Encoding Issues
+
+**Text looks garbled or contains strange characters.**
+
+```
+Expected: "Amelie"
+Got:      "AmÃ©lie"      <- UTF-8 read as Latin-1
+
+Expected: "Japanese text"
+Got:      "æ¥æ¬èª"        <- Wrong encoding
+
+Expected: "Zoe"
+Got:      "Zo\xeb"        <- Raw bytes shown
+```
+
+**Common encoding issues:**
+- UTF-8 vs Latin-1 (ISO-8859-1)
+- Windows-1252 vs UTF-8
+- BOM (Byte Order Mark) at file start
+
+---
+
+# Problem 7: Schema Violations
+
+**Data structure doesn't match expectations.**
+
+```json
+// Expected schema
+{"title": "string", "year": "integer", "genres": ["string"]}
+
+// Actual data
+{"title": "Inception", "year": 2010, "genres": ["Sci-Fi", "Action"]}  // OK
+{"title": "Avatar", "year": "2009", "genres": "Action"}               // year is string, genres is string not array
+{"Title": "Matrix", "Year": 1999}                                      // Wrong case, missing genres
+{"title": null, "year": 2020, "genres": []}                           // Null title
+```
+
+**Schema defines**: Field names, types, required fields, constraints.
+
+---
+
+# Summary: Data Problem Checklist
+
+| Problem | Question to Ask | Tool to Detect |
+|---------|----------------|----------------|
+| Missing | Are there nulls/empty values? | `csvstat`, pandas |
+| Types | Are numbers actually numbers? | `file`, schema validation |
+| Format | Is date format consistent? | `grep`, regex |
+| Duplicates | Are there repeated rows? | `sort`, `uniq`, `csvsql` |
+| Outliers | Are values in valid range? | `csvstat`, histograms |
+| Encoding | Is text readable? | `file`, `iconv` |
+| Schema | Does structure match spec? | JSON Schema, Pydantic |
+
+---
+
+<!-- _class: lead -->
+
+# Part 3: First Look at Your Data
+
+*Unix tools for initial inspection*
+
+---
+
+# Before You Do Anything: Look at the Data
+
+**Golden Rule**: Never process data you haven't inspected.
+
+```bash
+# What kind of file is this?
+file movies.csv
+
+# How big is it?
+ls -lh movies.csv
+wc -l movies.csv
+
+# What does it look like?
+head movies.csv
+tail movies.csv
+```
+
+**These 5 commands should be muscle memory.**
+
+---
+
+# The `file` Command
+
+**Tells you what type of file you're dealing with.**
+
+```bash
+$ file movies.csv
+movies.csv: UTF-8 Unicode text, with CRLF line terminators
+
+$ file movies.json
+movies.json: JSON data
+
+$ file data.xlsx
+data.xlsx: Microsoft Excel 2007+
+
+$ file mystery_file
+mystery_file: gzip compressed data
+```
+
+**Reveals:**
+- Text encoding (UTF-8, ASCII, ISO-8859-1)
+- Line endings (LF vs CRLF)
+- File format (CSV, JSON, binary)
+
+---
+
+# The `wc` Command
+
+**Word count - but more useful for lines and characters.**
+
+```bash
+$ wc movies.csv
+  1001   5823  142567 movies.csv
+  |      |     |
+  |      |     +-- bytes
+  |      +-------- words
+  +--------------- lines
+
+# Just line count (most common)
+$ wc -l movies.csv
+1001 movies.csv
+
+# 1001 lines = 1 header + 1000 data rows
+```
+
+**Quick sanity check**: Expected 1000 movies? Check line count!
+
+---
+
+# The `head` Command
+
+**See the first N lines of a file.**
+
+```bash
+# First 10 lines (default)
+$ head movies.csv
+title,year,rating,revenue
+Inception,2010,8.8,292576195
+Avatar,2009,7.9,2923706026
+...
+
+# First 5 lines
+$ head -n 5 movies.csv
+
+# First 20 lines
+$ head -20 movies.csv
+```
+
+**Use case**: Quickly see headers and sample data.
+
+---
+
+# The `tail` Command
+
+**See the last N lines of a file.**
+
+```bash
+# Last 10 lines
+$ tail movies.csv
+
+# Last 5 lines
+$ tail -n 5 movies.csv
+
+# Everything EXCEPT first line (skip header!)
+$ tail -n +2 movies.csv
+```
+
+**Use case**: Check if file ends properly, skip headers.
+
+---
+
+# Combining head and tail
+
+**See a slice of the file:**
+
+```bash
+# Lines 100-110 (skip 99, take 11)
+$ head -110 movies.csv | tail -11
+
+# See header + specific row range
+$ head -1 movies.csv && sed -n '500,510p' movies.csv
+```
+
+**Practical example:**
+```bash
+# File has 1 million rows, peek at middle
+$ head -500000 huge.csv | tail -10
 ```
 
 ---
 
-# Pydantic Field Constraints
+# The `sort` Command
 
-**Numeric constraints**:
-- `gt`, `ge`: Greater than, greater or equal
-- `lt`, `le`: Less than, less or equal
-- `multiple_of`: Must be multiple of N
+**Sort lines alphabetically or numerically.**
 
-**String constraints**:
-- `min_length`, `max_length`: Length bounds
-- `regex`: Pattern matching
-- `strip_whitespace`: Remove leading/trailing spaces
+```bash
+# Sort alphabetically
+$ sort movies.csv
 
-**Example**:
-```python
-class User(BaseModel):
-    username: str = Field(min_length=3, max_length=20, regex="^[a-zA-Z0-9_]+$")
-    age: int = Field(ge=0, le=120)
-    email: str = Field(regex=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+# Sort numerically on column 3 (rating)
+$ sort -t',' -k3 -n movies.csv
+
+# Sort in reverse (descending)
+$ sort -t',' -k3 -nr movies.csv
+
+# Sort and remove duplicates
+$ sort -u movies.csv
+```
+
+**Flags:**
+- `-t','` = field delimiter is comma
+- `-k3` = sort by 3rd field
+- `-n` = numeric sort
+- `-r` = reverse
+
+---
+
+# The `uniq` Command
+
+**Find or remove duplicate lines.**
+
+```bash
+# Remove adjacent duplicates (MUST sort first!)
+$ sort movies.csv | uniq
+
+# Count occurrences of each line
+$ sort movies.csv | uniq -c
+
+# Show only duplicates
+$ sort movies.csv | uniq -d
+
+# Show only unique lines (appear once)
+$ sort movies.csv | uniq -u
+```
+
+**Important**: `uniq` only detects *adjacent* duplicates. Always `sort` first!
+
+---
+
+# Finding Duplicates: Practical Example
+
+```bash
+# How many duplicate titles?
+$ cut -d',' -f1 movies.csv | sort | uniq -d
+Inception
+The Matrix
+Spider-Man
+
+# How many times does each duplicate appear?
+$ cut -d',' -f1 movies.csv | sort | uniq -c | sort -rn | head
+   3 Spider-Man
+   2 The Matrix
+   2 Inception
+   1 Zodiac
+   1 Zoolander
+```
+
+**Found 3 duplicate titles!**
+
+---
+
+# The `cut` Command
+
+**Extract columns from delimited data.**
+
+```bash
+# Get first column (titles)
+$ cut -d',' -f1 movies.csv
+
+# Get columns 1 and 3 (title and rating)
+$ cut -d',' -f1,3 movies.csv
+
+# Get columns 2 through 4
+$ cut -d',' -f2-4 movies.csv
+```
+
+**Flags:**
+- `-d','` = delimiter is comma
+- `-f1` = first field
+- `-f1,3` = fields 1 and 3
+- `-f2-4` = fields 2 through 4
+
+---
+
+# The `grep` Command
+
+**Search for patterns in text.**
+
+```bash
+# Find rows containing "Inception"
+$ grep "Inception" movies.csv
+
+# Count matches
+$ grep -c "N/A" movies.csv
+47
+
+# Show line numbers
+$ grep -n "N/A" movies.csv
+
+# Invert match (lines NOT containing)
+$ grep -v "N/A" movies.csv
+
+# Case insensitive
+$ grep -i "matrix" movies.csv
 ```
 
 ---
 
-# Pydantic Validators
+# Putting It Together: Initial Inspection Script
 
-**Field validators** (validate single field):
-```python
-@validator('email')
-def email_must_be_lowercase(cls, v):
-    return v.lower()
-```
+```bash
+#!/bin/bash
+FILE=$1
 
-**Root validators** (validate entire object):
-```python
-@root_validator
-def check_consistency(cls, values):
-    start = values.get('start_date')
-    end = values.get('end_date')
-    if start and end and end < start:
-        raise ValueError('end_date must be after start_date')
-    return values
-```
+echo "=== File Info ==="
+file "$FILE"
+ls -lh "$FILE"
 
-**Pre vs Post validation**:
-- `@validator(..., pre=True)`: Runs before type coercion
-- `@validator(..., pre=False)`: Runs after type coercion (default)
+echo -e "\n=== Line Count ==="
+wc -l "$FILE"
 
----
+echo -e "\n=== First 5 Lines ==="
+head -5 "$FILE"
 
-# Pydantic: Handling Missing Values
+echo -e "\n=== Last 5 Lines ==="
+tail -5 "$FILE"
 
-**Optional fields**:
-```python
-from typing import Optional
-
-class Movie(BaseModel):
-    title: str  # Required
-    budget: Optional[float] = None  # Optional, defaults to None
-    release_date: Optional[str]  # Optional, no default (must be provided, can be None)
-```
-
-**Default values**:
-```python
-class Movie(BaseModel):
-    title: str
-    rating: float = 5.0  # Default if not provided
-    is_released: bool = True
-```
-
-**Field with default factory**:
-```python
-from datetime import datetime
-
-class Movie(BaseModel):
-    title: str
-    created_at: datetime = Field(default_factory=datetime.now)
+echo -e "\n=== Potential Issues ==="
+echo "N/A values: $(grep -c 'N/A' "$FILE")"
+echo "Empty fields: $(grep -c ',,' "$FILE")"
+echo "Duplicate lines: $(sort "$FILE" | uniq -d | wc -l)"
 ```
 
 ---
 
-# Pydantic: Validation Modes
+<!-- _class: lead -->
 
-**Strict mode** (no coercion):
-```python
-class StrictMovie(BaseModel):
-    year: int  # "2010" will fail, must be int
+# Part 4: jq - JSON Processing
 
-    class Config:
-        strict = True
+*The Swiss Army knife for JSON*
+
+---
+
+# Why jq?
+
+**JSON is everywhere:**
+- API responses
+- Configuration files
+- Log files
+- NoSQL databases
+
+**Problem**: JSON is hard to read and process in shell.
+
+```bash
+# Raw JSON - unreadable mess
+$ cat movies.json
+{"Title":"Inception","Year":"2010","Rated":"PG-13","Released":"16 Jul 2010","Runtime":"148 min","Genre":"Action, Adventure, Sci-Fi"}
 ```
 
-**Fail fast vs collect all errors**:
-```python
-# Default: fail on first error
-m = Movie(title="", year="invalid")  # Fails on year
+**Solution**: `jq` - a lightweight JSON processor.
 
-# Collect all errors
-class Config:
-    validate_all = True
-# Now shows errors for both title and year
+---
+
+# jq Basics: Pretty Printing
+
+```bash
+# The identity filter: just pretty print
+$ cat movie.json | jq .
+{
+  "Title": "Inception",
+  "Year": "2010",
+  "Rated": "PG-13",
+  "Runtime": "148 min",
+  "Genre": "Action, Adventure, Sci-Fi"
+}
+```
+
+**The `.` is the identity filter** - it means "the whole input".
+
+---
+
+# jq: Extracting Fields
+
+```bash
+# Get a single field
+$ cat movie.json | jq '.Title'
+"Inception"
+
+# Get nested field
+$ cat movie.json | jq '.Director.Name'
+"Christopher Nolan"
+
+# Get multiple fields
+$ cat movie.json | jq '.Title, .Year'
+"Inception"
+"2010"
+```
+
+**Syntax**: `.fieldname` extracts that field.
+
+---
+
+# jq: Working with Arrays
+
+```json
+// movies.json - array of movies
+[
+  {"Title": "Inception", "Year": "2010"},
+  {"Title": "Avatar", "Year": "2009"},
+  {"Title": "The Matrix", "Year": "1999"}
+]
+```
+
+```bash
+# Get first element
+$ cat movies.json | jq '.[0]'
+{"Title": "Inception", "Year": "2010"}
+
+# Get all titles
+$ cat movies.json | jq '.[].Title'
+"Inception"
+"Avatar"
+"The Matrix"
+
+# Get length of array
+$ cat movies.json | jq 'length'
+3
 ```
 
 ---
 
-# Pydantic: Custom Types
+# jq: The Array Iterator `[]`
 
-**Create reusable validated types**:
+```bash
+# .[] iterates over array elements
+$ cat movies.json | jq '.[]'
+{"Title": "Inception", "Year": "2010"}
+{"Title": "Avatar", "Year": "2009"}
+{"Title": "The Matrix", "Year": "1999"}
 
-```python
-from pydantic import constr, conint, condecimal
+# Chain with field extraction
+$ cat movies.json | jq '.[].Title'
+"Inception"
+"Avatar"
+"The Matrix"
 
-# Constrained types
-Username = constr(min_length=3, max_length=20, regex="^[a-zA-Z0-9_]+$")
-PositiveInt = conint(gt=0)
-Rating = condecimal(ge=0, le=10, decimal_places=1)
-
-class User(BaseModel):
-    username: Username
-    age: PositiveInt
-    rating: Rating
+# Same as:
+$ cat movies.json | jq '.[] | .Title'
 ```
 
-**Benefits**: Reuse validation logic across models.
+**The pipe `|` passes output to next filter.**
 
 ---
 
-# Validation Strategy: Fail-Fast vs Fail-Safe
+# jq: Building New Objects
 
-**Fail-Fast** (Pydantic default):
-- Invalid data raises exception immediately
-- Stops pipeline at first error
-- **Use when**: Training pipeline, data must be perfect
+```bash
+# Create new object structure
+$ cat movies.json | jq '.[] | {name: .Title, year: .Year}'
+{"name": "Inception", "year": "2010"}
+{"name": "Avatar", "year": "2009"}
+{"name": "The Matrix", "year": "1999"}
 
-**Fail-Safe**:
-- Log errors, skip invalid records
-- Continue processing
-- **Use when**: Production inference, can't reject all data
-
-```python
-# Fail-safe pattern
-valid_movies = []
-for raw_data in data:
-    try:
-        movie = Movie(**raw_data)
-        valid_movies.append(movie)
-    except ValidationError as e:
-        logger.warning(f"Invalid movie: {e}")
-        continue
-```
-
----
-
-# Part 3: Cleaning with Pandas
-
-**Handling Missing Data**:
-
-1.  **Drop**: If label is missing, drop row. `df.dropna(subset=['rating'])`
-2.  **Impute**: If feature is missing, fill with mean/median. `df.fillna(df.mean())`
-3.  **Flag**: Create a boolean column `is_missing`.
-
-**Type Conversion**:
-```python
-# Force numeric, turn errors ('N/A') into NaN
-df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
-```
-
----
-
-# Missing Data Strategies
-
-**Types of missingness**:
-
-1. **MCAR** (Missing Completely At Random): Random, unrelated to data
-   - **Strategy**: Impute with mean/median or drop
-
-2. **MAR** (Missing At Random): Related to other observed variables
-   - **Strategy**: Model-based imputation (KNN, regression)
-
-3. **MNAR** (Missing Not At Random): Related to unobserved data
-   - **Strategy**: Domain-specific imputation or drop
-
-**Impact on ML**:
-- Some algorithms (XGBoost, CatBoost) handle missing values natively
-- Others (linear regression, SVM) require imputation
-
----
-
-# Imputation Techniques
-
-**Simple imputation**:
-```python
-# Mean for numeric features
-df['age'].fillna(df['age'].mean(), inplace=True)
-
-# Median (robust to outliers)
-df['income'].fillna(df['income'].median(), inplace=True)
-
-# Mode for categorical
-df['country'].fillna(df['country'].mode()[0], inplace=True)
-
-# Forward/backward fill (time series)
-df['temperature'].fillna(method='ffill', inplace=True)
-```
-
-**Advanced imputation**:
-```python
-from sklearn.impute import KNNImputer, SimpleImputer
-
-# KNN-based (uses similar rows)
-imputer = KNNImputer(n_neighbors=5)
-df_imputed = imputer.fit_transform(df)
-
-# Iterative (model each feature)
-from sklearn.experimental import enable_iterative_imputer
-from sklearn.impute import IterativeImputer
-imputer = IterativeImputer()
-df_imputed = imputer.fit_transform(df)
-```
-
----
-
-# Outlier Detection
-
-**Statistical methods**:
-
-**Z-score**:
-```python
-from scipy import stats
-import numpy as np
-
-z_scores = np.abs(stats.zscore(df['price']))
-outliers = df[z_scores > 3]  # More than 3 std dev
-```
-
-**IQR (Interquartile Range)**:
-```python
-Q1 = df['price'].quantile(0.25)
-Q3 = df['price'].quantile(0.75)
-IQR = Q3 - Q1
-
-outliers = df[
-    (df['price'] < Q1 - 1.5 * IQR) |
-    (df['price'] > Q3 + 1.5 * IQR)
+# Wrap results in array
+$ cat movies.json | jq '[.[] | {name: .Title, year: .Year}]'
+[
+  {"name": "Inception", "year": "2010"},
+  {"name": "Avatar", "year": "2009"},
+  {"name": "The Matrix", "year": "1999"}
 ]
 ```
 
 ---
 
-# Outlier Handling Strategies
+# jq: Filtering with `select()`
 
-**1. Remove outliers**:
-```python
-# Keep only values within 3 std dev
-df = df[np.abs(stats.zscore(df['price'])) < 3]
-```
+```bash
+# Filter movies from 2010 or later
+$ cat movies.json | jq '.[] | select(.Year >= "2010")'
+{"Title": "Inception", "Year": "2010"}
 
-**2. Cap outliers** (winsorization):
-```python
-# Cap at 5th and 95th percentile
-lower = df['price'].quantile(0.05)
-upper = df['price'].quantile(0.95)
-df['price'] = df['price'].clip(lower, upper)
-```
+# Filter by string match
+$ cat movies.json | jq '.[] | select(.Title == "Avatar")'
+{"Title": "Avatar", "Year": "2009"}
 
-**3. Transform** (log, sqrt):
-```python
-# Log transform reduces impact of outliers
-df['price_log'] = np.log1p(df['price'])
-```
-
-**4. Keep but flag**:
-```python
-df['is_outlier'] = np.abs(stats.zscore(df['price'])) > 3
+# Filter by pattern (contains)
+$ cat movies.json | jq '.[] | select(.Title | contains("The"))'
+{"Title": "The Matrix", "Year": "1999"}
 ```
 
 ---
 
-# Data Type Validation and Conversion
+# jq: Type Conversion
 
-**Check data types**:
-```python
-df.dtypes  # Show current types
-df.info()  # Detailed type information
-```
+**Remember: API data often has numbers as strings!**
 
-**Convert types**:
-```python
-# Numeric conversion
-df['year'] = pd.to_numeric(df['year'], errors='coerce')
+```bash
+# Convert string to number
+$ echo '{"year": "2010"}' | jq '.year | tonumber'
+2010
 
-# Datetime conversion
-df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
+# Now we can do numeric comparisons
+$ cat movies.json | jq '.[] | select((.Year | tonumber) >= 2005)'
 
-# Category (memory efficient)
-df['genre'] = df['genre'].astype('category')
-
-# Boolean
-df['is_released'] = df['is_released'].astype(bool)
-```
-
-**Handle mixed types**:
-```python
-# Find rows with mixed types
-mixed = df[df['price'].apply(lambda x: isinstance(x, str))]
-
-# Clean before conversion
-df['price'] = df['price'].str.replace('$', '').str.replace(',', '')
-df['price'] = pd.to_numeric(df['price'], errors='coerce')
+# Convert number to string
+$ echo '{"count": 42}' | jq '.count | tostring'
+"42"
 ```
 
 ---
 
-# Duplicate Detection and Handling
+# jq: Handling Missing Data
 
-**Find duplicates**:
-```python
-# Exact duplicates
-duplicates = df[df.duplicated()]
+```bash
+# Optional field access (no error if missing)
+$ echo '{"title": "X"}' | jq '.rating'
+null
 
-# Duplicates based on specific columns
-duplicates = df[df.duplicated(subset=['title', 'year'])]
+# Provide default value
+$ echo '{"title": "X"}' | jq '.rating // "N/A"'
+"N/A"
 
-# Keep only first occurrence
-df_clean = df.drop_duplicates()
+# Check if field exists
+$ echo '{"title": "X"}' | jq 'has("rating")'
+false
 
-# Keep last occurrence
-df_clean = df.drop_duplicates(keep='last')
-```
-
-**Fuzzy duplicates** (similar but not identical):
-```python
-from fuzzywuzzy import fuzz
-
-# Find similar titles
-for i, row1 in df.iterrows():
-    for j, row2 in df.iterrows():
-        if i < j:
-            ratio = fuzz.ratio(row1['title'], row2['title'])
-            if ratio > 90:  # 90% similar
-                print(f"Potential duplicate: {row1['title']} ~ {row2['title']}")
+# Filter out nulls
+$ cat movies.json | jq '.[] | select(.Rating != null)'
 ```
 
 ---
 
-# Data Consistency Checks
+# jq: Aggregation Functions
 
-**Logical constraints**:
-```python
-# Age should be positive
-assert (df['age'] >= 0).all(), "Found negative ages"
+```bash
+# Count elements
+$ cat movies.json | jq 'length'
+100
 
-# Dates should be in order
-assert (df['end_date'] >= df['start_date']).all(), "End before start"
+# Get unique values
+$ cat movies.json | jq '[.[].Genre] | unique'
+["Action", "Comedy", "Drama", "Sci-Fi"]
 
-# Percentages should sum to 100
-assert df[['cat1', 'cat2', 'cat3']].sum(axis=1).between(99, 101).all()
-```
+# Min and max
+$ cat movies.json | jq '[.[].Year | tonumber] | min'
+1999
+$ cat movies.json | jq '[.[].Year | tonumber] | max'
+2023
 
-**Cross-field validation**:
-```python
-# Birth year should match age
-df['calculated_age'] = 2024 - df['birth_year']
-inconsistent = df[abs(df['age'] - df['calculated_age']) > 1]
-
-# Price should be positive
-assert (df['price'] > 0).all(), "Found non-positive prices"
-```
-
----
-
-# Part 4: Batch Validation (Pandera)
-
-**Pydantic** checks one object at a time.
-**Pandera** checks the entire DataFrame (statistical checks).
-
-```python
-import pandera as pa
-
-schema = pa.DataFrameSchema({
-    "rating": pa.Column(float, checks=[
-        pa.Check.ge(0),
-        pa.Check.le(10),
-        # Mean rating should be reasonable
-        pa.Check.mean_in_range(5, 9)
-    ]),
-    "year": pa.Column(int, checks=pa.Check.gt(1900)),
-})
-
-schema.validate(df)
+# Sum and average
+$ cat movies.json | jq '[.[].Rating | tonumber] | add'
+725.5
+$ cat movies.json | jq '[.[].Rating | tonumber] | add / length'
+7.255
 ```
 
 ---
 
-# Pandera: Statistical Checks
+# jq: Sorting
 
-**Built-in checks**:
-```python
-schema = pa.DataFrameSchema({
-    "price": pa.Column(float, checks=[
-        pa.Check.greater_than(0),
-        pa.Check.less_than(1000000),
-        pa.Check.isin([10.0, 20.0, 30.0]),  # Only these values
-        pa.Check.str_startswith("$"),  # For string columns
-    ]),
-    "category": pa.Column(str, checks=[
-        pa.Check.isin(["A", "B", "C"]),
-        pa.Check.str_length(1, 10),
-    ])
-})
-```
+```bash
+# Sort array of objects by field
+$ cat movies.json | jq 'sort_by(.Year)'
 
-**Custom checks**:
-```python
-# Check that 95% of values are within 2 std dev
-def check_normal_distribution(series):
-    z_scores = np.abs(stats.zscore(series))
-    return (z_scores < 2).sum() / len(series) >= 0.95
+# Sort descending (reverse)
+$ cat movies.json | jq 'sort_by(.Year) | reverse'
 
-schema = pa.DataFrameSchema({
-    "rating": pa.Column(float, checks=pa.Check(check_normal_distribution))
-})
+# Sort by numeric field
+$ cat movies.json | jq 'sort_by(.Rating | tonumber) | reverse'
+
+# Get top 5 rated movies
+$ cat movies.json | jq 'sort_by(.Rating | tonumber) | reverse | .[0:5]'
 ```
 
 ---
 
-# Pandera: DataFrame-Level Checks
+# jq: Grouping
 
-**Multi-column checks**:
+```bash
+# Group movies by year
+$ cat movies.json | jq 'group_by(.Year)'
+[
+  [{"Title": "The Matrix", "Year": "1999"}],
+  [{"Title": "Avatar", "Year": "2009"}],
+  [{"Title": "Inception", "Year": "2010"}, {"Title": "Toy Story 3", "Year": "2010"}]
+]
+
+# Count movies per year
+$ cat movies.json | jq 'group_by(.Year) | map({year: .[0].Year, count: length})'
+[
+  {"year": "1999", "count": 1},
+  {"year": "2009", "count": 1},
+  {"year": "2010", "count": 2}
+]
+```
+
+---
+
+# jq: Raw Output Mode
+
+```bash
+# Default: outputs JSON strings with quotes
+$ cat movies.json | jq '.[].Title'
+"Inception"
+"Avatar"
+
+# Raw mode: no quotes (useful for scripting)
+$ cat movies.json | jq -r '.[].Title'
+Inception
+Avatar
+
+# Create CSV output
+$ cat movies.json | jq -r '.[] | [.Title, .Year, .Rating] | @csv'
+"Inception","2010","8.8"
+"Avatar","2009","7.9"
+
+# Create TSV output
+$ cat movies.json | jq -r '.[] | [.Title, .Year] | @tsv'
+Inception	2010
+Avatar	2009
+```
+
+---
+
+# jq: Practical Data Validation Examples
+
+```bash
+# Find movies with missing ratings
+$ cat movies.json | jq '[.[] | select(.Rating == null or .Rating == "N/A")] | length'
+47
+
+# Find movies with invalid years
+$ cat movies.json | jq '.[] | select((.Year | tonumber) > 2024 or (.Year | tonumber) < 1900)'
+
+# List all unique values in a field (check for variants)
+$ cat movies.json | jq '[.[].Rated] | unique'
+["G", "PG", "PG-13", "R", "Not Rated", "N/A", null]
+
+# Find duplicate titles
+$ cat movies.json | jq 'group_by(.Title) | map(select(length > 1)) | .[].Title'
+```
+
+---
+
+# jq Cheat Sheet - Basics
+
+| Task | Command |
+|------|---------|
+| Pretty print | `jq .` |
+| Get field | `jq '.fieldname'` |
+| Get nested | `jq '.a.b.c'` |
+| Array element | `jq '.[0]'` |
+| All elements | `jq '.[]'` |
+| Filter | `jq '.[] \| select(.x > 5)'` |
+
+---
+
+# jq Cheat Sheet - Advanced
+
+| Task | Command |
+|------|---------|
+| Build object | `jq '{a: .x, b: .y}'` |
+| Count | `jq 'length'` |
+| Sort | `jq 'sort_by(.field)'` |
+| Unique | `jq 'unique'` |
+| Raw strings | `jq -r` |
+
+---
+
+<!-- _class: lead -->
+
+# Part 5: CSVkit
+
+*The CSV Swiss Army Knife*
+
+---
+
+# Why CSVkit?
+
+**CSV looks simple but hides complexity:**
+- Quoted fields with commas inside
+- Multiline values
+- Different delimiters
+- Inconsistent escaping
+
+**CSVkit**: A suite of command-line tools for CSV files.
+
+```bash
+# Installation
+pip install csvkit
+```
+
+**Tools we'll cover:**
+`csvlook`, `csvstat`, `csvcut`, `csvgrep`, `csvsort`, `csvjson`, `csvsql`
+
+---
+
+# csvlook: Pretty Print CSV
+
+**Makes CSV readable in terminal.**
+
+```bash
+$ csvlook movies.csv
+| title      | year | rating | revenue     |
+| ---------- | ---- | ------ | ----------- |
+| Inception  | 2010 |    8.8 | 292576195   |
+| Avatar     | 2009 |    7.9 | 2923706026  |
+| The Matrix | 1999 |    8.7 | 463517383   |
+| The Room   | 2003 |    3.9 |             |
+```
+
+**Compare to raw:**
+```
+title,year,rating,revenue
+Inception,2010,8.8,292576195
+Avatar,2009,7.9,2923706026
+```
+
+---
+
+# csvstat: Data Profiling
+
+**Get statistics for every column automatically!**
+
+```bash
+$ csvstat movies.csv
+  1. "title"
+        Type of data:          Text
+        Contains null values:  False
+        Unique values:         987
+        Longest value:         45 characters
+        Most common values:    Spider-Man (3x)
+                               The Matrix (2x)
+
+  2. "year"
+        Type of data:          Number
+        Contains null values:  True (13 nulls)
+        Smallest value:        1920
+        Largest value:         2024
+        Mean:                  2005.3
+```
+
+---
+
+# csvstat: Specific Columns
+
+```bash
+# Stats for just one column
+$ csvstat -c rating movies.csv
+  3. "rating"
+        Type of data:          Number
+        Contains null values:  True (108 nulls)
+        Smallest value:        1.2
+        Largest value:         9.3
+        Mean:                  6.84
+        Median:                7.1
+        StDev:                 1.23
+
+# Stats for multiple columns
+$ csvstat -c year,rating movies.csv
+
+# Just show counts
+$ csvstat --count movies.csv
+1000
+```
+
+---
+
+# csvcut: Select Columns
+
+```bash
+# Select by column name
+$ csvcut -c title,year movies.csv
+title,year
+Inception,2010
+Avatar,2009
+
+# Select by column number
+$ csvcut -c 1,3 movies.csv
+
+# Exclude columns
+$ csvcut -C revenue movies.csv
+
+# List column names
+$ csvcut -n movies.csv
+  1: title
+  2: year
+  3: rating
+  4: revenue
+```
+
+---
+
+# csvgrep: Filter Rows
+
+```bash
+# Filter by exact match
+$ csvgrep -c year -m "2010" movies.csv
+
+# Filter by regex pattern
+$ csvgrep -c title -r "^The" movies.csv    # Starts with "The"
+
+# Filter by inverse (NOT matching)
+$ csvgrep -c rating -m "N/A" -i movies.csv  # Exclude N/A
+
+# Filter for empty values
+$ csvgrep -c revenue -r "^$" movies.csv     # Empty revenue
+```
+
+---
+
+# csvsort: Sort Data
+
+```bash
+# Sort by column
+$ csvsort -c year movies.csv
+
+# Sort descending
+$ csvsort -c rating -r movies.csv
+
+# Sort by multiple columns
+$ csvsort -c year,rating movies.csv
+
+# Numeric sort happens automatically for number columns!
+```
+
+---
+
+# csvjson: Convert to JSON
+
+```bash
+# CSV to JSON array
+$ csvjson movies.csv
+[
+  {"title": "Inception", "year": 2010, "rating": 8.8},
+  {"title": "Avatar", "year": 2009, "rating": 7.9}
+]
+
+# Indented output
+$ csvjson -i 2 movies.csv
+
+# JSON to CSV (reverse)
+$ cat movies.json | in2csv -f json > movies.csv
+```
+
+**Great for converting between formats!**
+
+---
+
+# csvsql: Query CSV with SQL!
+
+**Yes, you can run SQL on CSV files.**
+
+```bash
+# Run SQL query
+$ csvsql --query "SELECT title, rating FROM movies WHERE year > 2010" movies.csv
+
+# Find duplicates
+$ csvsql --query "SELECT title, COUNT(*) as cnt
+                  FROM movies
+                  GROUP BY title
+                  HAVING cnt > 1" movies.csv
+
+# Join two CSV files
+$ csvsql --query "SELECT m.title, g.genre
+                  FROM movies m
+                  JOIN genres g ON m.id = g.movie_id" movies.csv genres.csv
+```
+
+---
+
+# csvsql: Data Validation Queries
+
+```bash
+# Find rows with missing values
+$ csvsql --query "SELECT * FROM movies WHERE rating IS NULL" movies.csv
+
+# Find out-of-range values
+$ csvsql --query "SELECT * FROM movies WHERE year < 1900 OR year > 2025" movies.csv
+
+# Find suspiciously high values
+$ csvsql --query "SELECT * FROM movies WHERE revenue > 5000000000" movies.csv
+```
+
+---
+
+# csvclean: Fix Common Issues
+
+```bash
+# Check for problems (dry run)
+$ csvclean -n movies.csv
+1 error found:
+Line 47: Expected 4 columns, found 5
+
+# Fix and create cleaned file
+$ csvclean movies.csv
+# Creates movies_out.csv (cleaned) and movies_err.csv (errors)
+
+# Common fixes:
+# - Removes rows with wrong column count
+# - Normalizes quoting
+# - Reports line numbers of errors
+```
+
+---
+
+# CSVkit Pipeline Example
+
+```bash
+# Full data validation pipeline
+$ cat movies.csv \
+  | csvclean -n 2>&1 | head -5           # Check for structural issues
+
+$ csvstat -c year,rating movies.csv      # Profile key columns
+
+$ csvgrep -c rating -m "N/A" movies.csv \
+  | csvcut -c title,year                  # Find movies with N/A rating
+
+$ csvsql --query \
+  "SELECT year, COUNT(*) as count, AVG(rating) as avg_rating
+   FROM movies
+   GROUP BY year
+   ORDER BY year DESC" movies.csv         # Aggregate stats
+```
+
+---
+
+# CSVkit Cheat Sheet - Core Tools
+
+| Tool | Purpose | Example |
+|------|---------|---------|
+| `csvlook` | Pretty print | `csvlook data.csv` |
+| `csvstat` | Statistics | `csvstat -c column data.csv` |
+| `csvcut` | Select columns | `csvcut -c col1,col2 data.csv` |
+| `csvgrep` | Filter rows | `csvgrep -c col -m "value"` |
+| `csvsort` | Sort | `csvsort -c col -r data.csv` |
+
+---
+
+# CSVkit Cheat Sheet - Advanced Tools
+
+| Tool | Purpose | Example |
+|------|---------|---------|
+| `csvjson` | To JSON | `csvjson data.csv` |
+| `csvsql` | SQL queries | `csvsql --query "..."` |
+| `csvclean` | Fix issues | `csvclean data.csv` |
+| `csvjoin` | Join files | `csvjoin -c id a.csv b.csv` |
+| `csvstack` | Concatenate | `csvstack a.csv b.csv` |
+
+---
+
+<!-- _class: lead -->
+
+# Part 6: Data Profiling
+
+*Understanding your data before using it*
+
+---
+
+# What is Data Profiling?
+
+**Data profiling** = Analyzing data to understand its structure, content, and quality.
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                     DATA PROFILING QUESTIONS                      │
+├───────────────────────────────────────────────────────────────────┤
+│   STRUCTURE:     How many rows? Columns? What types?              │
+│   COMPLETENESS:  How many nulls per column?                       │
+│   UNIQUENESS:    How many distinct values? Duplicates?            │
+│   DISTRIBUTION:  Min, max, mean, median? Outliers?                │
+│   PATTERNS:      What formats are used? Any anomalies?            │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# Profiling Step 1: Basic Shape
+
+```bash
+# How many rows and columns?
+$ head -1 movies.csv | tr ',' '\n' | wc -l      # columns
+5
+
+$ wc -l movies.csv                              # rows (including header)
+1001
+
+# Or with csvstat
+$ csvstat --count movies.csv
+1000
+```
+
+**First sanity check**: Does shape match expectations?
+
+---
+
+# Profiling Step 2: Column Types
+
+```bash
+$ csvstat movies.csv 2>&1 | grep "Type of data"
+        Type of data:          Text
+        Type of data:          Number
+        Type of data:          Number
+        Type of data:          Number
+        Type of data:          Text
+
+# Expected: title(text), year(int), rating(float), revenue(int), genre(text)
+# Actual: Matches! But let's verify...
+```
+
+---
+
+# Profiling Step 3: Null Analysis
+
+```bash
+# Count nulls per column
+$ csvstat movies.csv 2>&1 | grep -A1 "Contains null"
+        Contains null values:  False
+--
+        Contains null values:  True (13 nulls)
+--
+        Contains null values:  True (108 nulls)
+--
+        Contains null values:  True (366 nulls)
+```
+
+**Results:**
+- Title: 0 nulls (good!)
+- Year: 13 nulls (1.3%)
+- Rating: 108 nulls (10.8%)
+- Revenue: 366 nulls (36.6%) - **problem!**
+
+---
+
+# Profiling Step 4: Unique Values
+
+```bash
+# How many distinct values?
+$ csvstat movies.csv 2>&1 | grep "Unique values"
+        Unique values:         987      # title - expect 1000, so ~13 duplicates
+        Unique values:         85       # year - reasonable range
+        Unique values:         78       # rating - 1.0 to 10.0 scale
+        Unique values:         634      # revenue - 634 non-null values
+
+# Most common values (find duplicates, common patterns)
+$ csvstat movies.csv 2>&1 | grep -A5 "Most common values"
+```
+
+---
+
+# Profiling Step 5: Value Ranges
+
+```bash
+$ csvstat -c year movies.csv
+        Smallest value:        1920
+        Largest value:         2024
+        Mean:                  2005.3
+        Median:                2010
+        StDev:                 15.2
+
+# Check for suspicious outliers
+# 1920 seems old - is it valid?
+# 2024 is current year - any future years?
+```
+
+```bash
+# Find extremes
+$ csvsort -c year movies.csv | head -5      # oldest
+$ csvsort -c year -r movies.csv | head -5   # newest
+```
+
+---
+
+# Profiling Step 6: Pattern Detection
+
+```bash
+# What values does 'rating' column have?
+$ csvcut -c rating movies.csv | sort | uniq -c | sort -rn | head
+    892 (valid numbers 1.0-10.0)
+     47 N/A
+     38
+     23 Not Rated
+
+# Aha! Three types of "missing":
+# 1. Empty string
+# 2. "N/A" string
+# 3. "Not Rated" string
+```
+
+**This is why automated profiling misses things!**
+
+---
+
+# Profiling Summary: Movies Dataset
+
+| Column | Type | Nulls | Unique | Issues |
+|--------|------|-------|--------|--------|
+| title | Text | 0 | 987 | 13 duplicates |
+| year | Int | 13 | 85 | 1920-2024 range |
+| rating | Float | 108 | 78 | "N/A", empty, "Not Rated" |
+| revenue | Int | 366 | 634 | 36% missing! |
+| genre | Text | 0 | 23 | Multi-value ("Action, Drama") |
+
+**Key findings:**
+1. Revenue is missing for 1/3 of movies
+2. Rating has multiple representations of "missing"
+3. There are 13 duplicate titles
+4. Genre contains multiple values in one field
+
+---
+
+<!-- _class: lead -->
+
+# Part 7: Schema Validation
+
+*Contracts for your data*
+
+---
+
+# What is a Schema?
+
+**Schema** = A formal description of expected data structure.
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                         SCHEMA DEFINES                            │
+├───────────────────────────────────────────────────────────────────┤
+│   FIELD NAMES:      What columns/keys should exist?               │
+│   DATA TYPES:       String, integer, float, boolean, array?       │
+│   CONSTRAINTS:      Required? Min/max? Pattern? Enum?             │
+│   RELATIONSHIPS:    References to other data?                     │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**Analogy**: A schema is like a contract between data producer and consumer.
+
+---
+
+# Why Schemas Matter
+
+**Without schema:**
 ```python
-@pa.check("price", "discount", name="discount_validation")
-def check_discount(price, discount):
-    return discount < price
+# What is this?
+data = {"yr": 2010, "rt": "8.8", "ttl": "Inception"}
+# Who knows what yr means? Is rt a string or should it be float?
+```
 
-schema = pa.DataFrameSchema(
-    columns={
-        "price": pa.Column(float),
-        "discount": pa.Column(float),
+**With schema:**
+```python
+# Clear expectations
+schema = {
+    "title": {"type": "string", "required": True},
+    "year": {"type": "integer", "minimum": 1880, "maximum": 2030},
+    "rating": {"type": "number", "minimum": 0, "maximum": 10}
+}
+```
+
+**Schemas enable:**
+- Automatic validation
+- Documentation
+- Code generation
+- Early error detection
+
+---
+
+# JSON Schema: The Standard
+
+**JSON Schema** is a vocabulary for validating JSON data.
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
     },
-    checks=check_discount
-)
-```
-
-**Row-wise checks**:
-```python
-def check_row_sum(df):
-    return (df[['col1', 'col2', 'col3']].sum(axis=1) == 100).all()
-
-schema = pa.DataFrameSchema(
-    columns={"col1": pa.Column(float), ...},
-    checks=pa.Check(check_row_sum, element_wise=False)
-)
-```
-
----
-
-# Part 5: Data Drift
-
-**The Silent Killer**.
-Data valid today might be invalid tomorrow *statistically*.
-
-**Three types of drift**:
-
-1. **Schema Drift**: Structure changes
-   - Field name changes (`imdbRating` → `rating`)
-   - New fields added/removed
-   - Type changes (int → float)
-
-2. **Data Drift**: Input distribution changes
-   - Feature statistics change (mean, variance)
-   - New categories appear
-   - Example: Users suddenly review only bad movies
-
-3. **Concept Drift**: X→Y relationship changes
-   - Target distribution shifts
-   - Example: "Horror" movies become popular in Summer
-
----
-
-# Detecting Schema Drift
-
-**Compare schemas**:
-```python
-import pandas as pd
-
-# Load reference schema
-ref_df = pd.read_csv('training_data.csv')
-new_df = pd.read_csv('production_data.csv')
-
-# Check column names
-missing_cols = set(ref_df.columns) - set(new_df.columns)
-new_cols = set(new_df.columns) - set(ref_df.columns)
-
-if missing_cols:
-    raise ValueError(f"Missing columns: {missing_cols}")
-
-# Check data types
-for col in ref_df.columns:
-    if col in new_df.columns:
-        if ref_df[col].dtype != new_df[col].dtype:
-            print(f"Type mismatch in {col}: {ref_df[col].dtype} vs {new_df[col].dtype}")
+    "year": {
+      "type": "integer",
+      "minimum": 1880,
+      "maximum": 2030
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    }
+  },
+  "required": ["title", "year"]
+}
 ```
 
 ---
 
-# Detecting Data Drift
+# JSON Schema: Type Keywords
 
-**Statistical tests**:
+| Keyword | Valid Values |
+|---------|--------------|
+| `"type": "string"` | `"hello"`, `""` |
+| `"type": "integer"` | `42`, `-1`, `0` |
+| `"type": "number"` | `3.14`, `42`, `-1.5` |
+| `"type": "boolean"` | `true`, `false` |
+| `"type": "null"` | `null` |
+| `"type": "array"` | `[1, 2, 3]`, `[]` |
+| `"type": "object"` | `{"a": 1}`, `{}` |
 
-**Kolmogorov-Smirnov test** (continuous variables):
-```python
-from scipy.stats import ks_2samp
-
-# Compare distributions
-statistic, p_value = ks_2samp(
-    ref_df['rating'],
-    new_df['rating']
-)
-
-if p_value < 0.05:
-    print("Distribution has changed significantly")
-```
-
-**Chi-square test** (categorical variables):
-```python
-from scipy.stats import chi2_contingency
-
-# Compare category distributions
-ref_counts = ref_df['genre'].value_counts()
-new_counts = new_df['genre'].value_counts()
-
-statistic, p_value, _, _ = chi2_contingency([ref_counts, new_counts])
-
-if p_value < 0.05:
-    print("Category distribution has changed")
+**Multiple types:**
+```json
+{"type": ["string", "null"]}   // String or null
 ```
 
 ---
 
-# Monitoring Data Drift
+# JSON Schema: String Constraints
 
-**Track key metrics over time**:
+```json
+{
+  "type": "string",
+  "minLength": 1,              // At least 1 character
+  "maxLength": 100,            // At most 100 characters
+  "pattern": "^[A-Z].*$",      // Must start with uppercase
+  "format": "email"            // Must be valid email
+}
+```
+
+**Common formats:**
+- `"email"` - Email address
+- `"date"` - ISO 8601 date (2010-07-16)
+- `"date-time"` - ISO 8601 datetime
+- `"uri"` - Valid URI
+- `"uuid"` - UUID format
+
+---
+
+# JSON Schema: Number Constraints
+
+```json
+{
+  "type": "number",
+  "minimum": 0,                // >= 0
+  "maximum": 10,               // <= 10
+  "exclusiveMinimum": 0,       // > 0
+  "exclusiveMaximum": 10,      // < 10
+  "multipleOf": 0.1            // Must be multiple of 0.1
+}
+```
+
+**Example for rating:**
+```json
+{
+  "type": "number",
+  "minimum": 0,
+  "maximum": 10,
+  "multipleOf": 0.1
+}
+```
+
+---
+
+# JSON Schema: Arrays
+
+```json
+{
+  "type": "array",
+  "items": {
+    "type": "string"           // All items must be strings
+  },
+  "minItems": 1,               // At least 1 item
+  "maxItems": 10,              // At most 10 items
+  "uniqueItems": true          // No duplicates
+}
+```
+
+**Example for genres:**
+```json
+{
+  "genres": {
+    "type": "array",
+    "items": {"type": "string"},
+    "minItems": 1
+  }
+}
+```
+
+---
+
+# JSON Schema: Enums
+
+**Restrict to specific values:**
+
+```json
+{
+  "rated": {
+    "type": "string",
+    "enum": ["G", "PG", "PG-13", "R", "NC-17", "Not Rated"]
+  }
+}
+```
+
+**Validation result:**
+- `"PG-13"` - Valid
+- `"PG13"` - Invalid (not in enum)
+- `"M"` - Invalid (not in enum)
+
+---
+
+# JSON Schema: Required Fields
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "title": {"type": "string"},
+    "year": {"type": "integer"},
+    "rating": {"type": "number"},
+    "revenue": {"type": "integer"}
+  },
+  "required": ["title", "year"]    // Only title and year are required
+}
+```
+
+**Validation:**
+- `{"title": "X", "year": 2010}` - Valid (rating, revenue optional)
+- `{"title": "X"}` - Invalid (missing required field: year)
+
+---
+
+# Complete Movie Schema Example
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "title": {"type": "string", "minLength": 1},
+    "year": {"type": "integer", "minimum": 1880, "maximum": 2030},
+    "rating": {"type": ["number", "null"], "minimum": 0, "maximum": 10},
+    "revenue": {"type": ["integer", "null"], "minimum": 0},
+    "genres": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "rated": {
+      "type": "string",
+      "enum": ["G", "PG", "PG-13", "R", "NC-17", "Not Rated"]
+    }
+  },
+  "required": ["title", "year", "genres"]
+}
+```
+
+---
+
+# Validating with Python
+
 ```python
 import json
-from datetime import datetime
-
-def log_data_statistics(df, dataset_name):
-    stats = {
-        "timestamp": datetime.now().isoformat(),
-        "dataset": dataset_name,
-        "num_rows": len(df),
-        "num_cols": len(df.columns),
-        "numeric_stats": {
-            col: {
-                "mean": float(df[col].mean()),
-                "std": float(df[col].std()),
-                "min": float(df[col].min()),
-                "max": float(df[col].max()),
-            }
-            for col in df.select_dtypes(include=['number']).columns
-        },
-        "missing_pct": (df.isnull().sum() / len(df) * 100).to_dict()
-    }
-
-    with open('data_stats.jsonl', 'a') as f:
-        f.write(json.dumps(stats) + '\n')
-```
-
----
-
-# Data Drift Response Strategies
-
-**When drift detected**:
-
-1. **Retrain model**: Use recent data
-2. **Adjust preprocessing**: Update scalers, encoders
-3. **Alert humans**: Investigate root cause
-4. **Reject data**: If too different, don't use
-5. **Adaptive models**: Use online learning
-
-**Tools**:
-- **Evidently AI**: Drift detection and reports
-- **Alibi Detect**: Statistical drift tests
-- **Great Expectations**: Data validation framework
-
-*Detailed monitoring covered in Week 14.*
-
----
-
-# Advanced Data Validation Topics
-
-Additional theory for production-grade data quality.
-
----
-
-# Data Quality Metrics and KPIs
-
-**Quantify data quality**:
-
-**Completeness metrics**:
-```python
-completeness = (1 - df.isnull().sum() / len(df)) * 100
-print(f"Completeness by column:\n{completeness}")
-
-# Overall completeness
-overall_completeness = (df.notnull().sum().sum() / df.size) * 100
-```
-
-**Accuracy metrics** (requires ground truth):
-```python
-# For categorical data
-accuracy = (df['predicted'] == df['actual']).mean()
-
-# For numeric data (within tolerance)
-tolerance = 0.01
-accuracy = ((df['predicted'] - df['actual']).abs() < tolerance).mean()
-```
-
-**Consistency metrics**:
-```python
-# Check referential integrity
-orphaned_records = df[~df['foreign_key'].isin(ref_df['primary_key'])]
-consistency_pct = 100 * (1 - len(orphaned_records) / len(df))
-```
-
----
-
-# Data Quality Scorecard
-
-**Aggregate quality score**:
-```python
-def data_quality_score(df, reference_df=None):
-    """Calculate overall data quality score (0-100)."""
-    scores = {}
-
-    # Completeness (30%)
-    completeness = (df.notnull().sum().sum() / df.size) * 100
-    scores['completeness'] = completeness * 0.3
-
-    # Uniqueness (20%)
-    duplicate_rate = df.duplicated().sum() / len(df)
-    uniqueness = (1 - duplicate_rate) * 100
-    scores['uniqueness'] = uniqueness * 0.2
-
-    # Validity (30%)
-    # Assuming you have validation rules
-    valid_rate = 0.95  # Example: 95% of records pass validation
-    scores['validity'] = valid_rate * 100 * 0.3
-
-    # Consistency (20%)
-    # Cross-field validation pass rate
-    consistency_rate = 0.98  # Example
-    scores['consistency'] = consistency_rate * 100 * 0.2
-
-    total_score = sum(scores.values())
-    return total_score, scores
-
-score, breakdown = data_quality_score(df)
-print(f"Overall quality: {score:.1f}/100")
-print(f"Breakdown: {breakdown}")
-```
-
----
-
-# Benford's Law for Fraud Detection
-
-**Benford's Law**: In many real-world datasets, the first digit follows a logarithmic distribution.
-
-**Expected distribution**:
-- Digit 1: ~30.1%
-- Digit 2: ~17.6%
-- Digit 3: ~12.5%
-- ...
-- Digit 9: ~4.6%
-
-**Check for manipulation**:
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-
-def check_benfords_law(series):
-    """Check if numeric data follows Benford's Law."""
-    # Extract first digit
-    first_digits = series.astype(str).str[0].astype(int)
-
-    # Observed distribution
-    observed = first_digits.value_counts(normalize=True).sort_index()
-
-    # Expected distribution (Benford's Law)
-    expected = {d: np.log10(1 + 1/d) for d in range(1, 10)}
-    expected = pd.Series(expected)
-
-    # Chi-square test
-    from scipy.stats import chisquare
-    statistic, p_value = chisquare(observed, expected)
-
-    print(f"Chi-square statistic: {statistic:.4f}")
-    print(f"P-value: {p_value:.4f}")
-
-    if p_value < 0.05:
-        print("⚠️ Data may not follow Benford's Law (potential manipulation)")
-
-    return observed, expected
-
-# Example: Financial transaction amounts
-observed, expected = check_benfords_law(df['transaction_amount'])
-```
-
-**Use case**: Detect fabricated financial data, election fraud, scientific misconduct.
-
----
-
-# Data Lineage and Provenance
-
-**Data lineage**: Track the origin and transformations of data.
-
-**Why it matters**:
-- Debug data quality issues
-- Compliance (GDPR, audit trails)
-- Reproducibility
-
-**Simple lineage tracking**:
-```python
-class DataLineage:
-    def __init__(self, source):
-        self.history = [{"operation": "load", "source": source}]
-
-    def add_operation(self, operation, params=None):
-        self.history.append({
-            "operation": operation,
-            "params": params,
-            "timestamp": datetime.now().isoformat()
-        })
-
-    def get_lineage(self):
-        return self.history
-
-# Usage
-lineage = DataLineage("s3://bucket/raw_data.csv")
-df = pd.read_csv("raw_data.csv")
-
-df = df.dropna()
-lineage.add_operation("dropna")
-
-df['price'] = df['price'].fillna(df['price'].mean())
-lineage.add_operation("fillna", {"column": "price", "method": "mean"})
-
-print(json.dumps(lineage.get_lineage(), indent=2))
-```
-
-**Production tools**: Apache Atlas, OpenLineage, DataHub.
-
----
-
-# Sampling Strategies for Validation
-
-**Problem**: Validating 1 billion rows is expensive.
-
-**Solution: Statistical sampling**
-
-**Simple random sampling**:
-```python
-# Validate 1% of data
-sample = df.sample(frac=0.01, random_state=42)
-schema.validate(sample)
-```
-
-**Stratified sampling** (preserve distribution):
-```python
-# Ensure sample has same genre distribution
-sample = df.groupby('genre', group_keys=False).apply(
-    lambda x: x.sample(frac=0.01, random_state=42)
-)
-schema.validate(sample)
-```
-
-**Reservoir sampling** (streaming data):
-```python
-import random
-
-def reservoir_sample(stream, k=1000):
-    """Sample k items from a stream of unknown size."""
-    reservoir = []
-
-    for i, item in enumerate(stream):
-        if i < k:
-            reservoir.append(item)
-        else:
-            # Randomly replace elements
-            j = random.randint(0, i)
-            if j < k:
-                reservoir[j] = item
-
-    return reservoir
-
-# Usage for large file
-sample = reservoir_sample(pd.read_csv('huge_file.csv', chunksize=1000))
-```
-
----
-
-# Data Contracts
-
-**Data contract**: Formal agreement between data producer and consumer.
-
-**Contract definition** (YAML):
-```yaml
-dataset: movie_ratings
-version: 1.0
-owner: data-team@company.com
-update_frequency: daily
-sla:
-  freshness: 24h
-  completeness: 95%
-
-schema:
-  title:
-    type: string
-    nullable: false
-  year:
-    type: integer
-    min: 1900
-    max: 2030
-  rating:
-    type: float
-    min: 0.0
-    max: 10.0
-  genre:
-    type: string
-    allowed_values: [Action, Comedy, Drama, Horror, Sci-Fi]
-
-expectations:
-  - name: no_future_years
-    condition: year <= current_year
-  - name: rating_distribution
-    condition: mean(rating) BETWEEN 5 AND 8
-```
-
-**Enforce contract**:
-```python
-import yaml
-from pydantic import BaseModel, create_model
-
-def load_contract(contract_file):
-    with open(contract_file) as f:
-        contract = yaml.safe_load(f)
-    return contract
-
-def enforce_contract(df, contract):
-    # Check freshness
-    # Check completeness
-    # Validate schema
-    # Check expectations
-    pass
-```
-
----
-
-# Data Versioning with DVC
-
-**Problem**: Data changes over time, hard to reproduce experiments.
-
-**Solution: Version control for data** (like Git for code).
-
-**DVC (Data Version Control)**:
-```bash
-# Initialize DVC
-dvc init
-
-# Track data file
-dvc add data/movies.csv
-
-# Commit DVC metadata (not the actual data)
-git add data/movies.csv.dvc .gitignore
-git commit -m "Add movies dataset v1"
-
-# Tag version
-git tag -a "data-v1.0" -m "Initial dataset"
-
-# Push data to remote storage (S3, GCS)
-dvc remote add -d storage s3://my-bucket/data
-dvc push
-```
-
-**Retrieve specific version**:
-```bash
-git checkout data-v1.0
-dvc checkout
-# Now data/movies.csv is at v1.0
-```
-
-**Benefits**: Reproducibility, collaboration, data lineage.
-
----
-
-# Advanced Regex Patterns for Validation
-
-**Email validation** (comprehensive):
-```python
-import re
-
-EMAIL_PATTERN = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-
-def validate_email(email):
-    return re.match(EMAIL_PATTERN, email) is not None
-
-# Pydantic integration
-from pydantic import validator
-
-class User(BaseModel):
-    email: str
-
-    @validator('email')
-    def validate_email(cls, v):
-        if not re.match(EMAIL_PATTERN, v):
-            raise ValueError('Invalid email')
-        return v
-```
-
-**Phone number** (international):
-```python
-# E.164 format: +[country code][number]
-PHONE_PATTERN = r'^\+?[1-9]\d{1,14}$'
-
-# US format
-US_PHONE_PATTERN = r'^(\+1)?[-.\s]?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$'
-```
-
-**URL validation**:
-```python
-URL_PATTERN = r'^https?://[^\s/$.?#].[^\s]*$'
-```
-
-**Credit card** (basic):
-```python
-CREDIT_CARD_PATTERN = r'^[0-9]{13,19}$'
-
-def luhn_checksum(card_number):
-    """Validate credit card using Luhn algorithm."""
-    def digits_of(n):
-        return [int(d) for d in str(n)]
-
-    digits = digits_of(card_number)
-    odd_digits = digits[-1::-2]
-    even_digits = digits[-2::-2]
-
-    checksum = sum(odd_digits)
-    for d in even_digits:
-        checksum += sum(digits_of(d*2))
-
-    return checksum % 10 == 0
-```
-
----
-
-# Date and Time Validation
-
-**Parsing dates safely**:
-```python
-from dateutil import parser
-from datetime import datetime
-
-def parse_date_robust(date_str):
-    """Parse date with multiple format attempts."""
-    formats = [
-        '%Y-%m-%d',
-        '%d/%m/%Y',
-        '%m/%d/%Y',
-        '%Y-%m-%d %H:%M:%S',
-        '%d-%b-%Y',
-    ]
-
-    for fmt in formats:
-        try:
-            return datetime.strptime(date_str, fmt)
-        except ValueError:
-            continue
-
-    # Fallback to dateutil parser
-    try:
-        return parser.parse(date_str)
-    except:
-        raise ValueError(f"Cannot parse date: {date_str}")
-
-# Pydantic validator
-from pydantic import BaseModel, validator
-
-class Event(BaseModel):
-    event_date: str
-
-    @validator('event_date')
-    def validate_date(cls, v):
-        try:
-            date = parse_date_robust(v)
-            # Check date is not in future
-            if date > datetime.now():
-                raise ValueError("Future dates not allowed")
-            return date.isoformat()
-        except:
-            raise ValueError(f"Invalid date: {v}")
-```
-
----
-
-# Timezone Handling
-
-**Problem**: Date without timezone is ambiguous.
-
-**Best practices**:
-```python
-from datetime import datetime, timezone
-import pytz
-
-# Always use timezone-aware datetimes
-dt_aware = datetime.now(timezone.utc)
-
-# Convert timezones
-eastern = pytz.timezone('US/Eastern')
-dt_eastern = dt_aware.astimezone(eastern)
-
-# Validate timezone-aware data
-class Event(BaseModel):
-    event_time: datetime
-
-    @validator('event_time')
-    def ensure_timezone(cls, v):
-        if v.tzinfo is None:
-            # Assume UTC if no timezone
-            return v.replace(tzinfo=timezone.utc)
-        return v
-```
-
-**pandas timezone conversion**:
-```python
-# Convert to timezone-aware
-df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
-
-# Convert to specific timezone
-df['timestamp'] = df['timestamp'].dt.tz_convert('US/Eastern')
-```
-
----
-
-# String Normalization
-
-**Unicode normalization**:
-```python
-import unicodedata
-
-def normalize_string(s):
-    """Normalize string for consistent comparison."""
-    # NFD: Decompose (é → e + ´)
-    # NFC: Compose (e + ´ → é)
-    s = unicodedata.normalize('NFKC', s)
-
-    # Case folding (better than lower() for Unicode)
-    s = s.casefold()
-
-    # Strip accents
-    s = ''.join(
-        c for c in unicodedata.normalize('NFD', s)
-        if unicodedata.category(c) != 'Mn'
-    )
-
-    # Remove extra whitespace
-    s = ' '.join(s.split())
-
-    return s
-
-# Example
-assert normalize_string("Café") == normalize_string("CAFE")
-assert normalize_string("  hello   world  ") == "hello world"
-```
-
-**Text cleaning**:
-```python
-import re
-
-def clean_text(text):
-    """Clean text for ML."""
-    # Remove URLs
-    text = re.sub(r'https?://\S+', '', text)
-
-    # Remove email addresses
-    text = re.sub(r'\S+@\S+', '', text)
-
-    # Remove HTML tags
-    text = re.sub(r'<.*?>', '', text)
-
-    # Remove extra whitespace
-    text = ' '.join(text.split())
-
-    return text.strip()
-```
-
----
-
-# Currency and Unit Validation
-
-**Parse currency amounts**:
-```python
-import re
-
-def parse_currency(amount_str):
-    """Parse currency string to float."""
-    # Remove currency symbols and separators
-    cleaned = re.sub(r'[^\d.,]', '', amount_str)
-
-    # Handle different decimal separators
-    if ',' in cleaned and '.' in cleaned:
-        # Determine which is decimal separator
-        if cleaned.rindex(',') > cleaned.rindex('.'):
-            # European format: 1.234,56
-            cleaned = cleaned.replace('.', '').replace(',', '.')
-        else:
-            # US format: 1,234.56
-            cleaned = cleaned.replace(',', '')
-    elif ',' in cleaned:
-        # Could be European decimal or US thousands
-        if len(cleaned.split(',')[-1]) == 2:
-            # European decimal: 1234,56
-            cleaned = cleaned.replace(',', '.')
-        else:
-            # US thousands: 1,234
-            cleaned = cleaned.replace(',', '')
-
-    return float(cleaned)
-
-# Examples
-assert parse_currency("$1,234.56") == 1234.56
-assert parse_currency("€1.234,56") == 1234.56
-assert parse_currency("¥1234") == 1234.0
-```
-
-**Unit conversion validation**:
-```python
-from pint import UnitRegistry
-
-ureg = UnitRegistry()
-
-def validate_measurement(value, from_unit, expected_range, expected_unit):
-    """Validate measurement is in expected range."""
-    quantity = value * ureg(from_unit)
-    converted = quantity.to(expected_unit)
-
-    if not (expected_range[0] <= converted.magnitude <= expected_range[1]):
-        raise ValueError(
-            f"{converted} outside expected range {expected_range} {expected_unit}"
-        )
-
-    return converted.magnitude
-
-# Example: Validate height
-height_cm = validate_measurement(
-    value=180,
-    from_unit='cm',
-    expected_range=(50, 250),
-    expected_unit='cm'
-)
-```
-
----
-
-# Geospatial Data Validation
-
-**Coordinate validation**:
-```python
-from pydantic import BaseModel, validator
-
-class Location(BaseModel):
-    latitude: float
-    longitude: float
-
-    @validator('latitude')
-    def validate_latitude(cls, v):
-        if not -90 <= v <= 90:
-            raise ValueError('Latitude must be between -90 and 90')
-        return v
-
-    @validator('longitude')
-    def validate_longitude(cls, v):
-        if not -180 <= v <= 180:
-            raise ValueError('Longitude must be between -180 and 180')
-        return v
-```
-
-**Bounding box validation**:
-```python
-from shapely.geometry import Point, Polygon
-
-def validate_location_in_region(lat, lon, region_polygon):
-    """Check if point is within region."""
-    point = Point(lon, lat)
-    return region_polygon.contains(point)
-
-# Example: Validate location is in India
-india_bounds = Polygon([
-    (68.1, 6.7),   # Southwest
-    (97.4, 6.7),   # Southeast
-    (97.4, 35.5),  # Northeast
-    (68.1, 35.5),  # Northwest
-    (68.1, 6.7)    # Close polygon
-])
-
-is_valid = validate_location_in_region(
-    lat=28.6139,  # New Delhi
-    lon=77.2090,
-    region_polygon=india_bounds
-)
-```
-
----
-
-# Constraint Satisfaction and Referential Integrity
-
-**Foreign key validation**:
-```python
-def validate_referential_integrity(child_df, parent_df, foreign_key, primary_key):
-    """Ensure all foreign keys exist in parent table."""
-    # Find orphaned records
-    orphaned = child_df[~child_df[foreign_key].isin(parent_df[primary_key])]
-
-    if len(orphaned) > 0:
-        raise ValueError(
-            f"Found {len(orphaned)} orphaned records. "
-            f"Foreign keys: {orphaned[foreign_key].tolist()}"
-        )
-
-# Example: Movies must have valid studio_id
-validate_referential_integrity(
-    child_df=movies_df,
-    parent_df=studios_df,
-    foreign_key='studio_id',
-    primary_key='id'
-)
-```
-
-**Composite constraints**:
-```python
-import pandera as pa
-
-schema = pa.DataFrameSchema(
-    columns={
-        "min_age": pa.Column(int),
-        "max_age": pa.Column(int),
+from jsonschema import validate, ValidationError
+
+schema = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "year": {"type": "integer", "minimum": 1880}
     },
-    checks=[
-        # max_age must be greater than min_age
-        pa.Check(
-            lambda df: (df['max_age'] > df['min_age']).all(),
-            error="max_age must be greater than min_age"
-        )
-    ]
-)
+    "required": ["title", "year"]
+}
+
+movie = {"title": "Inception", "year": 2010}
+
+try:
+    validate(instance=movie, schema=schema)
+    print("Valid!")
+except ValidationError as e:
+    print(f"Invalid: {e.message}")
 ```
 
 ---
 
-# Unit Testing for Data Validation
+# Schema-First Development
 
-**pytest fixtures for data**:
+**Traditional approach:**
+1. Collect data
+2. Write code to process it
+3. Discover problems in production
+
+**Schema-first approach:**
+1. Define schema (contract)
+2. Validate data against schema on ingestion
+3. Reject invalid data early
+4. Process only valid data
+
+---
+
+<!-- _class: lead -->
+
+# Part 8: Pydantic
+
+*Pythonic data validation*
+
+---
+
+# Why Pydantic?
+
+**JSON Schema limitations:**
+- Separate from your Python code
+- No IDE autocompletion
+- Manual validation calls
+- Verbose error handling
+
+**Pydantic advantages:**
+- Uses Python type hints (you already know this!)
+- Automatic validation on object creation
+- IDE support (autocomplete, type checking)
+- Clear, readable error messages
+- Used by FastAPI, LangChain, and many modern libraries
+
+---
+
+# Pydantic: Basic Model
+
 ```python
-import pytest
-import pandas as pd
+from pydantic import BaseModel
 
-@pytest.fixture
-def sample_movies_df():
-    """Sample data for testing."""
-    return pd.DataFrame({
-        'title': ['Inception', 'Interstellar'],
-        'year': [2010, 2014],
-        'rating': [8.8, 8.6],
-        'genre': ['Sci-Fi', 'Sci-Fi']
-    })
+class Movie(BaseModel):
+    title: str
+    year: int
+    rating: float
 
-def test_year_range(sample_movies_df):
-    """Test all years are in valid range."""
-    assert (sample_movies_df['year'] >= 1900).all()
-    assert (sample_movies_df['year'] <= 2030).all()
-
-def test_rating_range(sample_movies_df):
-    """Test all ratings are between 0 and 10."""
-    assert (sample_movies_df['rating'] >= 0).all()
-    assert (sample_movies_df['rating'] <= 10).all()
-
-def test_no_nulls_in_title(sample_movies_df):
-    """Test title column has no nulls."""
-    assert sample_movies_df['title'].notnull().all()
+# Valid data - works!
+movie = Movie(title="Inception", year=2010, rating=8.8)
+print(movie.title)  # "Inception"
+print(movie.year)   # 2010 (as int, not string!)
 ```
 
-**Property-based testing** (hypothesis):
-```python
-from hypothesis import given, strategies as st
-import pandas as pd
+**Key insight**: Just define a class with type hints. Pydantic does the rest.
 
-@given(
-    year=st.integers(min_value=1900, max_value=2030),
-    rating=st.floats(min_value=0, max_value=10)
-)
-def test_movie_schema_invariants(year, rating):
-    """Test schema accepts all valid values."""
-    movie = Movie(
-        title="Test Movie",
-        year=year,
-        rating=rating,
-        genre="Action"
-    )
-    assert movie.year == year
-    assert movie.rating == rating
+---
+
+# Pydantic: Automatic Type Coercion
+
+```python
+# Pydantic converts types automatically when possible
+movie = Movie(title="Inception", year="2010", rating="8.8")
+print(movie.year)    # 2010 (converted from string to int)
+print(movie.rating)  # 8.8 (converted from string to float)
+
+# But invalid conversions fail
+movie = Movie(title="Inception", year="not a year", rating=8.8)
+# ValidationError: Input should be a valid integer
+```
+
+**Principle**: Be strict about structure, flexible about representation.
+
+---
+
+# Pydantic: Validation Errors
+
+```python
+from pydantic import ValidationError
+
+try:
+    movie = Movie(title="", year=2010, rating=8.8)
+except ValidationError as e:
+    print(e)
+```
+
+```
+1 validation error for Movie
+title
+  String should have at least 1 character [type=string_too_short]
+```
+
+**Errors are clear**: Field name, what's wrong, and why.
+
+---
+
+# Pydantic: Field Constraints
+
+```python
+from pydantic import BaseModel, Field
+
+class Movie(BaseModel):
+    title: str = Field(min_length=1)
+    year: int = Field(ge=1880, le=2030)  # ge = greater or equal
+    rating: float = Field(ge=0, le=10)
+    revenue: int | None = None  # Optional field
+```
+
+```python
+Movie(title="X", year=1850, rating=8.0)
+# ValidationError: year - Input should be >= 1880
 ```
 
 ---
 
-# Incremental Validation
+# Pydantic: Optional and Default Values
 
-**Problem**: Validating 1TB of data is slow.
-
-**Solution: Incremental validation** (only validate new/changed data).
-
-**Implementation**:
 ```python
-import hashlib
+from pydantic import BaseModel
+from typing import Optional
 
-def compute_data_hash(df):
-    """Compute hash of DataFrame."""
-    return hashlib.md5(
-        pd.util.hash_pandas_object(df, index=True).values
-    ).hexdigest()
+class Movie(BaseModel):
+    title: str
+    year: int
+    rating: Optional[float] = None      # Can be None
+    genres: list[str] = []              # Default empty list
+    is_released: bool = True            # Default value
+```
 
-def incremental_validate(df, schema, checkpoint_file='validation_checkpoint.json'):
-    """Only validate rows that changed since last validation."""
-    # Load previous hashes
+```python
+movie = Movie(title="Tenet", year=2020)
+print(movie.rating)      # None
+print(movie.genres)      # []
+print(movie.is_released) # True
+```
+
+---
+
+# Pydantic vs JSON Schema
+
+| Aspect | JSON Schema | Pydantic |
+|--------|-------------|----------|
+| Language | JSON (separate file) | Python (in your code) |
+| Type hints | No | Yes |
+| IDE support | Limited | Full autocomplete |
+| Validation | Manual call | Automatic on create |
+| Error messages | Technical | Human-readable |
+| Learning curve | New syntax | Just Python |
+
+**Recommendation**: Use Pydantic for Python projects, JSON Schema for APIs/cross-language.
+
+---
+
+# Pydantic: The Mental Model
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                    PYDANTIC WORKFLOW                              │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   1. DEFINE     class Movie(BaseModel): ...                       │
+│                                                                   │
+│   2. CREATE     movie = Movie(**raw_data)                         │
+│                       |                                           │
+│                       v                                           │
+│               [Validation happens HERE]                           │
+│                       |                                           │
+│              Valid?  / \  Invalid?                                │
+│                     /   \                                         │
+│   3. USE      movie.title   raise ValidationError                 │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# Pydantic: Practical Example
+
+```python
+from pydantic import BaseModel, Field
+from typing import Optional
+
+class MovieFromAPI(BaseModel):
+    """Validates movie data from OMDB API."""
+    Title: str = Field(min_length=1)
+    Year: str  # API returns string, we'll convert later
+    imdbRating: Optional[str] = None
+    BoxOffice: Optional[str] = None
+
+# Parse API response - validation happens automatically
+raw = {"Title": "Inception", "Year": "2010", "imdbRating": "8.8"}
+movie = MovieFromAPI(**raw)  # Works!
+
+raw_bad = {"Title": "", "Year": "2010"}
+movie = MovieFromAPI(**raw_bad)  # ValidationError!
+```
+
+---
+
+# What We'll Cover in Lab
+
+**Pydantic deep dive:**
+- Nested models (Movie with Director, Actors)
+- Custom validators (`@validator` decorator)
+- Parsing JSON files with Pydantic
+- Model serialization (`.model_dump()`, `.model_dump_json()`)
+- Strict mode vs coercion mode
+
+**The lab is where you'll get hands-on practice!**
+
+---
+
+<!-- _class: lead -->
+
+# Part 9: Encoding & Edge Cases
+
+*When text isn't just text*
+
+---
+
+# The Encoding Problem
+
+**Computers store text as numbers. But which numbers?**
+
+```
+Character 'A' = 65 (ASCII)
+Character 'e' with accent = ??? (depends on encoding!)
+```
+
+**Encoding** = The mapping between characters and bytes.
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                        COMMON ENCODINGS                           │
+├───────────────────────────────────────────────────────────────────┤
+│   ASCII        - 128 characters (English only)                    │
+│   Latin-1      - 256 characters (Western European)                │
+│   UTF-8        - 1,112,064 characters (everything!)               │
+│   UTF-16       - Same characters, different byte format           │
+│   Windows-1252 - Microsoft's Latin-1 variant                      │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# UTF-8: The Modern Standard
+
+**UTF-8** is the dominant encoding for the web and modern systems.
+
+**Why UTF-8?**
+- Backwards compatible with ASCII
+- Supports all languages
+- Variable length (1-4 bytes per character)
+- Self-synchronizing
+
+```bash
+# Check file encoding
+$ file movies.csv
+movies.csv: UTF-8 Unicode text
+
+$ file old_data.csv
+old_data.csv: ISO-8859-1 text
+```
+
+---
+
+# Encoding Problems in Practice
+
+**What you expect:**
+```
+Amelie (with accent)
+Crouching Tiger, Hidden Dragon (Chinese title)
+```
+
+**What you get:**
+```
+AmÃ©lie                    <- UTF-8 decoded as Latin-1
+Crouching Tiger (????????)   <- Wrong encoding
+```
+
+**Common scenarios:**
+1. File saved in one encoding, read in another
+2. Copy-paste from web with different encoding
+3. Database with mixed encodings
+4. Legacy systems using old encodings
+
+---
+
+# Detecting Encoding
+
+```bash
+# The file command guesses encoding
+$ file -i movies.csv
+movies.csv: text/plain; charset=utf-8
+
+# For more accuracy, use chardet (Python)
+$ pip install chardet
+$ chardetect movies.csv
+movies.csv: utf-8 with confidence 0.99
+
+# Or with Python
+$ python -c "import chardet; print(chardet.detect(open('movies.csv','rb').read()))"
+{'encoding': 'utf-8', 'confidence': 0.99}
+```
+
+---
+
+# Converting Encodings
+
+```bash
+# Convert from Latin-1 to UTF-8
+$ iconv -f ISO-8859-1 -t UTF-8 old_file.csv > new_file.csv
+
+# Convert from Windows-1252 to UTF-8
+$ iconv -f WINDOWS-1252 -t UTF-8 windows_file.csv > utf8_file.csv
+
+# List available encodings
+$ iconv -l
+```
+
+**Python approach:**
+```python
+# Read with specific encoding
+with open('file.csv', encoding='latin-1') as f:
+    content = f.read()
+
+# Write as UTF-8
+with open('file_utf8.csv', 'w', encoding='utf-8') as f:
+    f.write(content)
+```
+
+---
+
+# CSV Edge Cases: Quoting
+
+**What if your data contains commas?**
+
+```csv
+title,year,description
+Inception,2010,A mind-bending, complex thriller    <- WRONG! Extra column
+"Inception",2010,"A mind-bending, complex thriller" <- Correct: quoted
+```
+
+**What if your data contains quotes?**
+
+```csv
+title,year,tagline
+Say "Hello",2020,A movie about "greetings"   <- WRONG!
+"Say ""Hello""",2020,"A movie about ""greetings""" <- Correct: escaped
+```
+
+**Rule**: Fields with commas, quotes, or newlines must be quoted.
+
+---
+
+# CSV Edge Cases: Line Endings
+
+**Different systems use different line endings:**
+
+| System | Line Ending | Bytes |
+|--------|-------------|-------|
+| Unix/Linux/Mac | LF | `\n` (0x0A) |
+| Windows | CRLF | `\r\n` (0x0D 0x0A) |
+| Old Mac | CR | `\r` (0x0D) |
+
+**Problems occur when mixing:**
+```bash
+# Detect line endings
+$ file data.csv
+data.csv: ASCII text, with CRLF line terminators
+
+# Convert Windows to Unix
+$ sed -i 's/\r$//' data.csv
+# Or
+$ dos2unix data.csv
+```
+
+---
+
+# CSV Edge Cases: Multiline Values
+
+**Values can contain newlines (if quoted):**
+
+```csv
+title,year,plot
+"Inception",2010,"A thief who steals corporate secrets through dream-sharing
+technology is given the inverse task of planting an idea into the mind
+of a C.E.O."
+"Avatar",2009,"A paraplegic Marine..."
+```
+
+**This is valid CSV!** But many simple parsers break.
+
+**Solution**: Use proper CSV parsers (pandas, csvkit), not line-by-line reading.
+
+---
+
+# CSV Edge Cases: Empty vs Null
+
+**What does this mean?**
+
+```csv
+title,year,rating
+Inception,2010,8.8
+Avatar,2009,
+The Room,2003,""
+```
+
+| Row | rating value | Interpretation |
+|-----|--------------|----------------|
+| 1 | `8.8` | Rating is 8.8 |
+| 2 | (nothing) | Rating is null/missing |
+| 3 | `""` | Rating is empty string |
+
+**Is empty string the same as null?** Depends on your interpretation!
+
+---
+
+# Handling Edge Cases: Best Practices
+
+**1. Always specify encoding explicitly:**
+```python
+pd.read_csv('file.csv', encoding='utf-8')
+```
+
+**2. Use proper CSV parsers:**
+```python
+# Good
+import csv
+with open('file.csv') as f:
+    reader = csv.reader(f)
+
+# Bad
+with open('file.csv') as f:
+    for line in f:
+        fields = line.split(',')  # Breaks on quoted commas!
+```
+
+**3. Validate after reading:**
+```python
+assert df['year'].dtype == 'int64', "Year should be integer"
+```
+
+---
+
+<!-- _class: lead -->
+
+# Part 10: Validation Principles
+
+*Best practices for data quality*
+
+---
+
+# Principle 1: Validate at the Boundary
+
+**Check data when it enters your system, not later.**
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   External  │ --> │  Validation │ --> │   Your      │
+│   Data      │     │  Layer      │     │   System    │
+└─────────────┘     └─────────────┘     └─────────────┘
+                          |
+                          v
+                    [Invalid data rejected here]
+```
+
+**Why?**
+- Invalid data doesn't spread through your system
+- Easier to debug (you know exactly where it failed)
+- Clear separation of concerns
+
+---
+
+# Principle 2: Fail Fast
+
+**Stop immediately when you find invalid data.**
+
+```python
+# Bad: Continue and hope for the best
+for movie in movies:
     try:
-        with open(checkpoint_file) as f:
-            checkpoint = json.load(f)
-    except FileNotFoundError:
-        checkpoint = {}
+        process(movie)
+    except:
+        pass  # Silent failure!
 
-    # Compute current hash
-    current_hash = compute_data_hash(df)
+# Good: Fail fast and loud
+for movie in movies:
+    validate(movie)  # Raises exception if invalid
+    process(movie)
+```
 
-    if checkpoint.get('hash') == current_hash:
-        print("Data unchanged, skipping validation")
-        return True
+**Benefits:**
+- Find problems early
+- Don't waste time processing bad data
+- Easier debugging
 
-    # Validate
-    try:
-        schema.validate(df)
-        # Save checkpoint
-        checkpoint['hash'] = current_hash
-        checkpoint['last_validated'] = datetime.now().isoformat()
+---
 
-        with open(checkpoint_file, 'w') as f:
-            json.dump(checkpoint, f)
+# Principle 3: Be Explicit About Missing Data
 
-        return True
-    except Exception as e:
-        print(f"Validation failed: {e}")
-        return False
+**Don't guess. Document and handle explicitly.**
+
+```python
+# Bad: Implicit handling
+rating = movie.get('rating', 0)  # Is 0 a valid rating or missing?
+
+# Good: Explicit handling
+rating = movie.get('rating')
+if rating is None:
+    raise ValidationError("Rating is required")
+# Or
+if rating is None:
+    rating = DEFAULT_RATING  # Explicitly documented default
 ```
 
 ---
 
-# Validation Performance Optimization
+# Principle 4: Validate Types AND Values
 
-**Parallel validation**:
+**Type checking isn't enough.**
+
 ```python
-from concurrent.futures import ProcessPoolExecutor
-import numpy as np
+# Type is correct (integer), but value is invalid
+year = -500     # Negative year
+year = 9999     # Far future
+year = 1066     # Before cinema existed
 
-def validate_chunk(chunk, schema):
-    """Validate a chunk of DataFrame."""
-    try:
-        schema.validate(chunk)
-        return True, None
-    except Exception as e:
-        return False, str(e)
-
-def parallel_validate(df, schema, n_workers=4):
-    """Validate DataFrame in parallel chunks."""
-    chunks = np.array_split(df, n_workers)
-
-    with ProcessPoolExecutor(max_workers=n_workers) as executor:
-        results = list(executor.map(
-            lambda chunk: validate_chunk(chunk, schema),
-            chunks
-        ))
-
-    # Check if all chunks passed
-    all_passed = all(result[0] for result in results)
-
-    if not all_passed:
-        errors = [result[1] for result in results if not result[0]]
-        raise ValueError(f"Validation failed:\n" + "\n".join(errors))
-
-    return True
-
-# Usage for large DataFrames
-parallel_validate(large_df, schema, n_workers=8)
+# Need both type AND range validation
+def validate_year(year):
+    if not isinstance(year, int):
+        raise TypeError("Year must be integer")
+    if year < 1880 or year > 2030:
+        raise ValueError(f"Year {year} out of valid range")
 ```
 
 ---
 
-# Data Quality Tools Ecosystem
+# Principle 5: Log Validation Failures
 
-**Open-source tools**:
+**Keep records of what failed and why.**
 
-**Great Expectations**:
 ```python
-import great_expectations as ge
-
-df_ge = ge.from_pandas(df)
-
-# Define expectations
-df_ge.expect_column_values_to_be_between('year', min_value=1900, max_value=2030)
-df_ge.expect_column_values_to_not_be_null('title')
-df_ge.expect_column_values_to_be_in_set('genre', ['Action', 'Comedy', 'Drama'])
-
-# Validate
-validation_result = df_ge.validate()
-print(validation_result)
-```
-
-**Deepchecks**:
-```python
-from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import FeatureLabelCorrelation
-
-# Create dataset
-dataset = Dataset(df, label='rating', cat_features=['genre'])
-
-# Run checks
-check = FeatureLabelCorrelation()
-result = check.run(dataset)
-result.show()
-```
-
-**Evidently AI** (drift detection):
-```python
-from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset
-
-report = Report(metrics=[DataDriftPreset()])
-report.run(reference_data=train_df, current_data=prod_df)
-report.save_html('drift_report.html')
-```
-
----
-
-# Data Validation Best Practices
-
-**1. Fail early**: Validate at ingestion, not at training time.
-
-**2. Be explicit**: Write validation rules as code (not documentation).
-
-**3. Test your tests**: Unit test your validation logic.
-
-**4. Monitor in production**: Continuous validation, not one-time.
-
-**5. Version your schemas**: Track schema changes over time.
-
-**6. Sample intelligently**: Don't validate 100% if 1% is statistically sufficient.
-
-**7. Profile first**: Understand your data before writing rules.
-
-**8. Separate concerns**:
-   - Row-level validation → Pydantic
-   - Batch validation → Pandera
-   - Drift detection → Evidently
-
----
-
-# Production Validation Pipeline
-
-**Complete end-to-end example**:
-```python
-from typing import List
 import logging
 
-class DataValidationPipeline:
-    def __init__(self, schema, drift_detector=None):
-        self.schema = schema
-        self.drift_detector = drift_detector
-        self.logger = logging.getLogger(__name__)
-
-    def validate(self, df, reference_df=None):
-        """Run full validation pipeline."""
-        results = {
-            'passed': False,
-            'errors': [],
-            'warnings': [],
-            'stats': {}
-        }
-
-        # 1. Schema validation
+def validate_movies(movies):
+    valid = []
+    for i, movie in enumerate(movies):
         try:
-            self.schema.validate(df)
-            self.logger.info("Schema validation passed")
-        except Exception as e:
-            results['errors'].append(f"Schema validation failed: {e}")
-            return results
+            validate(movie)
+            valid.append(movie)
+        except ValidationError as e:
+            logging.warning(f"Row {i}: {e.message} - {movie}")
 
-        # 2. Quality checks
-        completeness = (1 - df.isnull().sum() / len(df))
-        if (completeness < 0.95).any():
-            results['warnings'].append(
-                f"Low completeness: {completeness[completeness < 0.95].to_dict()}"
-            )
+    logging.info(f"Validated {len(valid)}/{len(movies)} movies")
+    return valid
+```
 
-        # 3. Drift detection
-        if reference_df is not None and self.drift_detector:
-            drift_detected = self.drift_detector.detect(df, reference_df)
-            if drift_detected:
-                results['warnings'].append("Data drift detected")
+**Why?**
+- Understand data quality trends
+- Debug upstream issues
+- Audit trail
 
-        # 4. Summary stats
-        results['stats'] = {
-            'num_rows': len(df),
-            'num_cols': len(df.columns),
-            'completeness': completeness.to_dict(),
-            'duplicates': df.duplicated().sum()
-        }
+---
 
-        results['passed'] = len(results['errors']) == 0
-        return results
+# Principle 6: Separate Validation from Cleaning
 
-# Usage
-pipeline = DataValidationPipeline(schema=movie_schema)
-result = pipeline.validate(new_df, reference_df=train_df)
+**Two different operations:**
 
-if not result['passed']:
-    raise ValueError(f"Validation failed: {result['errors']}")
+| Validation | Cleaning |
+|------------|----------|
+| Checks if data is valid | Fixes invalid data |
+| Returns true/false | Modifies data |
+| Should not modify | Requires decisions |
+| Objective | Subjective |
+
+```python
+# Validation: Does it pass?
+def is_valid_year(year):
+    return isinstance(year, int) and 1880 <= year <= 2030
+
+# Cleaning: Make it pass
+def clean_year(year_str):
+    return int(year_str.strip())
 ```
 
 ---
 
-# Summary: The Checklist
+# Principle 7: Test Your Validation
 
-Before training a model, ask:
+**Validation code needs tests too!**
 
-1.  [ ] **Schema**: Do all fields exist with correct types? (Pydantic)
-2.  [ ] **Nulls**: How are missing values handled?
-3.  [ ] **Ranges**: Are numbers within physical bounds? (Age > 0)
-4.  [ ] **Duplicates**: Are primary keys unique?
-5.  [ ] **Stats**: Does the distribution look normal? (Pandera)
-6.  [ ] **Consistency**: Do cross-field constraints hold?
-7.  [ ] **Lineage**: Can you trace data back to its source?
-8.  [ ] **Drift**: Has the distribution changed significantly?
-9.  [ ] **Quality score**: Is overall quality above threshold (>90%)?
-10. [ ] **Testing**: Are validation rules tested?
+```python
+def test_year_validation():
+    # Valid cases
+    assert validate_year(2010) == True
+    assert validate_year(1880) == True  # Boundary
+    assert validate_year(2030) == True  # Boundary
 
-**Lab**: You will build a script that takes a raw JSON dump and produces a clean, validated CSV ready for training.
+    # Invalid cases
+    assert validate_year(1879) == False  # Just below
+    assert validate_year(2031) == False  # Just above
+    assert validate_year("2010") == False  # Wrong type
+    assert validate_year(None) == False   # Null
+```
+
+**Edge cases are where bugs hide!**
+
+---
+
+<!-- _class: lead -->
+
+# Part 11: Building a Validation Pipeline
+
+*Putting it all together*
+
+---
+
+# The Validation Pipeline
 
 ```
+┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+│   Ingest    │-->│   Inspect   │-->│   Validate  │-->│   Clean     │
+│   Raw Data  │   │   Profile   │   │   Schema    │   │   Transform │
+└─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘
+                                           |
+                                           v
+                                    [Reject/Quarantine
+                                     Invalid Records]
+```
+
+**Four stages:**
+1. **Ingest**: Load raw data
+2. **Inspect**: Profile and understand
+3. **Validate**: Check against rules
+4. **Clean**: Fix and transform
+
+---
+
+# Stage 1: Ingest
+
+```bash
+# Download or receive data
+curl -o movies_raw.json "$API_URL"
+
+# Check what we got
+file movies_raw.json
+wc -l movies_raw.json
+head movies_raw.json | jq .
+```
+
+```python
+# Load with explicit encoding
+import json
+with open('movies_raw.json', encoding='utf-8') as f:
+    movies = json.load(f)
+print(f"Loaded {len(movies)} movies")
+```
+
+---
+
+# Stage 2: Inspect and Profile
+
+```bash
+# Quick profile with jq
+cat movies.json | jq 'length'                           # Count
+cat movies.json | jq '[.[].year] | unique | sort'       # Year range
+cat movies.json | jq '[.[].rating | select(. == null)] | length'  # Null ratings
+```
+
+```python
+# Or with Python/pandas
+df = pd.DataFrame(movies)
+print(df.info())
+print(df.describe())
+print(df.isnull().sum())
+```
+
+---
+
+# Stage 3: Validate - Define Schema
+
+```python
+from jsonschema import validate, ValidationError
+
+schema = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "year": {"type": "integer", "minimum": 1880, "maximum": 2030},
+        "rating": {"type": ["number", "null"]}
+    },
+    "required": ["title", "year"]
+}
+```
+
+---
+
+# Stage 3: Validate - Run Validation
+
+```python
+valid_movies = []
+invalid_movies = []
+
+for movie in movies:
+    try:
+        validate(instance=movie, schema=schema)
+        valid_movies.append(movie)
+    except ValidationError as e:
+        invalid_movies.append({"movie": movie, "error": str(e)})
+
+print(f"Valid: {len(valid_movies)}, Invalid: {len(invalid_movies)}")
+```
+
+---
+
+# Stage 4: Clean and Transform
+
+```python
+def clean_movie(movie):
+    """Transform raw movie data into clean format."""
+    return {
+        "title": movie["title"].strip(),
+        "year": int(movie["year"]),
+        "rating": float(movie["rating"]) if movie.get("rating") else None,
+        "revenue": parse_revenue(movie.get("revenue")),
+        "genres": parse_genres(movie.get("genre")),
+    }
+```
+
+---
+
+# Stage 4: Helper Functions
+
+```python
+def parse_revenue(rev_str):
+    """Convert '$292,576,195' to 292576195"""
+    if not rev_str or rev_str == "N/A":
+        return None
+    return int(rev_str.replace("$", "").replace(",", ""))
+
+# Apply cleaning to all valid movies
+cleaned_movies = [clean_movie(m) for m in valid_movies]
+```
+
+---
+
+# Complete Pipeline Script (Part 1)
+
+```bash
+#!/bin/bash
+# validate_movies.sh
+
+INPUT=$1
+OUTPUT_VALID="movies_valid.json"
+OUTPUT_INVALID="movies_invalid.json"
+
+echo "=== Stage 1: Ingest ==="
+echo "Input file: $INPUT"
+file "$INPUT"
+cat "$INPUT" | jq 'length'
+```
+
+---
+
+# Complete Pipeline Script (Part 2)
+
+```bash
+echo -e "\n=== Stage 2: Profile ==="
+cat "$INPUT" | jq '[.[].year | select(. == null)] | length'
+cat "$INPUT" | jq '[.[].rating | select(. == null)] | length'
+
+echo -e "\n=== Stage 3: Validate ==="
+python validate.py "$INPUT" "$OUTPUT_VALID" "$OUTPUT_INVALID"
+
+echo -e "\n=== Stage 4: Summary ==="
+echo "Valid records: $(cat $OUTPUT_VALID | jq 'length')"
+echo "Invalid records: $(cat $OUTPUT_INVALID | jq 'length')"
+```
+
+---
+
+# Pipeline Output
+
+```
+=== Stage 1: Ingest ===
+Input file: movies_raw.json
+movies_raw.json: JSON data, UTF-8 Unicode text
+1000
+
+=== Stage 2: Profile ===
+Null years: 13
+Null ratings: 108
+
+=== Stage 3: Validate ===
+Processing 1000 movies...
+Valid: 879, Invalid: 121
+
+=== Stage 4: Summary ===
+Valid records: 879
+Invalid records: 121
+
+Validation complete. Check movies_invalid.json for details.
+```
+
+---
+
+# Back to Netflix: Cleaned Data
+
+```python
+# Before cleaning
+{"Title": "Inception", "Year": "2010", "imdbRating": "8.8",
+ "BoxOffice": "$292,576,195", "Genre": "Action, Adventure, Sci-Fi"}
+
+# After pipeline
+{"title": "Inception", "year": 2010, "rating": 8.8,
+ "revenue": 292576195, "genres": ["Action", "Adventure", "Sci-Fi"]}
+```
+
+**Now we can train our model!**
+```python
+df = pd.DataFrame(cleaned_movies)
+X = df[['year', 'rating']]  # Numeric columns
+y = df['revenue']
+model.fit(X, y)  # Works!
+```
+
+---
+
+<!-- _class: lead -->
+
+# Part 12: Looking Ahead
+
+*Lab preview and next week*
+
+---
+
+# This Week's Lab
+
+**Hands-on Practice:**
+
+1. **Unix inspection** - `head`, `tail`, `wc`, `file`, `sort`, `uniq`
+2. **jq exercises** - JSON querying and transformation
+3. **CSVkit** - Profile and query CSV files
+4. **Pydantic deep dive** - Nested models, custom validators
+5. **Build a pipeline** - End-to-end validation of messy data
+
+**Goal**: Take raw messy data and produce clean validated dataset.
+
+---
+
+# Lab Dataset
+
+**You'll receive:**
+- `movies_raw.json` - 1000 movies with various quality issues
+- `schema.json` - Partial schema (you'll complete it)
+
+**Issues to find and fix:**
+- Missing values (null, "N/A", empty string)
+- Wrong types (numbers as strings)
+- Duplicates
+- Inconsistent formats
+- Outliers
+
+---
+
+# Next Week Preview
+
+## Week 3: Data Storage & Databases
+
+- Relational databases (SQLite, PostgreSQL)
+- SQL fundamentals
+- Data modeling
+- When to use what storage format
+- Database tools and ORMs
+
+**The data we cleaned needs a home!**
+
+---
+
+# Key Takeaways
+
+1. **Look before you process** - Never trust raw data
+2. **Know your enemy** - Understand types of data problems
+3. **Tools matter** - jq, CSVkit, Pydantic save hours
+4. **Schema-first** - Define expectations before processing
+5. **Validate at the boundary** - Catch problems early
+6. **Fail fast** - Don't propagate bad data
+7. **Use Pydantic** - Pythonic validation with type hints
+
+---
+
+# Resources
+
+**Tools:**
+- jq: https://stedolan.github.io/jq/manual/
+- CSVkit: https://csvkit.readthedocs.io/
+- Pydantic: https://docs.pydantic.dev/
+- JSON Schema: https://json-schema.org/
+
+**Practice:**
+- jq playground: https://jqplay.org/
+
+---
+
+<!-- _class: lead -->
+
+# Questions?
+
+---
+
+<!-- _class: lead -->
+
+# Thank You!
+
+See you in the lab!

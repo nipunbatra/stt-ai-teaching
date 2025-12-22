@@ -11,7 +11,7 @@
 </style></head><body><div class="bespoke-marp-osc"><button data-bespoke-marp-osc="prev" tabindex="-1" title="Previous slide">Previous slide</button><span data-bespoke-marp-osc="page"></span><button data-bespoke-marp-osc="next" tabindex="-1" title="Next slide">Next slide</button><button data-bespoke-marp-osc="fullscreen" tabindex="-1" title="Toggle fullscreen (f)">Toggle fullscreen</button><button data-bespoke-marp-osc="presenter" tabindex="-1" title="Open presenter view (p)">Open presenter view</button></div><div id=":$p"><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="1" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" class="lead" data-marpit-pagination="1" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="week-4-optimizing-the-labeling-process">Week 4: Optimizing the Labeling Process</h1>
 <p><strong>CS 203: Software Tools and Techniques for AI</strong></p>
 <p>Prof. Nipun Batra<br />
@@ -20,14 +20,14 @@ IIT Gandhinagar</p>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="2" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" class="lead" data-marpit-pagination="2" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="part-1-the-labeling-cost-problem">Part 1: The Labeling Cost Problem</h1>
 <p><em>Why we need smarter approaches</em></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="3" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="previously-on-cs-203">Previously on CS 203...</h1>
 <p><strong>Week 1</strong>: Collected movie data from APIs</p>
 <p><strong>Week 2</strong>: Validated and cleaned the data</p>
@@ -42,7 +42,7 @@ remaining = total_needed - labeled_movies  <span class="hljs-comment"># 99,000 m
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="4" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="4" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="the-labeling-bottleneck">The Labeling Bottleneck</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>    TRADITIONAL APPROACH
 
@@ -61,7 +61,7 @@ remaining = total_needed - labeled_movies  <span class="hljs-comment"># 99,000 m
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="5" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="5" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="three-strategies-to-reduce-labeling-cost">Three Strategies to Reduce Labeling Cost</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │ ACTIVE LEARNING │  │ WEAK SUPERVISION│  │  LLM LABELING   │
@@ -82,7 +82,7 @@ remaining = total_needed - labeled_movies  <span class="hljs-comment"># 99,000 m
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="6" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="6" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="todays-mission">Today's Mission</h1>
 <p><strong>Learn techniques to reduce labeling effort by 10x or more.</strong></p>
 <table>
@@ -120,14 +120,14 @@ remaining = total_needed - labeled_movies  <span class="hljs-comment"># 99,000 m
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="7" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" class="lead" data-marpit-pagination="7" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="part-2-active-learning">Part 2: Active Learning</h1>
 <p><em>Label smarter, not harder</em></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="8" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="what-is-active-learning">What is Active Learning?</h1>
 <p><strong>Core Idea</strong>: Let the model choose which examples to label.</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>    PASSIVE LEARNING (Traditional)
@@ -147,7 +147,27 @@ remaining = total_needed - labeled_movies  <span class="hljs-comment"># 99,000 m
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="9" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="9" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="the-teaching-analogy">The Teaching Analogy</h1>
+<p><strong>Imagine you're learning to drive:</strong></p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>    PASSIVE LEARNING:
+    Instructor randomly picks roads
+    - 50 trips on straight highways  (easy, repetitive)
+    - 3 trips in parking lots        (never practiced!)
+    - 2 trips in rain                (rare but important!)
+
+    ACTIVE LEARNING:
+    You tell instructor what you struggle with
+    - 10 trips on straight highways  (got it!)
+    - 20 trips in parking lots       (need practice)
+    - 15 trips in rain               (challenging!)
+</code></pre>
+<p><strong>Active learning focuses effort where it helps most!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="10" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="active-learning-the-intuition">Active Learning: The Intuition</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>                        Easy Examples
                        (Model is confident)
@@ -165,10 +185,49 @@ remaining = total_needed - labeled_movies  <span class="hljs-comment"># 99,000 m
 </code></pre>
 <p><strong>Hard examples teach the model the most!</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="10" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="11" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="movie-review-example-why-uncertainty-matters">Movie Review Example: Why Uncertainty Matters</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># Our movie review classifier after training on 100 examples</span>
+
+reviews = [
+    <span class="hljs-string">&quot;Best movie ever! 10/10!&quot;</span>,           <span class="hljs-comment"># Model: 99% POS - Already knows this</span>
+    <span class="hljs-string">&quot;Terrible waste of time.&quot;</span>,            <span class="hljs-comment"># Model: 98% NEG - Already knows this</span>
+    <span class="hljs-string">&quot;It was okay, I guess.&quot;</span>,              <span class="hljs-comment"># Model: 52% POS - UNCERTAIN!</span>
+    <span class="hljs-string">&quot;Interesting but flawed.&quot;</span>,            <span class="hljs-comment"># Model: 55% NEG - UNCERTAIN!</span>
+    <span class="hljs-string">&quot;Not bad, not great.&quot;</span>,                <span class="hljs-comment"># Model: 49% POS - VERY UNCERTAIN!</span>
+]
+
+<span class="hljs-comment"># Which should we label next?</span>
+<span class="hljs-comment"># The uncertain ones! They define the decision boundary.</span>
+</code></pre>
+<p><strong>The model already &quot;knows&quot; extreme reviews. Label the ambiguous ones!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="12" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="the-decision-boundary-intuition">The Decision Boundary Intuition</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>    Positive Reviews                    Negative Reviews
+         +                                     -
+       + + +                                 - - -
+     + + + + +          ?  ?  ?            - - - - -
+   + + + + + + +      ? ? ? ? ?          - - - - - - -
+     + + + + +          ?  ?  ?            - - - - -
+       + + +                                 - - -
+         +                                     -
+
+    Easy to classify     THE BOUNDARY        Easy to classify
+    (don't need labels)  (need labels!)      (don't need labels)
+</code></pre>
+<p><strong>Active learning samples from the decision boundary where the model is confused!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="13" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="the-active-learning-loop">The Active Learning Loop</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌──────────────────────────────────────────────────────────────┐
 │                                                              │
@@ -192,10 +251,10 @@ remaining = total_needed - labeled_movies  <span class="hljs-comment"># 99,000 m
 └──────────────────────────────────────────────────────────────┘
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="11" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="14" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="query-strategies-how-to-pick-examples">Query Strategies: How to Pick Examples</h1>
 <p><strong>1. Uncertainty Sampling</strong> - Pick examples where model is least confident</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># For classification, pick where max probability is lowest</span>
@@ -209,10 +268,10 @@ margin = probs[<span class="hljs-number">0</span>] - probs[<span class="hljs-num
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">entropy = -<span class="hljs-built_in">sum</span>(p * log(p) <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> model.predict_proba(x))
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="12" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="15" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="query-strategy-comparison">Query Strategy Comparison</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>UNCERTAINTY SAMPLING           MARGIN SAMPLING
 
@@ -231,10 +290,10 @@ Probs: [0.98, 0.01, 0.01]
 Entropy = -(0.98*log(0.98) + 2*0.01*log(0.01)) = 0.12 (low)
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="16" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="13" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="16" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="active-learning-with-modal">Active Learning with modAL</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> modAL.models <span class="hljs-keyword">import</span> ActiveLearner
 <span class="hljs-keyword">from</span> modAL.uncertainty <span class="hljs-keyword">import</span> uncertainty_sampling
@@ -253,10 +312,10 @@ learner = ActiveLearner(
 )
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="17" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="14" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="17" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="active-learning-loop-in-practice">Active Learning Loop in Practice</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">n_queries = <span class="hljs-number">100</span>
 
@@ -278,10 +337,10 @@ learner = ActiveLearner(
     <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Query <span class="hljs-subst">{i+<span class="hljs-number">1</span>}</span>: Accuracy = <span class="hljs-subst">{accuracy:<span class="hljs-number">.2</span>%}</span>&quot;</span>)
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="18" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="15" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="18" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="active-learning-typical-results">Active Learning: Typical Results</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>    Accuracy
         ^
@@ -303,10 +362,10 @@ learner = ActiveLearner(
     Random sampling needs 400+ labels for same accuracy
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="16" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="19" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="16" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="19" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="batch-active-learning">Batch Active Learning</h1>
 <p><strong>Problem</strong>: Querying one example at a time is slow.</p>
 <p><strong>Solution</strong>: Select a batch of examples at once.</p>
@@ -324,10 +383,10 @@ query_idx, query_instances = learner.query(X_pool, n_instances=<span class="hljs
 </code></pre>
 <p><strong>Challenge</strong>: Top-10 uncertain examples might be very similar!</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="17" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="20" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="17" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="20" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="diversity-in-batch-selection">Diversity in Batch Selection</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> modAL.batch <span class="hljs-keyword">import</span> ranked_batch
 
@@ -350,10 +409,10 @@ query_idx, query_instances = learner.query(X_pool, n_instances=<span class="hljs
     <span class="hljs-keyword">return</span> selected
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="18" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="21" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="18" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="21" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="active-learning-practical-considerations">Active Learning: Practical Considerations</h1>
 <p><strong>1. Cold Start Problem</strong></p>
 <ul>
@@ -376,10 +435,10 @@ query_idx, query_instances = learner.query(X_pool, n_instances=<span class="hljs
 <li>Batch: Faster in practice (parallel labeling)</li>
 </ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="19" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="22" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="19" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="22" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="active-learning-tools">Active Learning Tools</h1>
 <table>
 <thead>
@@ -420,17 +479,17 @@ pip install label-studio
 pip install label-studio-ml
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="20" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="23" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="20" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" class="lead" data-marpit-pagination="23" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="part-3-weak-supervision">Part 3: Weak Supervision</h1>
 <p><em>Label with code, not clicks</em></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="21" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="24" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="21" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="24" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="what-is-weak-supervision">What is Weak Supervision?</h1>
 <p><strong>Core Idea</strong>: Write labeling functions (code) instead of labeling examples.</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># Traditional: Label 10,000 examples by hand</span>
@@ -449,10 +508,63 @@ pip install label-studio-ml
 </code></pre>
 <p><strong>Trade-off</strong>: Labels are noisier, but you get many more of them!</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="22" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="25" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="22" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="25" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="the-expert-knowledge-intuition">The Expert Knowledge Intuition</h1>
+<p><strong>You're a movie critic. How do you know a review is positive?</strong></p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>    YOUR BRAIN'S &quot;LABELING FUNCTIONS&quot;:
+
+    1. Contains &quot;amazing&quot;, &quot;loved&quot;, &quot;masterpiece&quot; --&gt; Positive
+    2. Contains &quot;boring&quot;, &quot;waste&quot;, &quot;terrible&quot;     --&gt; Negative
+    3. Rating mentioned &gt; 8/10                    --&gt; Positive
+    4. Multiple exclamation marks                 --&gt; Probably positive
+    5. Mentions &quot;Oscar&quot; or &quot;award&quot;                --&gt; Probably positive
+    6. Very short review                          --&gt; Often negative (rant)
+</code></pre>
+<p><strong>Weak supervision = encoding your expert intuition as code!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="26" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="26" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="labeling-functions-netflix-movie-example">Labeling Functions: Netflix Movie Example</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># Real labeling functions for our Netflix movie dataset</span>
+
+<span class="hljs-meta">@labeling_function()</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">lf_high_rating</span>(<span class="hljs-params">movie</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Movies rated &gt; 8 on IMDB are usually good.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> movie.imdb_rating <span class="hljs-keyword">and</span> movie.imdb_rating &gt; <span class="hljs-number">8.0</span>:
+        <span class="hljs-keyword">return</span> POSITIVE
+    <span class="hljs-keyword">return</span> ABSTAIN
+
+<span class="hljs-meta">@labeling_function()</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">lf_oscar_winner</span>(<span class="hljs-params">movie</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Oscar winners are good movies.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;Oscar&quot;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(movie.awards) <span class="hljs-keyword">and</span> <span class="hljs-string">&quot;Won&quot;</span> <span class="hljs-keyword">in</span> <span class="hljs-built_in">str</span>(movie.awards):
+        <span class="hljs-keyword">return</span> POSITIVE
+    <span class="hljs-keyword">return</span> ABSTAIN
+
+<span class="hljs-meta">@labeling_function()</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">lf_low_box_office</span>(<span class="hljs-params">movie</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Very low box office often means bad movie.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> movie.box_office <span class="hljs-keyword">and</span> movie.box_office &lt; <span class="hljs-number">1_000_000</span>:
+        <span class="hljs-keyword">return</span> NEGATIVE
+    <span class="hljs-keyword">return</span> ABSTAIN
+
+<span class="hljs-meta">@labeling_function()</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">lf_sequel_fatigue</span>(<span class="hljs-params">movie</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Sequels numbered &gt; 3 are often worse.&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> re.search(<span class="hljs-string">r&#x27;\b[4-9]\b|10|11|12&#x27;</span>, movie.title):
+        <span class="hljs-keyword">return</span> NEGATIVE
+    <span class="hljs-keyword">return</span> ABSTAIN
+</code></pre>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="27" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="27" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="labeling-functions-characteristics">Labeling Functions: Characteristics</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>                    COVERAGE vs ACCURACY
 
@@ -475,10 +587,10 @@ pip install label-studio-ml
     70% accurate            95% accurate
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="23" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="28" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="23" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="28" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="labeling-functions-types">Labeling Functions: Types</h1>
 <p><strong>1. Keyword/Pattern-based</strong></p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">lf_keyword_positive</span>(<span class="hljs-params">text</span>):
@@ -496,10 +608,10 @@ pip install label-studio-ml
     <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;POS&quot;</span> <span class="hljs-keyword">if</span> movie_title <span class="hljs-keyword">in</span> top_movies <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="24" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="29" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="24" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="29" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="labeling-function-conflicts">Labeling Function Conflicts</h1>
 <p><strong>Problem</strong>: LFs often disagree!</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">text = <span class="hljs-string">&quot;I love how terrible this movie is!&quot;</span>
@@ -511,10 +623,10 @@ lf_contains_terrible(text) <span class="hljs-comment"># Returns: &quot;NEGATIVE&
 </code></pre>
 <p><strong>Solution</strong>: Use a <strong>Label Model</strong> to combine LF outputs.</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="25" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="30" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="25" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="30" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="snorkel-the-weak-supervision-framework">Snorkel: The Weak Supervision Framework</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> snorkel.labeling <span class="hljs-keyword">import</span> labeling_function, LFAnalysis
 
@@ -533,10 +645,10 @@ lf_contains_terrible(text) <span class="hljs-comment"># Returns: &quot;NEGATIVE&
     <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="26" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="31" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="26" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="31" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="applying-labeling-functions">Applying Labeling Functions</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> snorkel.labeling <span class="hljs-keyword">import</span> PandasLFApplier
 
@@ -558,10 +670,10 @@ L_train = applier.apply(df_train)
 <span class="hljs-comment">#  [-1, -1,  0]]   # Only lf_rating -&gt; NEG</span>
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="27" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="32" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="27" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="32" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="analyzing-labeling-functions">Analyzing Labeling Functions</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> snorkel.labeling <span class="hljs-keyword">import</span> LFAnalysis
 
@@ -606,10 +718,10 @@ analysis = LFAnalysis(L=L_train, lfs=lfs).lf_summary()
 <strong>Overlaps</strong>: Fraction where LF agrees with another<br />
 <strong>Conflicts</strong>: Fraction where LF disagrees with another</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="28" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="33" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="28" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="33" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="the-label-model">The Label Model</h1>
 <p><strong>Goal</strong>: Combine noisy LF outputs into probabilistic labels.</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> snorkel.labeling.model <span class="hljs-keyword">import</span> LabelModel
@@ -626,10 +738,10 @@ probs = label_model.predict_proba(L_train)
 preds = label_model.predict(L_train)
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="29" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="34" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="29" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="34" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="how-the-label-model-works">How the Label Model Works</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>    LF Outputs                  Label Model              Probabilistic
     (noisy votes)               (learns weights)         Labels
@@ -644,10 +756,52 @@ preds = label_model.predict(L_train)
     - Model learns accuracy WITHOUT ground truth labels!
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="30" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="35" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="30" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="35" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="the-voting-intuition">The Voting Intuition</h1>
+<p><strong>Think of LFs as a jury voting on each example:</strong></p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>Movie: &quot;The Godfather&quot; (1972)
+
+    LF_high_rating:     POSITIVE  (IMDB: 9.2)
+    LF_oscar_winner:    POSITIVE  (Won Best Picture)
+    LF_classic_year:    POSITIVE  (Before 1980, acclaimed)
+    LF_sequel_fatigue:  ABSTAIN   (Not a sequel)
+    LF_low_budget:      ABSTAIN   (No data)
+
+    Jury Vote: 3 POSITIVE, 0 NEGATIVE, 2 ABSTAIN
+
+    Label Model Output: 95% POSITIVE
+</code></pre>
+<p><strong>LFs that agree with each other get higher weight!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="36" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="36" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="when-lfs-disagree-the-label-model-resolves">When LFs Disagree: The Label Model Resolves</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>Movie: &quot;Sharknado 5&quot; (2017)
+
+    LF_high_rating:     NEGATIVE  (IMDB: 3.5)
+    LF_cult_classic:    POSITIVE  (Has devoted fanbase)
+    LF_sequel_fatigue:  NEGATIVE  (5th sequel!)
+    LF_social_buzz:     POSITIVE  (Trending on Twitter)
+
+    Jury Vote: 2 POSITIVE, 2 NEGATIVE
+
+    But LF_high_rating has 90% accuracy historically
+    And LF_cult_classic only has 60% accuracy
+
+    Label Model Output: 65% NEGATIVE
+    (Weighs LFs by learned accuracy)
+</code></pre>
+<p><strong>The label model learns which LFs to trust!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="37" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="37" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="training-downstream-model">Training Downstream Model</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> snorkel.labeling <span class="hljs-keyword">import</span> filter_unlabeled_dataframe
 
@@ -671,10 +825,10 @@ hard_labels = (probs_filtered[:, <span class="hljs-number">1</span>] &gt; <span 
 model.fit(df_train_filtered[<span class="hljs-string">&#x27;text_features&#x27;</span>], hard_labels)
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="31" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="38" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="31" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="38" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="weak-supervision-complete-example">Weak Supervision: Complete Example</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd
 <span class="hljs-keyword">from</span> snorkel.labeling <span class="hljs-keyword">import</span> labeling_function, PandasLFApplier
@@ -695,10 +849,10 @@ df = pd.read_csv(<span class="hljs-string">&quot;movie_reviews.csv&quot;</span>)
 lfs = [lf_awesome, lf_boring, ...]  <span class="hljs-comment"># Add more LFs</span>
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="32" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="39" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="32" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="39" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="weak-supervision-complete-example-cont">Weak Supervision: Complete Example (cont.)</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 3. Apply LFs to data</span>
 applier = PandasLFApplier(lfs=lfs)
@@ -721,10 +875,10 @@ model = MultinomialNB()
 model.fit(X, (probs[:, <span class="hljs-number">1</span>] &gt; <span class="hljs-number">0.5</span>).astype(<span class="hljs-built_in">int</span>))
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="33" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="40" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="33" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="40" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="when-to-use-weak-supervision">When to Use Weak Supervision</h1>
 <p><strong>Good candidates:</strong></p>
 <ul>
@@ -741,17 +895,17 @@ model.fit(X, (probs[:, <span class="hljs-number">1</span>] &gt; <span class="hlj
 <li>High precision required (weak labels are noisy)</li>
 </ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="34" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="41" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="34" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" class="lead" data-marpit-pagination="41" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="part-4-llm-based-labeling">Part 4: LLM-Based Labeling</h1>
 <p><em>AI labeling your data</em></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="35" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="42" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="35" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="42" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="the-llm-labeling-revolution">The LLM Labeling Revolution</h1>
 <p><strong>2022-2024</strong>: Large Language Models became viable annotators.</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># Before: Hire annotators</span>
@@ -768,10 +922,61 @@ total_cost = <span class="hljs-number">20</span>  <span class="hljs-comment"># U
 </code></pre>
 <p><strong>But</strong>: Are LLM labels as good as human labels?</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="36" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="43" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="36" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="43" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="why-llms-can-label-data">Why LLMs Can Label Data</h1>
+<p><strong>LLMs are trained on the entire internet - they've &quot;seen&quot; everything:</strong></p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>    GPT-4 has read:
+    - Millions of movie reviews
+    - IMDB, Rotten Tomatoes, Metacritic
+    - Professional film criticism
+    - Reddit discussions about movies
+    - Academic papers on sentiment analysis
+
+    So when you ask: &quot;Is this review positive or negative?&quot;
+    It can often answer correctly!
+</code></pre>
+<p><strong>LLMs = Crowdsourced human knowledge, distilled into a model</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="44" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="44" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="llm-labeling-movie-review-example">LLM Labeling: Movie Review Example</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">import</span> openai
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">label_movie_review</span>(<span class="hljs-params">review</span>):
+    response = openai.ChatCompletion.create(
+        model=<span class="hljs-string">&quot;gpt-4&quot;</span>,
+        messages=[
+            {<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;system&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">&quot;&quot;&quot;
+                You are a movie critic. Classify reviews as:
+                - POSITIVE: Reviewer enjoyed the movie
+                - NEGATIVE: Reviewer did not enjoy the movie
+                - NEUTRAL: Mixed feelings or no clear opinion
+            &quot;&quot;&quot;</span>},
+            {<span class="hljs-string">&quot;role&quot;</span>: <span class="hljs-string">&quot;user&quot;</span>, <span class="hljs-string">&quot;content&quot;</span>: <span class="hljs-string">f&#x27;Review: &quot;<span class="hljs-subst">{review}</span>&quot;\n\nClassification:&#x27;</span>}
+        ]
+    )
+    <span class="hljs-keyword">return</span> response.choices[<span class="hljs-number">0</span>].message.content
+
+<span class="hljs-comment"># Examples from our Netflix dataset</span>
+<span class="hljs-built_in">print</span>(label_movie_review(<span class="hljs-string">&quot;Mind-blowing visuals! Nolan does it again!&quot;</span>))
+<span class="hljs-comment"># Output: POSITIVE</span>
+
+<span class="hljs-built_in">print</span>(label_movie_review(<span class="hljs-string">&quot;Meh. Seen better, seen worse.&quot;</span>))
+<span class="hljs-comment"># Output: NEUTRAL</span>
+
+<span class="hljs-built_in">print</span>(label_movie_review(<span class="hljs-string">&quot;Two hours of my life I&#x27;ll never get back.&quot;</span>))
+<span class="hljs-comment"># Output: NEGATIVE</span>
+</code></pre>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="45" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="45" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="llm-labeling-basic-approach">LLM Labeling: Basic Approach</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">import</span> openai
 
@@ -792,10 +997,10 @@ label = label_with_gpt(<span class="hljs-string">&quot;This movie was incredible
 <span class="hljs-built_in">print</span>(label)  <span class="hljs-comment"># &quot;POSITIVE&quot;</span>
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="37" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="46" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="37" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="46" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="prompt-engineering-for-annotation">Prompt Engineering for Annotation</h1>
 <p><strong>Bad Prompt:</strong></p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>Classify this: &quot;The movie was okay I guess&quot;
@@ -815,10 +1020,10 @@ Review: &quot;The movie was okay I guess&quot;
 Classification (respond with only the label):
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="38" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="47" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="38" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="47" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="few-shot-prompting">Few-Shot Prompting</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">prompt = <span class="hljs-string">&quot;&quot;&quot;Classify movie review sentiment.
 
@@ -839,10 +1044,10 @@ label = label_with_gpt(prompt.<span class="hljs-built_in">format</span>(review_t
 </code></pre>
 <p><strong>Few-shot examples significantly improve accuracy!</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="39" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="48" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="39" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="48" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="getting-confidence-scores">Getting Confidence Scores</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">label_with_confidence</span>(<span class="hljs-params">text</span>):
     prompt = <span class="hljs-string">f&quot;&quot;&quot;Classify the sentiment and provide confidence.
@@ -866,10 +1071,10 @@ label, conf = label_with_confidence(<span class="hljs-string">&quot;Great movie!
 <span class="hljs-comment"># Label: POSITIVE, Confidence: 0.95</span>
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="40" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="49" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="40" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="49" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="batch-processing-for-cost-efficiency">Batch Processing for Cost Efficiency</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">import</span> asyncio
 <span class="hljs-keyword">import</span> aiohttp
@@ -893,10 +1098,10 @@ label, conf = label_with_confidence(<span class="hljs-string">&quot;Great movie!
     <span class="hljs-keyword">return</span> results
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="41" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="50" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="41" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="50" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="llm-labeling-quality-control">LLM Labeling Quality Control</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">validate_llm_labels</span>(<span class="hljs-params">texts, llm_labels, sample_size=<span class="hljs-number">100</span></span>):
     <span class="hljs-comment"># Random sample for human validation</span>
@@ -920,10 +1125,10 @@ label, conf = label_with_confidence(<span class="hljs-string">&quot;Great movie!
     <span class="hljs-keyword">return</span> agreement
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="42" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="51" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="42" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="51" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="when-llms-struggle">When LLMs Struggle</h1>
 <p><strong>1. Subjective Tasks</strong></p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>&quot;This movie is so bad it's good&quot;
@@ -941,10 +1146,10 @@ LLM accuracy drops significantly with more categories
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>What exactly counts as &quot;slightly negative&quot;?
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="43" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="52" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="43" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="52" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="hybrid-approach-llm--human">Hybrid Approach: LLM + Human</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">hybrid_labeling</span>(<span class="hljs-params">texts, confidence_threshold=<span class="hljs-number">0.8</span></span>):
     llm_labels = []
@@ -966,10 +1171,10 @@ LLM accuracy drops significantly with more categories
 </code></pre>
 <p><strong>Use LLMs for easy examples, humans for hard ones!</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="44" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="53" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="44" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="53" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="llm-labeling-cost-comparison">LLM Labeling: Cost Comparison</h1>
 <table>
 <thead>
@@ -1021,17 +1226,17 @@ LLM accuracy drops significantly with more categories
 </table>
 <p><strong>Sweet spot</strong>: GPT-3.5/Claude for first pass, humans for validation</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="45" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="54" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="45" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" class="lead" data-marpit-pagination="54" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="part-5-handling-noisy-labels">Part 5: Handling Noisy Labels</h1>
 <p><em>Garbage in, garbage out?</em></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="46" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="55" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="46" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="55" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="sources-of-label-noise">Sources of Label Noise</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌────────────────────────────────────────────────────────────┐
 │                    LABEL NOISE SOURCES                     │
@@ -1056,10 +1261,10 @@ LLM accuracy drops significantly with more categories
 └────────────────────────────────────────────────────────────┘
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="47" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="56" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="47" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="56" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="detecting-label-errors">Detecting Label Errors</h1>
 <p><strong>Approach 1: Confident Learning</strong></p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> cleanlab <span class="hljs-keyword">import</span> Datalab
@@ -1077,10 +1282,10 @@ mislabeled = issues[issues[<span class="hljs-string">&#x27;is_label_issue&#x27;<
 <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Found <span class="hljs-subst">{<span class="hljs-built_in">len</span>(mislabeled)}</span> potential label errors&quot;</span>)
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="48" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="57" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="48" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="57" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="confident-learning-how-it-works">Confident Learning: How It Works</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>    Model predicts P(class|x) for each example
 
@@ -1096,10 +1301,53 @@ mislabeled = issues[issues[<span class="hljs-string">&#x27;is_label_issue&#x27;<
     └────────────────────────────────────────────┘
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="49" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="58" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="49" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="58" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="the-wisdom-of-the-crowd-intuition">The Wisdom of the Crowd Intuition</h1>
+<p><strong>Imagine 100 students grade an essay. 95 say &quot;B&quot;, 5 say &quot;A&quot;.</strong></p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>    If the official grade is &quot;A&quot;... something's wrong!
+
+    Either:
+    1. The grading key was wrong
+    2. The teacher made a mistake
+    3. Those 5 students are unusually generous
+
+    Confident Learning = Train a model on all data
+                         Model becomes the &quot;crowd&quot;
+                         When crowd disagrees with label = suspicious
+</code></pre>
+<p><strong>The model learns the data distribution and spots outliers!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="59" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="59" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
+<h1 id="real-example-catching-label-errors">Real Example: Catching Label Errors</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># Our Netflix movie reviews - some were mislabeled by tired annotators</span>
+
+review = <span class="hljs-string">&quot;This movie was not good. I didn&#x27;t enjoy it at all.&quot;</span>
+original_label = <span class="hljs-string">&quot;POSITIVE&quot;</span>  <span class="hljs-comment"># Annotator mistake!</span>
+
+<span class="hljs-comment"># Model prediction after training</span>
+model_prediction = {
+    <span class="hljs-string">&quot;POSITIVE&quot;</span>: <span class="hljs-number">0.05</span>,
+    <span class="hljs-string">&quot;NEGATIVE&quot;</span>: <span class="hljs-number">0.95</span>   <span class="hljs-comment"># Model is VERY confident this is negative</span>
+}
+
+<span class="hljs-comment"># cleanlab flags this as a likely error</span>
+<span class="hljs-comment"># Confidence of label being wrong: 95%</span>
+
+<span class="hljs-comment"># Upon review: Yes, this was mislabeled!</span>
+corrected_label = <span class="hljs-string">&quot;NEGATIVE&quot;</span>
+</code></pre>
+<p><strong>Cleanlab found the annotator's mistake automatically!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="60" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="60" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="cleanlab-practical-example">Cleanlab: Practical Example</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> cleanlab <span class="hljs-keyword">import</span> Datalab
 <span class="hljs-keyword">from</span> sklearn.ensemble <span class="hljs-keyword">import</span> RandomForestClassifier
@@ -1123,10 +1371,10 @@ clean_indices = lab.get_issues()[
 ].index
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="50" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="61" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="50" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="61" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="what-to-do-with-noisy-labels">What to Do With Noisy Labels?</h1>
 <p><strong>Option 1: Remove them</strong></p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">clean_X = X[clean_indices]
@@ -1142,10 +1390,10 @@ model.fit(clean_X, clean_y)
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># Use label smoothing, mixup, or noise-robust losses</span>
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="51" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="62" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="51" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="62" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="learning-with-noisy-labels">Learning With Noisy Labels</h1>
 <p><strong>Label Smoothing</strong>: Soften hard labels</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># Instead of y = [1, 0, 0] (one-hot)</span>
@@ -1164,10 +1412,10 @@ x_mixed = alpha * x1 + (<span class="hljs-number">1</span> - alpha) * x2
 y_mixed = alpha * y1 + (<span class="hljs-number">1</span> - alpha) * y2
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="52" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="63" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="52" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="63" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="noise-transition-matrix">Noise Transition Matrix</h1>
 <p><strong>Idea</strong>: Model how labels get corrupted</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>True Label -&gt;  Observed Label
@@ -1185,17 +1433,17 @@ confident_joint = compute_confident_joint(labels=y, pred_probs=pred_probs)
 transition_matrix = confident_joint / confident_joint.<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>, keepdims=<span class="hljs-literal">True</span>)
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="53" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="64" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="53" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" class="lead" data-marpit-pagination="64" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="part-6-combining-approaches">Part 6: Combining Approaches</h1>
 <p><em>The best of all worlds</em></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="54" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="65" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="54" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="65" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="decision-tree-which-technique">Decision Tree: Which Technique?</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>                    START
                       │
@@ -1226,10 +1474,10 @@ transition_matrix = confident_joint / confident_joint.<span class="hljs-built_in
               └────────────┘
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="55" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="66" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="55" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="66" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="hybrid-pipeline-example">Hybrid Pipeline Example</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># Step 1: Weak supervision for bulk labels</span>
 weak_labels = apply_labeling_functions(unlabeled_data)
@@ -1253,10 +1501,10 @@ clean_labels = cleanlab_filter(all_labels)
 model.fit(data, clean_labels)
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="56" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="67" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="56" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="67" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="cost-benefit-analysis">Cost-Benefit Analysis</h1>
 <table>
 <thead>
@@ -1302,16 +1550,16 @@ model.fit(data, clean_labels)
 </table>
 <p><strong>Typical savings</strong>: 5-20x cost reduction with hybrid approach</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="57" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="68" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="57" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" class="lead" data-marpit-pagination="68" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="part-7-key-takeaways">Part 7: Key Takeaways</h1>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="58" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="69" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="58" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="69" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="key-takeaways">Key Takeaways</h1>
 <ol>
 <li>
@@ -1337,17 +1585,17 @@ model.fit(data, clean_labels)
 </li>
 </ol>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="59" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="70" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="59" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" class="lead" data-marpit-pagination="70" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="part-8-lab-preview">Part 8: Lab Preview</h1>
 <p><em>What you'll build today</em></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="60" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="71" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="60" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="71" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="this-weeks-lab">This Week's Lab</h1>
 <p><strong>Hands-on Practice:</strong></p>
 <ol>
@@ -1377,10 +1625,10 @@ model.fit(data, clean_labels)
 </li>
 </ol>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="61" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="72" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="61" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="72" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="lab-setup-preview">Lab Setup Preview</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash"><span class="hljs-comment"># Install required packages</span>
 pip install modAL-python
@@ -1395,10 +1643,10 @@ python -c <span class="hljs-string">&quot;import cleanlab; print(&#x27;cleanlab 
 </code></pre>
 <p><strong>You'll implement a complete labeling optimization pipeline!</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="62" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="73" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="62" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="73" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="next-week-preview">Next Week Preview</h1>
 <p><strong>Week 5: Data Augmentation</strong></p>
 <ul>
@@ -1410,10 +1658,10 @@ python -c <span class="hljs-string">&quot;import cleanlab; print(&#x27;cleanlab 
 </ul>
 <p><strong>More data from existing data - without labeling!</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="63" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="74" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="63" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" data-marpit-pagination="74" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="resources">Resources</h1>
 <p><strong>Libraries:</strong></p>
 <ul>
@@ -1432,16 +1680,16 @@ python -c <span class="hljs-string">&quot;import cleanlab; print(&#x27;cleanlab 
 <li>Snorkel tutorials: <a href="https://www.snorkel.org/use-cases/">https://www.snorkel.org/use-cases/</a></li>
 </ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="64" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="75" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="64" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" class="lead" data-marpit-pagination="75" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="questions">Questions?</h1>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="65" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="76" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="65" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="65">
+" lang="en-IN" class="lead" data-marpit-pagination="76" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="76">
 <h1 id="thank-you">Thank You!</h1>
 <p>See you in the lab!</p>
 </section>

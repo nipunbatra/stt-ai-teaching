@@ -130,6 +130,28 @@ remaining = total_needed - labeled_movies  # 99,000 more!
 
 ---
 
+# The Teaching Analogy
+
+**Imagine you're learning to drive:**
+
+```
+    PASSIVE LEARNING:
+    Instructor randomly picks roads
+    - 50 trips on straight highways  (easy, repetitive)
+    - 3 trips in parking lots        (never practiced!)
+    - 2 trips in rain                (rare but important!)
+
+    ACTIVE LEARNING:
+    You tell instructor what you struggle with
+    - 10 trips on straight highways  (got it!)
+    - 20 trips in parking lots       (need practice)
+    - 15 trips in rain               (challenging!)
+```
+
+**Active learning focuses effort where it helps most!**
+
+---
+
 # Active Learning: The Intuition
 
 ```
@@ -149,6 +171,47 @@ remaining = total_needed - labeled_movies  # 99,000 more!
 ```
 
 **Hard examples teach the model the most!**
+
+---
+
+# Movie Review Example: Why Uncertainty Matters
+
+```python
+# Our movie review classifier after training on 100 examples
+
+reviews = [
+    "Best movie ever! 10/10!",           # Model: 99% POS - Already knows this
+    "Terrible waste of time.",            # Model: 98% NEG - Already knows this
+    "It was okay, I guess.",              # Model: 52% POS - UNCERTAIN!
+    "Interesting but flawed.",            # Model: 55% NEG - UNCERTAIN!
+    "Not bad, not great.",                # Model: 49% POS - VERY UNCERTAIN!
+]
+
+# Which should we label next?
+# The uncertain ones! They define the decision boundary.
+```
+
+**The model already "knows" extreme reviews. Label the ambiguous ones!**
+
+---
+
+# The Decision Boundary Intuition
+
+```
+    Positive Reviews                    Negative Reviews
+         +                                     -
+       + + +                                 - - -
+     + + + + +          ?  ?  ?            - - - - -
+   + + + + + + +      ? ? ? ? ?          - - - - - - -
+     + + + + +          ?  ?  ?            - - - - -
+       + + +                                 - - -
+         +                                     -
+
+    Easy to classify     THE BOUNDARY        Easy to classify
+    (don't need labels)  (need labels!)      (don't need labels)
+```
+
+**Active learning samples from the decision boundary where the model is confused!**
 
 ---
 
@@ -419,6 +482,61 @@ def lf_exclamation_count(text):
 
 ---
 
+# The Expert Knowledge Intuition
+
+**You're a movie critic. How do you know a review is positive?**
+
+```
+    YOUR BRAIN'S "LABELING FUNCTIONS":
+
+    1. Contains "amazing", "loved", "masterpiece" --> Positive
+    2. Contains "boring", "waste", "terrible"     --> Negative
+    3. Rating mentioned > 8/10                    --> Positive
+    4. Multiple exclamation marks                 --> Probably positive
+    5. Mentions "Oscar" or "award"                --> Probably positive
+    6. Very short review                          --> Often negative (rant)
+```
+
+**Weak supervision = encoding your expert intuition as code!**
+
+---
+
+# Labeling Functions: Netflix Movie Example
+
+```python
+# Real labeling functions for our Netflix movie dataset
+
+@labeling_function()
+def lf_high_rating(movie):
+    """Movies rated > 8 on IMDB are usually good."""
+    if movie.imdb_rating and movie.imdb_rating > 8.0:
+        return POSITIVE
+    return ABSTAIN
+
+@labeling_function()
+def lf_oscar_winner(movie):
+    """Oscar winners are good movies."""
+    if "Oscar" in str(movie.awards) and "Won" in str(movie.awards):
+        return POSITIVE
+    return ABSTAIN
+
+@labeling_function()
+def lf_low_box_office(movie):
+    """Very low box office often means bad movie."""
+    if movie.box_office and movie.box_office < 1_000_000:
+        return NEGATIVE
+    return ABSTAIN
+
+@labeling_function()
+def lf_sequel_fatigue(movie):
+    """Sequels numbered > 3 are often worse."""
+    if re.search(r'\b[4-9]\b|10|11|12', movie.title):
+        return NEGATIVE
+    return ABSTAIN
+```
+
+---
+
 # Labeling Functions: Characteristics
 
 ```
@@ -594,6 +712,51 @@ preds = label_model.predict(L_train)
 
 ---
 
+# The Voting Intuition
+
+**Think of LFs as a jury voting on each example:**
+
+```
+Movie: "The Godfather" (1972)
+
+    LF_high_rating:     POSITIVE  (IMDB: 9.2)
+    LF_oscar_winner:    POSITIVE  (Won Best Picture)
+    LF_classic_year:    POSITIVE  (Before 1980, acclaimed)
+    LF_sequel_fatigue:  ABSTAIN   (Not a sequel)
+    LF_low_budget:      ABSTAIN   (No data)
+
+    Jury Vote: 3 POSITIVE, 0 NEGATIVE, 2 ABSTAIN
+
+    Label Model Output: 95% POSITIVE
+```
+
+**LFs that agree with each other get higher weight!**
+
+---
+
+# When LFs Disagree: The Label Model Resolves
+
+```
+Movie: "Sharknado 5" (2017)
+
+    LF_high_rating:     NEGATIVE  (IMDB: 3.5)
+    LF_cult_classic:    POSITIVE  (Has devoted fanbase)
+    LF_sequel_fatigue:  NEGATIVE  (5th sequel!)
+    LF_social_buzz:     POSITIVE  (Trending on Twitter)
+
+    Jury Vote: 2 POSITIVE, 2 NEGATIVE
+
+    But LF_high_rating has 90% accuracy historically
+    And LF_cult_classic only has 60% accuracy
+
+    Label Model Output: 65% NEGATIVE
+    (Weighs LFs by learned accuracy)
+```
+
+**The label model learns which LFs to trust!**
+
+---
+
 # Training Downstream Model
 
 ```python
@@ -714,6 +877,59 @@ total_cost = 20  # USD
 ```
 
 **But**: Are LLM labels as good as human labels?
+
+---
+
+# Why LLMs Can Label Data
+
+**LLMs are trained on the entire internet - they've "seen" everything:**
+
+```
+    GPT-4 has read:
+    - Millions of movie reviews
+    - IMDB, Rotten Tomatoes, Metacritic
+    - Professional film criticism
+    - Reddit discussions about movies
+    - Academic papers on sentiment analysis
+
+    So when you ask: "Is this review positive or negative?"
+    It can often answer correctly!
+```
+
+**LLMs = Crowdsourced human knowledge, distilled into a model**
+
+---
+
+# LLM Labeling: Movie Review Example
+
+```python
+import openai
+
+def label_movie_review(review):
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": """
+                You are a movie critic. Classify reviews as:
+                - POSITIVE: Reviewer enjoyed the movie
+                - NEGATIVE: Reviewer did not enjoy the movie
+                - NEUTRAL: Mixed feelings or no clear opinion
+            """},
+            {"role": "user", "content": f'Review: "{review}"\n\nClassification:'}
+        ]
+    )
+    return response.choices[0].message.content
+
+# Examples from our Netflix dataset
+print(label_movie_review("Mind-blowing visuals! Nolan does it again!"))
+# Output: POSITIVE
+
+print(label_movie_review("Meh. Seen better, seen worse."))
+# Output: NEUTRAL
+
+print(label_movie_review("Two hours of my life I'll never get back."))
+# Output: NEGATIVE
+```
 
 ---
 
@@ -1014,6 +1230,52 @@ print(f"Found {len(mislabeled)} potential label errors")
     │  disagree with given labels = suspicious   │
     └────────────────────────────────────────────┘
 ```
+
+---
+
+# The Wisdom of the Crowd Intuition
+
+**Imagine 100 students grade an essay. 95 say "B", 5 say "A".**
+
+```
+    If the official grade is "A"... something's wrong!
+
+    Either:
+    1. The grading key was wrong
+    2. The teacher made a mistake
+    3. Those 5 students are unusually generous
+
+    Confident Learning = Train a model on all data
+                         Model becomes the "crowd"
+                         When crowd disagrees with label = suspicious
+```
+
+**The model learns the data distribution and spots outliers!**
+
+---
+
+# Real Example: Catching Label Errors
+
+```python
+# Our Netflix movie reviews - some were mislabeled by tired annotators
+
+review = "This movie was not good. I didn't enjoy it at all."
+original_label = "POSITIVE"  # Annotator mistake!
+
+# Model prediction after training
+model_prediction = {
+    "POSITIVE": 0.05,
+    "NEGATIVE": 0.95   # Model is VERY confident this is negative
+}
+
+# cleanlab flags this as a likely error
+# Confidence of label being wrong: 95%
+
+# Upon review: Yes, this was mislabeled!
+corrected_label = "NEGATIVE"
+```
+
+**Cleanlab found the annotator's mistake automatically!**
 
 ---
 

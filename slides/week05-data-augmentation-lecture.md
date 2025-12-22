@@ -2,17 +2,48 @@
 marp: true
 theme: default
 paginate: true
-style: @import "custom.css";
-  section { justify-content: flex-start; }
+backgroundColor: #fff
+style: |
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+  @import 'custom.css';
 ---
 
 <!-- _class: lead -->
-<!-- _paginate: false -->
 
-# Data Augmentation
+# Week 5: Data Augmentation
 
 **CS 203: Software Tools and Techniques for AI**
-Prof. Nipun Batra, IIT Gandhinagar
+
+Prof. Nipun Batra
+IIT Gandhinagar
+
+---
+
+<!-- _class: lead -->
+
+# Part 1: The Data Hunger Problem
+
+*More data from existing data*
+
+---
+
+# Previously on CS 203...
+
+**Week 1**: Collected 10,000 movie records from OMDB API
+**Week 2**: Validated and cleaned the data
+**Week 3**: Labeled 5,000 movies as "good" or "bad"
+**Week 4**: Optimized labeling with active learning + weak supervision
+
+```python
+# Current state of our Netflix movie project
+labeled_movies = 5000
+model_accuracy = 0.82  # 82% accuracy
+
+# But Netflix wants 90%+ accuracy!
+# And we've exhausted our labeling budget...
+```
+
+**Can we improve without more labeling?**
 
 ---
 
@@ -48,6 +79,50 @@ Prof. Nipun Batra, IIT Gandhinagar
 - More training data without labeling
 - Better generalization
 - Reduced overfitting
+
+---
+
+# The Photographer Analogy
+
+**Imagine you only have ONE photo of a cat to teach someone "what is a cat":**
+
+```
+    One photo: Person might think "cat" means
+    - This specific pose
+    - This specific lighting
+    - This specific background
+    - This specific angle
+
+    Many photos: Person learns
+    - Cats can be in different poses
+    - Cats look similar in different lighting
+    - Cats can be anywhere
+    - Cats look similar from different angles
+```
+
+**Augmentation = Taking many "virtual photos" from one real photo!**
+
+---
+
+# Free Data: The Augmentation Magic
+
+```python
+# Before augmentation
+original_dataset = 1000  # Labeled examples
+training_epochs = 100
+
+# Each epoch: model sees 1000 examples (same ones!)
+# Model memorizes specific examples = OVERFITTING
+
+# After augmentation
+augmented_dataset = 1000 * 10  # 10 variations each
+training_epochs = 100
+
+# Each epoch: model sees 10,000 DIFFERENT examples!
+# Model learns general patterns = GENERALIZATION
+```
+
+**10x more data for FREE (no labeling cost)!**
 
 ---
 
@@ -88,6 +163,26 @@ Prof. Nipun Batra, IIT Gandhinagar
 
 ---
 
+# Why Image Augmentation Works So Well
+
+**Key insight: Geometric changes don't change what's in the image!**
+
+```
+    Original:         Flipped:          Rotated:
+
+    ┌─────────┐      ┌─────────┐      ┌─────────┐
+    │  /\_/\  │      │  /\_/\  │      │   /\_/\ │
+    │ ( o.o ) │  ->  │ ( o.o ) │  ->  │  ( o.o )│
+    │  > ^ <  │      │  > ^ <  │      │   > ^ < │
+    └─────────┘      └─────────┘      └─────────┘
+
+    It's still a cat! The label doesn't change.
+```
+
+**This is called "invariance" - the label is invariant to these transforms.**
+
+---
+
 # Image Augmentation: Geometric Transforms
 
 **Basic transformations:**
@@ -108,6 +203,36 @@ img = Image.open('cat.jpg')
 rotated = img.rotate(15)
 flipped = img.transpose(Image.FLIP_LEFT_RIGHT)
 ```
+
+---
+
+# The Movie Poster Example
+
+```python
+# For our Netflix movie poster classification
+
+from PIL import Image
+import albumentations as A
+
+# Original movie poster (e.g., for "Inception")
+poster = Image.open("inception_poster.jpg")
+label = "Sci-Fi/Thriller"
+
+# Augmented versions
+transform = A.Compose([
+    A.HorizontalFlip(p=0.5),           # Poster still shows same movie
+    A.RandomBrightnessContrast(p=0.3), # Like different lighting
+    A.Rotate(limit=10),                 # Slight tilt
+])
+
+# Generate 10 variations
+for i in range(10):
+    augmented = transform(image=np.array(poster))['image']
+    # All 10 are still "Inception" posters!
+    # All still labeled "Sci-Fi/Thriller"
+```
+
+**Same poster, 10 training examples!**
 
 ---
 
@@ -242,6 +367,52 @@ augmented = transform(image=image)['image']
 
 ---
 
+# The "6 vs 9" Problem
+
+**Classic augmentation mistake:**
+
+```
+    Original:    Flipped Vertically:
+
+    ┌─────────┐      ┌─────────┐
+    │         │      │         │
+    │    6    │  ->  │    9    │
+    │         │      │         │
+    └─────────┘      └─────────┘
+
+    Label: "6"       Label: Still "6"???
+
+    NO! The label changed! This is WRONG!
+```
+
+**Always ask: Does this transformation preserve the label?**
+
+---
+
+# Good vs Bad Augmentation Examples
+
+```
+    GOOD AUGMENTATION:
+    ┌────────────────────────────────────────────────────┐
+    │ Task: Classify movie genres from posters          │
+    │                                                    │
+    │ Flip horizontal: Action movie is still action     │
+    │ Brightness change: Genre doesn't change           │
+    │ Small rotation: Poster still recognizable         │
+    └────────────────────────────────────────────────────┘
+
+    BAD AUGMENTATION:
+    ┌────────────────────────────────────────────────────┐
+    │ Task: Read text from movie posters                │
+    │                                                    │
+    │ Flip horizontal: "STAR WARS" becomes "SRAW RATS"  │
+    │ Heavy rotation: Text becomes unreadable           │
+    │ Too much blur: Can't see letters                  │
+    └────────────────────────────────────────────────────┘
+```
+
+---
+
 # Text Augmentation: Overview
 
 **Challenges:**
@@ -254,6 +425,49 @@ augmented = transform(image=image)['image']
 2. **Back-translation**: Translate to another language and back
 3. **Paraphrasing**: LLMs generate paraphrases
 4. **Contextual**: BERT-based word replacement
+
+---
+
+# Text Augmentation: Movie Review Example
+
+```python
+# Original review from our Netflix dataset
+original = "This movie was absolutely fantastic! Great acting."
+label = "POSITIVE"
+
+# Augmented versions (all still POSITIVE)
+augmented = [
+    "This film was absolutely fantastic! Great acting.",    # Synonym
+    "This movie was really fantastic! Great acting.",       # Synonym
+    "This movie was absolutely amazing! Great acting.",     # Synonym
+    "This movie was fantastic! Excellent acting.",          # Synonym
+    "Ce film etait fantastique!" -> "This film was great!"  # Back-translation
+]
+
+# Now we have 6 training examples from 1!
+# All preserve the POSITIVE label
+```
+
+**Text augmentation must preserve meaning AND sentiment!**
+
+---
+
+# The Paraphrase Intuition
+
+**Humans express the same idea in many ways:**
+
+```
+    "The movie was great!"
+    "I really enjoyed this film!"
+    "Fantastic movie, would recommend!"
+    "Loved every minute of it!"
+    "A truly wonderful cinematic experience!"
+
+    All mean: POSITIVE sentiment
+    Model should recognize ALL of these patterns!
+```
+
+**Text augmentation teaches the model that different words can mean the same thing.**
 
 ---
 

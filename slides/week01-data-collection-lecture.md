@@ -19,1607 +19,1996 @@ IIT Gandhinagar
 
 ---
 
-# The Netflix Movie Recommendation Problem
+<!-- _class: lead -->
 
-**Scenario**: You work at Netflix as a data scientist.
+# Part 1: The Motivation
 
-**The Task**: "Predict which movies will be successful to decide our next acquisitions."
-
-**The Bottleneck**: We have no data.
-
-**Today's Focus**: How do we build the dataset to solve this problem?
+*Why do we need to collect data?*
 
 ---
 
-# The ML Pipeline
+# Imagine: You Work at Netflix
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                            NETFLIX                                │
+│                                                                   │
+│  Your Boss: "We have $500M budget for movie acquisitions.        │
+│              Which movies should we license?"                     │
+│                                                                   │
+│  The Question: Can we predict which movies will succeed?          │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**Your Role**: Data Scientist
+
+**Your Mission**: Build a model to predict movie success
+
+---
+
+# The Problem Statement
+
+**Goal**: Predict box office revenue based on movie attributes
+
+```
+                    ┌─────────────────┐
+   Movie Features   │   ML Model      │   Predicted Revenue
+   ─────────────►   │   (Black Box)   │   ─────────────►
+                    └─────────────────┘
+```
+
+**But wait...** What features? What data? Where does it come from?
+
+---
+
+# What We Need: The Target Dataset
+
+| Title | Year | Genre | Budget | Revenue | Rating | Director | Cast |
+|-------|------|-------|--------|---------|--------|----------|------|
+| Inception | 2010 | Sci-Fi | $160M | $836M | 8.8 | C. Nolan | DiCaprio |
+| Avatar | 2009 | Action | $237M | $2.9B | 7.9 | Cameron | Worthington |
+| The Room | 2003 | Drama | $6M | $1.9M | 3.9 | Wiseau | Wiseau |
+| ... | ... | ... | ... | ... | ... | ... | ... |
+
+**We need 10,000+ movies** with complete information.
+
+**Question**: Where does this data come from?
+
+---
+
+# The Reality Check
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                                                                   │
+│   [X] This data doesn't exist in one place                        │
+│                                                                   │
+│   [X] No single CSV file with everything                          │
+│                                                                   │
+│   [X] Can't just "download" the dataset                           │
+│                                                                   │
+│   [*] We must BUILD the dataset ourselves                         │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**This is the real world of data science.**
+
+---
+
+# The ML Pipeline Reality
 
 ![width:900px](../figures/data_pipeline_flow.png)
-*[diagram-generators/data_pipeline_flow.py](../diagram-generators/data_pipeline_flow.py)*
 
-**Garbage In, Garbage Out**:
-- 80% of ML work is data engineering.
-- Sophisticated models cannot fix broken data.
-- **Goal**: Automate the collection of high-quality data.
-
----
-
-# Data Sources Strategy
-
-We need features: *Title, Budget, Revenue, Reviews, Cast*.
-
-| Source Type | Example | Pros | Cons |
-| :--- | :--- | :--- | :--- |
-| **Public APIs** | OMDb, TMDb | Structured, Reliable | Rate limits, Cost |
-| **Web Scraping** | IMDb, Rotten Tomatoes | Free, Flexible | Fragile, IP bans |
-| **Datasets** | Kaggle, Hugging Face | Clean, Ready | Static, Generic |
-
-**Plan**: Use OMDb API for base data + Scraping for reviews.
+**The uncomfortable truth**:
+- 80% of ML work is data engineering
+- Models are the easy part
+- **Garbage In = Garbage Out**
 
 ---
 
-# Part 1: The Web Protocol (HTTP)
+# Today's Mission
 
-How browsers (and scripts) talk to servers.
+**By the end of this lecture, you will know how to:**
+
+1. Find data sources for any project
+2. Understand how the web works (HTTP)
+3. Use Chrome DevTools to inspect network traffic
+4. Make requests using curl from the command line
+5. Write Python scripts with the requests library
+6. Handle different data formats
+7. Scrape websites when APIs don't exist
 
 ---
 
-# Client-Server Architecture
+<!-- _class: lead -->
+
+# Part 2: Where Does Data Come From?
+
+*Finding the right sources*
+
+---
+
+# Three Ways to Get Data
+
+```
+┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐
+│     OPTION 1       │  │     OPTION 2       │  │     OPTION 3       │
+│                    │  │                    │  │                    │
+│   Existing         │  │   APIs             │  │   Web Scraping     │
+│   Datasets         │  │                    │  │                    │
+│                    │  │                    │  │                    │
+│   Kaggle, UCI,     │  │   OMDb, TMDb,      │  │   IMDb, Rotten     │
+│   HuggingFace      │  │   Twitter, etc.    │  │   Tomatoes, etc.   │
+│                    │  │                    │  │                    │
+└────────────────────┘  └────────────────────┘  └────────────────────┘
+        ↓                        ↓                        ↓
+    Download             Programmatic              Parse HTML
+    directly             requests                  from pages
+```
+
+---
+
+# Option 1: Pre-built Datasets
+
+**Where to find them:**
+
+| Source | Example Datasets | Pros | Cons |
+|--------|-----------------|------|------|
+| **Kaggle** | Movies, Titanic, Housing | Ready to use, competitions | May be outdated |
+| **UCI ML Repository** | Classic ML datasets | Well-documented | Academic focus |
+| **HuggingFace** | NLP datasets, models | Easy loading | Specialized |
+| **Government Portals** | Census, economic data | Authoritative | Limited scope |
+
+**Verdict**: Great starting point, but often not enough for real projects.
+
+---
+
+# Option 2: APIs (Application Programming Interface)
+
+```
+┌──────────────┐    HTTP Request    ┌──────────────┐
+│              │  ───────────────►  │              │
+│  Your Code   │                    │  API Server  │
+│  (Client)    │  ◄───────────────  │  (OMDb)      │
+│              │    JSON Response   │              │
+└──────────────┘                    └──────────────┘
+```
+
+**APIs** = Structured way to request data from servers
+
+**Examples for our Netflix project:**
+- **OMDb API**: Movie metadata (title, year, ratings)
+- **TMDb API**: Detailed movie info, cast, crew
+- **Box Office Mojo**: Revenue data
+
+---
+
+# Option 3: Web Scraping
+
+When APIs don't exist or don't have what you need:
+
+```
+┌──────────────┐    HTTP Request    ┌──────────────┐
+│              │  ───────────────►  │              │
+│  Your Code   │                    │  Website     │
+│  (Client)    │  ◄───────────────  │  (IMDb)      │
+│              │    HTML Page       │              │
+└──────────────┘                    └──────────────┘
+        │
+        │  Parse HTML
+        ▼
+┌──────────────┐
+│  Extracted   │
+│  Data        │
+└──────────────┘
+```
+
+**When to scrape**: Reviews, prices, content not in APIs.
+
+---
+
+# Our Strategy for Netflix Project
+
+| Data Needed | Source | Method |
+|-------------|--------|--------|
+| Movie titles, years | OMDb API | API calls |
+| Ratings, genres | OMDb API | API calls |
+| Budget, revenue | TMDb API | API calls |
+| User reviews | IMDb website | Scraping |
+| Critic reviews | Rotten Tomatoes | Scraping |
+
+**Today's focus**: Learn both API calls and scraping.
+
+---
+
+<!-- _class: lead -->
+
+# Part 3: What is an API?
+
+*The contract between programs*
+
+---
+
+# API: A Restaurant Analogy
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                           RESTAURANT                              │
+│                                                                   │
+│  You (Client)  -->  Menu (API Docs)  -->  Order (Request)         │
+│                                              |                    │
+│                                              v                    │
+│                                         Kitchen (Server)          │
+│                                              |                    │
+│                                              v                    │
+│  You  <------------------------------------  Food (Response)      │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+- **Menu** = API documentation (what you can order)
+- **Order** = API request (what you're asking for)
+- **Kitchen** = Server (processes your order)
+- **Food** = Response (what you get back)
+
+---
+
+# API: The Formal Definition
+
+**API (Application Programming Interface)**
+
+A defined set of rules and protocols for building and interacting with software applications.
+
+```python
+# Without API (direct database access - dangerous!)
+SELECT * FROM movies WHERE title = 'Inception';
+
+# With API (safe, controlled access)
+GET /movies?title=Inception
+```
+
+**APIs provide**:
+- Security (no direct DB access)
+- Rate limiting (fair usage)
+- Versioning (backwards compatibility)
+- Documentation (how to use it)
+
+---
+
+# Types of APIs
+
+| Type | Description | Example |
+|------|-------------|---------|
+| **REST API** | HTTP-based, stateless, resource-oriented | OMDb, GitHub |
+| **GraphQL** | Query language, get exactly what you need | GitHub v4, Shopify |
+| **SOAP** | XML-based, enterprise | Legacy banking |
+| **WebSocket** | Real-time, bidirectional | Chat apps, live data |
+
+**For data collection, we focus on REST APIs** (most common).
+
+---
+
+# REST API: Key Principles
+
+**REST** = **RE**presentational **S**tate **T**ransfer
+
+1. **Stateless**: Server doesn't remember previous requests
+2. **Resource-based**: URLs represent things (nouns)
+3. **HTTP Methods**: Standard verbs (GET, POST, PUT, DELETE)
+4. **Standard formats**: JSON or XML responses
+
+```
+Good URL Design:
+GET  /movies           → List all movies
+GET  /movies/123       → Get movie with ID 123
+POST /movies           → Create new movie
+PUT  /movies/123       → Update movie 123
+DELETE /movies/123     → Delete movie 123
+```
+
+---
+
+# Anatomy of an API Call
+
+```
+https://api.omdbapi.com/?apikey=abc123&t=Inception&y=2010
+└─┬─┘  └──────┬──────┘ └─┬─┘└──────────┬───────────────┘
+  │           │          │             │
+Protocol    Domain     Path     Query Parameters
+(HTTPS)   (server)   (endpoint)   (key=value pairs)
+```
+
+**Query Parameters** (after the `?`):
+- `apikey=abc123` → Authentication
+- `t=Inception` → Movie title
+- `y=2010` → Year (optional filter)
+
+Multiple parameters joined with `&`
+
+---
+
+# API Authentication
+
+Most APIs require authentication to:
+- Track usage
+- Enforce rate limits
+- Bill customers
+
+**Common methods:**
+
+```bash
+# 1. API Key in URL (simplest)
+GET /movies?apikey=YOUR_KEY
+
+# 2. API Key in Header
+GET /movies
+X-API-Key: YOUR_KEY
+
+# 3. Bearer Token (OAuth)
+GET /movies
+Authorization: Bearer YOUR_TOKEN
+```
+
+---
+
+# Rate Limiting
+
+**Why?** Servers have limited resources.
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                         RATE LIMITING                             │
+│                                                                   │
+│   Free Tier:     100 requests/day                                 │
+│   Basic Tier:    1,000 requests/day                               │
+│   Pro Tier:      10,000 requests/day                              │
+│                                                                   │
+│   If you exceed: HTTP 429 (Too Many Requests)                     │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**Rate limit headers in response:**
+- `X-RateLimit-Limit: 100`
+- `X-RateLimit-Remaining: 42`
+- `X-RateLimit-Reset: 1623456789`
+
+---
+
+<!-- _class: lead -->
+
+# Part 4: HTTP Fundamentals
+
+*The language of the web*
+
+---
+
+# What is HTTP?
+
+**HTTP** = **H**yper**T**ext **T**ransfer **P**rotocol
+
+The foundation of data communication on the web.
+
+```
+┌──────────┐                                    ┌──────────┐
+│          │  ── HTTP Request ──────────────►   │          │
+│  Client  │                                    │  Server  │
+│          │  ◄────────────── HTTP Response ──  │          │
+└──────────┘                                    └──────────┘
+```
+
+**Key characteristics:**
+- **Stateless**: Each request is independent
+- **Text-based**: Human-readable (mostly)
+- **Port 80** (HTTP) or **Port 443** (HTTPS)
+
+---
+
+# The Client-Server Model
 
 ![width:700px](../figures/http_request_sequence.png)
-*[diagram-generators/http_request_sequence.py](../diagram-generators/http_request_sequence.py)*
 
----
-
-# Understanding HTTP: The Foundation
-
-**HTTP (HyperText Transfer Protocol)** is an application-layer protocol.
-
-**Key characteristics**:
-- **Stateless**: Each request is independent (no memory of previous requests)
-- **Request-Response**: Client initiates, server responds
-- **Text-based**: Human-readable headers and methods
-- **Port 80** (HTTP) or **Port 443** (HTTPS - encrypted)
-
-**Why it matters for ML**:
-- Most APIs use HTTP/HTTPS
-- Understanding requests helps debug data collection issues
-- Rate limiting, caching, and errors are HTTP concepts
-
----
-
-# Anatomy of a URL
-
-**URL**: `https://api.omdbapi.com:443/search?apikey=123&t=Inception#results`
-
-Breaking it down:
-- **Protocol**: `https://` - Secure HTTP
-- **Domain**: `api.omdbapi.com` - Server location
-- **Port**: `:443` - Usually implicit (80 for HTTP, 443 for HTTPS)
-- **Path**: `/search` - Resource location on server
-- **Query String**: `?apikey=123&t=Inception` - Parameters (key=value pairs)
-- **Fragment**: `#results` - Client-side anchor (not sent to server)
-
-**Query parameters** are how we pass data in GET requests.
-
----
-
-# HTTP Methods (Verbs)
-
-Methods define the **action** to perform on a resource.
-
-| Method | Purpose | Safe? | Idempotent? | Has Body? |
-| :--- | :--- | :---: | :---: | :---: |
-| **GET** | Retrieve data | Yes | Yes | No |
-| **POST** | Create resource | No | No | Yes |
-| **PUT** | Update/replace | No | Yes | Yes |
-| **PATCH** | Partial update | No | No | Yes |
-| **DELETE** | Remove resource | No | Yes | No |
-
-**Safe**: Doesn't modify server state
-**Idempotent**: Multiple identical requests = same result as one request
-
-*For data collection, we mostly use GET.*
+1. Client initiates connection
+2. Client sends request
+3. Server processes request
+4. Server sends response
+5. Connection closes (or stays alive)
 
 ---
 
 # HTTP Request Structure
 
-A request has three parts:
+Every HTTP request has three parts:
 
-**1. Request Line**:
 ```http
-GET /search?q=movies HTTP/1.1
+┌───────────────────────────────────────────────────────────────┐
+│ 1. REQUEST LINE                                               │
+│    GET /movies?t=Inception HTTP/1.1                           │
+├───────────────────────────────────────────────────────────────┤
+│ 2. HEADERS                                                    │
+│    Host: api.omdbapi.com                                      │
+│    User-Agent: Python/3.9                                     │
+│    Accept: application/json                                   │
+│    Authorization: Bearer abc123                               │
+├───────────────────────────────────────────────────────────────┤
+│ 3. BODY (optional, for POST/PUT)                              │
+│    {"title": "New Movie", "year": 2024}                       │
+└───────────────────────────────────────────────────────────────┘
 ```
-
-**2. Headers** (metadata):
-```http
-Host: api.omdbapi.com
-User-Agent: Mozilla/5.0
-Accept: application/json
-Authorization: Bearer abc123
-```
-
-**3. Body** (optional, for POST/PUT):
-```json
-{"title": "Inception", "year": 2010}
-```
-
-Headers provide context about the request and client.
 
 ---
 
 # HTTP Response Structure
 
-A response also has three parts:
+Every HTTP response has three parts:
 
-**1. Status Line**:
+```http
+┌───────────────────────────────────────────────────────────────┐
+│ 1. STATUS LINE                                                │
+│    HTTP/1.1 200 OK                                            │
+├───────────────────────────────────────────────────────────────┤
+│ 2. HEADERS                                                    │
+│    Content-Type: application/json                             │
+│    Content-Length: 1234                                       │
+│    X-RateLimit-Remaining: 99                                  │
+├───────────────────────────────────────────────────────────────┤
+│ 3. BODY (the actual data)                                     │
+│    {"Title": "Inception", "Year": "2010", ...}                │
+└───────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# URL Anatomy
+
+```
+https://api.omdbapi.com:443/v1/movies?t=Inception&y=2010#details
+└─┬──┘ └──────┬───────┘└┬─┘└───┬───┘└─────────┬────────┘└───┬───┘
+  │           │         │      │              │             │
+Protocol    Host      Port   Path          Query        Fragment
+(scheme)  (domain)  (default) (resource)  (parameters)  (client-only)
+```
+
+**Components:**
+- **Protocol**: `http://` or `https://` (encrypted)
+- **Host**: Domain name or IP address
+- **Port**: Usually implicit (80 for HTTP, 443 for HTTPS)
+- **Path**: Location of resource on server
+- **Query**: Parameters as `key=value` pairs
+- **Fragment**: Client-side anchor (not sent to server)
+
+---
+
+# Common HTTP Headers
+
+**Request Headers** (what client sends):
+
+| Header | Purpose | Example |
+|--------|---------|---------|
+| `Host` | Target server | `api.omdbapi.com` |
+| `User-Agent` | Client identification | `Mozilla/5.0` |
+| `Accept` | Preferred response format | `application/json` |
+| `Authorization` | Authentication | `Bearer token123` |
+| `Content-Type` | Body format (POST) | `application/json` |
+
+---
+
+# Common HTTP Headers (Response)
+
+**Response Headers** (what server sends):
+
+| Header | Purpose | Example |
+|--------|---------|---------|
+| `Content-Type` | Body format | `application/json` |
+| `Content-Length` | Size in bytes | `1234` |
+| `Cache-Control` | Caching rules | `max-age=3600` |
+| `X-RateLimit-Remaining` | API quota left | `99` |
+| `Set-Cookie` | Session cookie | `session=abc123` |
+
+---
+
+<!-- _class: lead -->
+
+# Part 5: HTTP Methods - GET and POST
+
+*The two most important verbs*
+
+---
+
+# HTTP Methods Overview
+
+| Method | Purpose | Has Body? | Safe? | Idempotent? |
+|--------|---------|-----------|-------|-------------|
+| **GET** | Retrieve data | No | Yes | Yes |
+| **POST** | Create/submit data | Yes | No | No |
+| PUT | Replace resource | Yes | No | Yes |
+| PATCH | Partial update | Yes | No | No |
+| DELETE | Remove resource | No | No | Yes |
+
+**For data collection**: 90% GET, 10% POST
+
+---
+
+# GET Request: Retrieving Data
+
+**Purpose**: Fetch data without modifying anything.
+
+```http
+GET /movies?t=Inception&y=2010 HTTP/1.1
+Host: api.omdbapi.com
+Accept: application/json
+```
+
+**Characteristics**:
+- Parameters in URL (query string)
+- No request body
+- **Safe**: Doesn't change server state
+- **Idempotent**: Same request = same result
+- **Cacheable**: Responses can be cached
+
+---
+
+# POST Request: Sending Data
+
+**Purpose**: Submit data to create or process something.
+
+```http
+POST /api/feedback HTTP/1.1
+Host: example.com
+Content-Type: application/json
+
+{"movie_id": 123, "rating": 5, "review": "Great!"}
+```
+
+**Characteristics**:
+- Data in request body (not URL)
+- **Not safe**: Modifies server state
+- **Not idempotent**: Multiple POSTs create multiple resources
+- **Not cacheable**
+
+---
+
+# GET vs POST: When to Use Which
+
+| Scenario | Method | Why |
+|----------|--------|-----|
+| Fetching movie details | GET | Retrieving data |
+| Searching for movies | GET | Query in URL |
+| Submitting a review | POST | Creating new data |
+| Uploading an image | POST | Sending binary data |
+| User login | POST | Sensitive data in body |
+| Listing all movies | GET | No modification |
+
+**Data Collection = Mostly GET**
+**Data Submission = POST**
+
+---
+
+# HTTP Status Codes
+
+**Status codes are grouped by category:**
+
+| Range | Category | Meaning |
+|-------|----------|---------|
+| **1xx** | Informational | Request received, processing |
+| **2xx** | Success | Request succeeded |
+| **3xx** | Redirection | Further action needed |
+| **4xx** | Client Error | Your fault |
+| **5xx** | Server Error | Their fault |
+
+---
+
+# Common Status Codes
+
+**Success (2xx):**
+- `200 OK` - Request succeeded
+- `201 Created` - Resource created (POST)
+- `204 No Content` - Success, empty body
+
+**Client Errors (4xx):**
+- `400 Bad Request` - Malformed request
+- `401 Unauthorized` - Missing authentication
+- `403 Forbidden` - Not allowed
+- `404 Not Found` - Resource doesn't exist
+- `429 Too Many Requests` - Rate limited
+
+**Server Errors (5xx):**
+- `500 Internal Server Error` - Server crashed
+- `503 Service Unavailable` - Server overloaded
+
+---
+
+<!-- _class: lead -->
+
+# Part 6: Response Formats
+
+*Same data, different representations*
+
+---
+
+# Why Different Formats?
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                                                                   │
+│   Same movie data can be represented in:                          │
+│                                                                   │
+│   - JSON    (JavaScript Object Notation)  --> APIs, Web apps      │
+│   - XML     (eXtensible Markup Language)  --> Enterprise, Legacy  │
+│   - CSV     (Comma Separated Values)      --> Spreadsheets, ML    │
+│   - HTML    (HyperText Markup Language)   --> Web pages           │
+│   - Protobuf (Protocol Buffers)           --> High-performance    │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**Content-Type header** tells you the format:
+- `application/json` → JSON
+- `application/xml` → XML
+- `text/html` → HTML
+- `text/csv` → CSV
+
+---
+
+# Format 1: JSON
+
+**The most common API format today.**
+
+```json
+{
+  "title": "Inception",
+  "year": 2010,
+  "genres": ["Sci-Fi", "Action", "Thriller"],
+  "director": {
+    "name": "Christopher Nolan",
+    "nationality": "British"
+  },
+  "rating": 8.8,
+  "in_production": false
+}
+```
+
+**Pros**: Human-readable, lightweight, native to JavaScript
+**Cons**: No schema validation, no comments
+
+---
+
+# JSON Data Types
+
+```json
+{
+  "string": "Hello World",
+  "number": 42,
+  "decimal": 3.14159,
+  "boolean": true,
+  "null_value": null,
+  "array": [1, 2, 3],
+  "object": {
+    "nested": "value"
+  }
+}
+```
+
+**Only 7 data types**: string, number, boolean, null, array, object
+
+**Note**: No native date type! Dates are typically strings: `"2010-07-16"`
+
+---
+
+# Format 2: XML
+
+**The enterprise standard (still used in SOAP APIs).**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<movie>
+  <title>Inception</title>
+  <year>2010</year>
+  <genres>
+    <genre>Sci-Fi</genre>
+    <genre>Action</genre>
+  </genres>
+  <director nationality="British">
+    Christopher Nolan
+  </director>
+  <rating>8.8</rating>
+</movie>
+```
+
+**Pros**: Schema validation (XSD), attributes, widespread support
+**Cons**: Verbose, heavier than JSON
+
+---
+
+# JSON vs XML: Same Data
+
+| Aspect | JSON | XML |
+|--------|------|-----|
+| Syntax | `{"name": "Inception"}` | `<name>Inception</name>` |
+| Structure | Curly braces `{}` | Tags `<tag></tag>` |
+| Size | Lighter (~30% smaller) | More verbose |
+| Attributes | Not supported | Supported |
+| Arrays | `[1, 2, 3]` | Repeated elements |
+| Usage | Modern APIs | Legacy/Enterprise |
+
+---
+
+# Format 3: CSV
+
+**The data scientist's friend.**
+
+```csv
+title,year,genre,director,rating
+Inception,2010,Sci-Fi,Christopher Nolan,8.8
+Avatar,2009,Action,James Cameron,7.9
+The Matrix,1999,Sci-Fi,Wachowskis,8.7
+```
+
+**Pros**:
+- Opens in Excel/Google Sheets
+- Easy to load into pandas: `pd.read_csv("movies.csv")`
+- Very compact
+
+**Cons**:
+- Flat structure only (no nesting)
+- No data types (everything is text)
+- Escaping issues with commas in data
+
+---
+
+# Format 4: HTML
+
+**What you get when scraping websites.**
+
+```html
+<div class="movie-card">
+  <h2 class="title">Inception</h2>
+  <span class="year">2010</span>
+  <ul class="genres">
+    <li>Sci-Fi</li>
+    <li>Action</li>
+  </ul>
+  <p class="rating">Rating: 8.8/10</p>
+</div>
+```
+
+**Not designed for data exchange!**
+- Mixed with presentation (CSS, layout)
+- Need to parse and extract relevant data
+- Structure varies by website
+
+---
+
+# Format 5: Protocol Buffers (Protobuf)
+
+**Google's high-performance binary format.**
+
+```protobuf
+// movie.proto (schema definition)
+message Movie {
+  string title = 1;
+  int32 year = 2;
+  repeated string genres = 3;
+  float rating = 4;
+}
+```
+
+**Binary on the wire** (not human-readable):
+```
+0a 09 49 6e 63 65 70 74 69 6f 6e 10 da 0f ...
+```
+
+**Pros**: 10x smaller, 100x faster parsing
+**Cons**: Need schema, binary format, requires tooling
+
+---
+
+# Format Comparison: Same Movie
+
+| Format | Size | Readability | Use Case |
+|--------|------|-------------|----------|
+| JSON | 150 bytes | High | REST APIs |
+| XML | 200 bytes | Medium | Enterprise |
+| CSV | 50 bytes | High | Data exchange |
+| HTML | 300 bytes | Low | Web pages |
+| Protobuf | 30 bytes | None | High-perf APIs |
+
+**For this course**: Focus on JSON and HTML
+
+---
+
+<!-- _class: lead -->
+
+# Part 7: Chrome DevTools
+
+*Your window into HTTP traffic*
+
+---
+
+# Why Chrome DevTools?
+
+**DevTools lets you see:**
+- Every HTTP request your browser makes
+- Request headers, body, timing
+- Response headers, body, status codes
+- Copy requests as curl commands!
+
+**This is how you learn what APIs a website uses.**
+
+---
+
+# Opening DevTools
+
+**Three ways to open:**
+
+1. **Keyboard**: `F12` or `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Option+I` (Mac)
+
+2. **Right-click**: Right-click on page → "Inspect"
+
+3. **Menu**: Chrome menu → More Tools → Developer Tools
+
+**Navigate to the "Network" tab**
+
+---
+
+# The Network Tab
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  Network                                                          │
+├───────────────────────────────────────────────────────────────────┤
+│  [*] Preserve log   [ ] Disable cache   [Filter]                  │
+├───────────────────────────────────────────────────────────────────┤
+│  Name          Status   Type      Size     Time                   │
+├───────────────────────────────────────────────────────────────────┤
+│  api/movies    200      fetch     1.2 KB   45 ms                  │
+│  styles.css    200      css       5.4 KB   23 ms                  │
+│  logo.png      200      image     15 KB    67 ms                  │
+│  analytics.js  200      script    8.1 KB   89 ms                  │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+Every row = one HTTP request/response
+
+---
+
+# Filtering Requests
+
+**Filter by type:**
+
+| Filter | Shows |
+|--------|-------|
+| **All** | Everything |
+| **Fetch/XHR** | API calls (AJAX) ← Most useful! |
+| **Doc** | HTML documents |
+| **CSS** | Stylesheets |
+| **JS** | JavaScript files |
+| **Img** | Images |
+
+**Click "Fetch/XHR" to see only API calls**
+
+---
+
+# Inspecting a Request
+
+**Click on any request to see details:**
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  Headers   Preview   Response   Timing   Cookies                  │
+├───────────────────────────────────────────────────────────────────┤
+│  General:                                                         │
+│    Request URL: https://api.example.com/movies?id=123             │
+│    Request Method: GET                                            │
+│    Status Code: 200 OK                                            │
+├───────────────────────────────────────────────────────────────────┤
+│  Response Headers:                                                │
+│    content-type: application/json                                 │
+│    x-ratelimit-remaining: 99                                      │
+├───────────────────────────────────────────────────────────────────┤
+│  Request Headers:                                                 │
+│    authorization: Bearer eyJhbGc...                               │
+│    user-agent: Mozilla/5.0...                                     │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# The Preview & Response Tabs
+
+**Preview Tab**: Formatted JSON viewer
+
+```json
+{
+  "title": "Inception",
+  "year": 2010,
+  "rating": 8.8
+}
+```
+
+**Response Tab**: Raw response body
+
+```
+{"title":"Inception","year":2010,"rating":8.8}
+```
+
+---
+
+# Copy as curl
+
+**The most powerful feature!**
+
+1. Right-click on any request
+2. Select "Copy" → "Copy as cURL"
+3. Paste into terminal
+
+```bash
+curl 'https://api.example.com/movies?id=123' \
+  -H 'accept: application/json' \
+  -H 'authorization: Bearer eyJhbGciOiJIUzI1...' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh...)' \
+  --compressed
+```
+
+**Now you can replay the exact request from your terminal!**
+
+---
+
+# Demo: Finding Hidden APIs
+
+**Many websites use hidden APIs. Here's how to find them:**
+
+1. Open DevTools → Network tab
+2. Filter by "Fetch/XHR"
+3. Interact with the website (search, click, load more)
+4. Watch for API calls appearing in the list
+5. Click on interesting requests to inspect them
+6. Copy as curl to test in terminal
+
+**Example**: Search on IMDb and watch for API calls...
+
+---
+
+# DevTools Pro Tips
+
+**Preserve log**: Keep requests when navigating between pages
+
+**Disable cache**: See fresh requests every time
+
+**Search**: `Ctrl+F` to search in all requests
+
+**Filter by URL**: Type in filter box to match URLs
+
+**Clear**: Click the clear icon to clear all requests
+
+**Throttling**: Simulate slow networks (3G, offline)
+
+---
+
+<!-- _class: lead -->
+
+# Part 8: Making Requests with curl
+
+*The command-line HTTP client*
+
+---
+
+# What is curl?
+
+**curl** = "Client URL" - a command-line tool for transferring data.
+
+```bash
+# Your first curl command
+curl "https://api.omdbapi.com/?apikey=demo&t=Inception"
+```
+
+**Why learn curl?**
+- Universal (works everywhere)
+- Quick debugging
+- Foundation for understanding HTTP
+- Copy from DevTools, paste and run
+
+---
+
+# curl: Basic Syntax
+
+```bash
+curl [options] [URL]
+```
+
+**Common options:**
+
+| Option | Meaning | Example |
+|--------|---------|---------|
+| `-X` | HTTP method | `-X POST` |
+| `-H` | Add header | `-H "Accept: application/json"` |
+| `-d` | Send data (body) | `-d '{"key": "value"}'` |
+| `-o` | Output to file | `-o movie.json` |
+| `-I` | Headers only | `-I` |
+| `-v` | Verbose output | `-v` |
+| `-s` | Silent mode | `-s` |
+
+---
+
+# curl: GET Request
+
+```bash
+# Simple GET request
+curl "https://api.omdbapi.com/?apikey=demo&t=Inception"
+```
+
+**Output:**
+```json
+{"Title":"Inception","Year":"2010","Rated":"PG-13",
+"Released":"16 Jul 2010","Runtime":"148 min",...}
+```
+
+**Important**: Quote the URL! (prevents shell interpretation of `&`)
+
+---
+
+# curl: Adding Headers
+
+```bash
+curl "https://api.example.com/movies" \
+     -H "Accept: application/json" \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "User-Agent: MyApp/1.0"
+```
+
+**Common headers to add:**
+- `Accept: application/json` - Request JSON response
+- `Authorization: Bearer TOKEN` - Authentication
+- `Content-Type: application/json` - When sending JSON
+
+---
+
+# curl: Viewing Response Headers
+
+```bash
+# Show only response headers (no body)
+curl -I "https://api.omdbapi.com/?apikey=demo&t=Inception"
+```
+
+**Output:**
 ```http
 HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 1024
+Cache-Control: public, max-age=86400
+X-RateLimit-Remaining: 999
 ```
 
-**2. Headers**:
-```http
-Content-Type: application/json
-Content-Length: 1234
-Cache-Control: max-age=3600
+---
+
+# curl: Verbose Mode
+
+```bash
+curl -v "https://api.omdbapi.com/?apikey=demo&t=Inception"
 ```
 
-**3. Body** (the actual data):
+**Shows everything (request AND response):**
+```
+> GET /?apikey=demo&t=Inception HTTP/2
+> Host: api.omdbapi.com
+> User-Agent: curl/7.79.1
+> Accept: */*
+>
+< HTTP/2 200
+< content-type: application/json
+< content-length: 1024
+<
+{"Title":"Inception"...}
+```
+
+`>` = What you sent (request)
+`<` = What you received (response)
+
+---
+
+# Pretty Printing with jq
+
+**Raw JSON is hard to read. Pipe to `jq` for formatting:**
+
+```bash
+curl -s "https://api.omdbapi.com/?apikey=demo&t=Inception" | jq .
+```
+
+**Output (formatted):**
 ```json
-{"Title": "Inception", "Year": "2010", ...}
+{
+  "Title": "Inception",
+  "Year": "2010",
+  "Rated": "PG-13",
+  "Runtime": "148 min",
+  "Genre": "Action, Adventure, Sci-Fi"
+}
 ```
 
 ---
 
-# HTTP Status Codes (Theory)
+# jq: Extracting Specific Fields
 
-Status codes are grouped by category:
-
-**1xx - Informational**: Request received, processing continues
-**2xx - Success**: Request successfully processed
-**3xx - Redirection**: Further action needed to complete request
-**4xx - Client Error**: Request has an error (your fault)
-**5xx - Server Error**: Server failed to process valid request (their fault)
-
-Understanding these helps debug data collection failures.
-
----
-
-# Common Status Codes for Data Collection
-
-**Success**:
-- `200 OK`: Request succeeded
-- `201 Created`: Resource created (POST)
-- `204 No Content`: Success, but no response body
-
-**Client Errors** (fix your code):
-- `400 Bad Request`: Malformed request
-- `401 Unauthorized`: Missing/invalid authentication
-- `403 Forbidden`: Authenticated but not authorized
-- `404 Not Found`: Resource doesn't exist
-- `429 Too Many Requests`: Rate limit exceeded
-
-**Server Errors** (retry later):
-- `500 Internal Server Error`: Server crash
-- `502 Bad Gateway`: Upstream server failed
-- `503 Service Unavailable`: Server overloaded
-
----
-
-# REST API Principles
-
-**REST (Representational State Transfer)** is an architectural style.
-
-**Core principles**:
-1. **Stateless**: No session stored on server
-2. **Resource-based**: URLs represent resources (nouns, not verbs)
-3. **HTTP Methods**: Use standard verbs (GET, POST, PUT, DELETE)
-4. **Standard formats**: JSON or XML responses
-5. **HATEOAS**: Responses include links to related resources
-
-**Example**:
-- **Good**: `GET /movies/123` (resource-oriented)
-- **Bad**: `GET /getMovie?id=123` (action-oriented)
-
----
-
-# API Authentication Methods
-
-Most APIs require authentication to track usage and prevent abuse.
-
-| Method | Header/Query | Security | Complexity | Use Case |
-|--------|-------------|----------|------------|----------|
-| **API Key** | `?apikey=abc123`<br>`X-API-Key: abc123` | Low | Very Simple | Public APIs, prototyping |
-| **Basic Auth** | `Authorization: Basic <base64>` | Medium | Simple | Internal APIs (with HTTPS) |
-| **Bearer Token** | `Authorization: Bearer <token>` | High | Medium | Modern REST APIs |
-| **OAuth 2.0** | Multi-step authorization flow | Very High | Complex | Third-party integrations (Google, Twitter) |
-
-**Security levels**:
-- API Key: Can be leaked in URLs/logs
-- Basic Auth: Requires HTTPS, credentials in every request
-- Bearer Token: Time-limited, can be refreshed
-- OAuth 2.0: Never exposes user credentials
-
----
-
-# Rate Limiting: Theory
-
-**Why rate limiting exists**:
-- Prevent abuse and DoS attacks
-- Ensure fair resource allocation
-- Protect server infrastructure
-- Monetization (pay for higher limits)
-
-**Common approaches**:
-1. **Fixed window**: 100 requests per hour (resets at :00)
-2. **Sliding window**: 100 requests in any 60-minute period
-3. **Token bucket**: Accumulate tokens, spend on requests
-4. **Concurrent requests**: Max N simultaneous connections
-
-**Headers to watch**:
-- `X-RateLimit-Limit`: Total allowed requests
-- `X-RateLimit-Remaining`: Requests left in period
-- `X-RateLimit-Reset`: When limit resets (Unix timestamp)
-
----
-
-# Part 2: CLI Tools (curl & jq)
-
-Test APIs before writing code.
-
----
-
-# curl: The HTTP Swiss Army Knife
-
-**Fetch data**:
 ```bash
-curl "http://www.omdbapi.com/?apikey=$KEY&t=Inception"
-```
+# Get just the title
+curl -s ... | jq '.Title'
+# Output: "Inception"
 
-**Inspect headers (`-I`)**:
-```bash
-curl -I "https://google.com"
-# HTTP/2 200
-# content-type: text/html
-```
+# Get multiple fields as new object
+curl -s ... | jq '{title: .Title, year: .Year, rating: .imdbRating}'
+# Output: {"title": "Inception", "year": "2010", "rating": "8.8"}
 
-**Why use curl?**
-- Language agnostic.
-- Instant debugging.
-- "Copy as curl" from Chrome DevTools.
+# Get first element of array
+curl -s ... | jq '.Search[0]'
 
----
-
-# jq: JSON Processor
-
-Raw JSON is unreadable. `jq` makes it useful.
-
-**Pretty print**:
-```bash
-curl ... | jq
-```
-
-**Filter fields**:
-```bash
-# Get just the title and rating
-curl ... | jq '{Title, imdbRating}'
-```
-
-**Filter array elements**:
-```bash
-# Get titles of movies created after 2010
-cat movies.json | jq '.[] | select(.Year > 2010) | .Title'
+# Get all titles from array
+curl -s ... | jq '.Search[].Title'
 ```
 
 ---
 
-# Part 3: Python `requests`
+# curl: Saving to File
 
-Automating the process.
+```bash
+# Save response to file
+curl "https://api.omdbapi.com/?apikey=demo&t=Inception" \
+     -o inception.json
+
+# Silent mode (no progress bar)
+curl -s "https://api.example.com/data" -o output.json
+
+# Save with pretty formatting
+curl -s ... | jq . > formatted.json
+```
 
 ---
 
-# The Synchronous Pattern
+# curl: POST Request
 
-`requests` is **blocking**. The program stops until the server responds.
+```bash
+curl -X POST "https://api.example.com/reviews" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_TOKEN" \
+     -d '{"movie_id": 123, "rating": 5, "review": "Amazing!"}'
+```
+
+**Components:**
+- `-X POST` - Use POST method
+- `-H "Content-Type: application/json"` - Tell server we're sending JSON
+- `-d '...'` - The data (request body)
+
+---
+
+# curl: POST with Form Data
+
+```bash
+# Form-encoded data (like HTML forms)
+curl -X POST "https://example.com/login" \
+     -d "username=john" \
+     -d "password=secret"
+
+# Equivalent to:
+curl -X POST "https://example.com/login" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "username=john&password=secret"
+```
+
+---
+
+# curl: File Upload
+
+```bash
+# Upload a file
+curl -X POST "https://api.example.com/upload" \
+     -F "file=@/path/to/image.jpg" \
+     -F "description=My photo"
+```
+
+**`-F` = multipart form data** (for file uploads)
+**`@` = read from file**
+
+---
+
+# curl: Useful Options
+
+```bash
+# Retry on failure
+curl --retry 3 "https://api.example.com/data"
+
+# Set timeout (seconds)
+curl --max-time 10 "https://api.example.com/slow"
+
+# Follow redirects
+curl -L "https://short.url/abc"
+
+# Fail silently on HTTP errors
+curl -f "https://api.example.com/notfound"
+# (exits with error code instead of showing error page)
+```
+
+---
+
+<!-- _class: lead -->
+
+# Part 9: Python requests Library
+
+*Programmatic data collection*
+
+---
+
+# Why Python requests?
+
+**curl is great for testing, but for automation you need Python.**
+
+```bash
+# Install
+pip install requests
+```
+
+**Benefits over curl:**
+- Loop over many URLs
+- Parse JSON automatically
+- Handle errors gracefully
+- Store data in variables
+- Integrate with pandas, ML pipelines
+
+---
+
+# requests: Simple GET
 
 ```python
 import requests
 
-def get_movie(title):
-    url = "http://www.omdbapi.com/"
-    params = {"apikey": "SECRET", "t": title}
-    
-    try:
-        # Block here until response arrives
-        resp = requests.get(url, params=params)
-        resp.raise_for_status() # Check for 4xx/5xx
-        return resp.json()
-    except Exception as e:
-        print(f"Failed: {e}")
-        return None
+# Make the request
+response = requests.get(
+    "https://api.omdbapi.com/",
+    params={"apikey": "demo", "t": "Inception"}
+)
+
+# Check status
+print(response.status_code)  # 200
+
+# Get JSON data
+data = response.json()
+print(data["Title"])  # "Inception"
+print(data["Year"])   # "2010"
 ```
 
 ---
 
-# Advanced: Async IO (Conceptual)
+# requests: Using params
 
-**Problem**: Fetching 1,000 movies sequentially is slow.
-**Solution**: Asynchronous Requests (`aiohttp`, `httpx`).
+**Don't manually build query strings!**
 
-![width:800px](../figures/sync_vs_async_timing.png)
-*[diagram-generators/sync_vs_async_timing.py](../diagram-generators/sync_vs_async_timing.py)*
+```python
+# Bad (manual string building)
+url = "https://api.omdbapi.com/?apikey=demo&t=Inception&y=2010"
 
-*We will implement Async in Week 10 (FastAPI).*
+# Good (use params dict)
+response = requests.get(
+    "https://api.omdbapi.com/",
+    params={
+        "apikey": "demo",
+        "t": "Inception",
+        "y": 2010
+    }
+)
+```
+
+**Python handles URL encoding automatically!**
 
 ---
 
-# Handling Rate Limits: Exponential Backoff
-
-**Strategy**: When rate limited, wait increasingly longer between retries.
+# requests: Adding Headers
 
 ```python
+response = requests.get(
+    "https://api.example.com/movies",
+    headers={
+        "Authorization": "Bearer YOUR_TOKEN",
+        "Accept": "application/json",
+        "User-Agent": "MyApp/1.0"
+    }
+)
+```
+
+---
+
+# requests: Response Object
+
+```python
+response = requests.get("https://api.omdbapi.com/...")
+
+# Status code
+response.status_code        # 200
+
+# Headers (dict-like)
+response.headers["Content-Type"]  # "application/json"
+
+# Body as text
+response.text               # '{"Title": "Inception"...}'
+
+# Body as JSON (parsed dict)
+response.json()             # {"Title": "Inception", ...}
+
+# Was it successful?
+response.ok                 # True (for 2xx status codes)
+```
+
+---
+
+# requests: POST with JSON
+
+```python
+import requests
+
+response = requests.post(
+    "https://api.example.com/reviews",
+    headers={
+        "Authorization": "Bearer YOUR_TOKEN"
+    },
+    json={  # Use json= for automatic JSON encoding
+        "movie_id": 123,
+        "rating": 5,
+        "review": "Great movie!"
+    }
+)
+
+if response.status_code == 201:
+    print("Review submitted!")
+    print(response.json())
+```
+
+---
+
+# requests: POST with Form Data
+
+```python
+# Form-encoded POST (like HTML forms)
+response = requests.post(
+    "https://example.com/login",
+    data={  # Use data= for form encoding
+        "username": "john",
+        "password": "secret"
+    }
+)
+```
+
+**Remember:**
+- `json=` → Content-Type: application/json
+- `data=` → Content-Type: application/x-www-form-urlencoded
+
+---
+
+# requests: Error Handling
+
+```python
+import requests
+
+try:
+    response = requests.get(
+        "https://api.omdbapi.com/",
+        params={"apikey": "demo", "t": "Inception"},
+        timeout=10  # seconds
+    )
+
+    # Raise exception for 4xx/5xx status codes
+    response.raise_for_status()
+
+    data = response.json()
+
+except requests.exceptions.Timeout:
+    print("Request timed out")
+except requests.exceptions.HTTPError as e:
+    print(f"HTTP error: {e}")
+except requests.exceptions.RequestException as e:
+    print(f"Request failed: {e}")
+```
+
+---
+
+# requests: Looping Over Multiple Items
+
+```python
+import requests
 import time
 
-def fetch_with_retry(url, retries=3):
-    for i in range(retries):
-        resp = requests.get(url)
-        if resp.status_code == 429: # Rate limit
-            wait = 2 ** i  # 1s, 2s, 4s...
-            time.sleep(wait)
-            continue
-        return resp
+movies = ["Inception", "Avatar", "The Matrix", "Interstellar"]
+results = []
+
+for title in movies:
+    response = requests.get(
+        "https://api.omdbapi.com/",
+        params={"apikey": "YOUR_KEY", "t": title}
+    )
+
+    if response.ok:
+        results.append(response.json())
+        print(f"Got: {title}")
+
+    time.sleep(0.5)  # Be nice to the server!
+
+print(f"Collected {len(results)} movies")
 ```
 
-**Why exponential?**
-- Gives server time to recover
-- Prevents thundering herd problem
-- Standard practice in distributed systems
-
 ---
 
-# Advanced: Retry Strategies
+# requests: Session for Multiple Requests
 
-**Retry decision tree**:
-
-| Status Code | Should Retry? | Strategy |
-| :--- | :--- | :--- |
-| `429 Too Many Requests` | Yes | Exponential backoff |
-| `500 Internal Server Error` | Yes | Fixed delay, limited retries |
-| `502/503 Service Error` | Yes | Short delay, many retries |
-| `400 Bad Request` | No | Fix your request |
-| `401/403 Auth Error` | No | Check credentials |
-| `404 Not Found` | No | Resource doesn't exist |
-
-**Implementation**: Use libraries like `tenacity` or `backoff` for production code.
-
----
-
-# JSON Response Parsing
-
-**JSON (JavaScript Object Notation)** is the standard API response format.
-
-**Why JSON?**
-- Human-readable and machine-parseable
-- Nested structure (objects, arrays)
-- Language-agnostic
-- Smaller than XML
-
-**Python mapping**:
-- JSON object `{}` → Python dict
-- JSON array `[]` → Python list
-- JSON string `"text"` → Python str
-- JSON number `42` → Python int/float
-- JSON boolean `true/false` → Python bool
-- JSON `null` → Python None
-
----
-
-# Error Handling: Network Failures
-
-**Common network errors**:
-
-1. **Connection timeout**: Server unreachable
-2. **Read timeout**: Server too slow to respond
-3. **DNS failure**: Domain name doesn't resolve
-4. **SSL certificate error**: Invalid/expired certificate
-5. **Connection reset**: Server closed connection
-
-**Always handle**:
 ```python
-try:
-    resp = requests.get(url, timeout=10)
-except requests.exceptions.Timeout:
-    # Server too slow
-except requests.exceptions.ConnectionError:
-    # Network problem
-except requests.exceptions.RequestException:
-    # Catch-all for other issues
+import requests
+
+# Session persists settings across requests
+session = requests.Session()
+session.headers.update({
+    "Authorization": "Bearer YOUR_TOKEN",
+    "User-Agent": "MyApp/1.0"
+})
+
+# Now all requests use these headers
+r1 = session.get("https://api.example.com/movies")
+r2 = session.get("https://api.example.com/reviews")
+r3 = session.get("https://api.example.com/users")
+
+# Also maintains cookies automatically!
 ```
 
 ---
 
-# Ethical Scraping: robots.txt
+# requests: Practical Example
 
-**robots.txt** is a file that tells crawlers what they can access.
-
-**Example**: `https://www.imdb.com/robots.txt`
-```
-User-agent: *
-Disallow: /search/
-Allow: /title/
-
-Crawl-delay: 1
-```
-
-**Interpretation**:
-- All bots (`*`) allowed
-- Don't crawl `/search/` endpoints
-- Can crawl `/title/` pages
-- Wait 1 second between requests
-
-**Check before scraping**:
 ```python
-from urllib.robotparser import RobotFileParser
+import requests
+import pandas as pd
 
-rp = RobotFileParser()
-rp.set_url("https://example.com/robots.txt")
-rp.read()
+def fetch_movie_data(titles, api_key):
+    """Fetch movie data for a list of titles."""
+    movies = []
 
-if rp.can_fetch("MyBot", "https://example.com/page"):
-    # OK to scrape
+    for title in titles:
+        response = requests.get(
+            "https://api.omdbapi.com/",
+            params={"apikey": api_key, "t": title},
+            timeout=10
+        )
+
+        if response.ok and response.json().get("Response") == "True":
+            movies.append(response.json())
+
+    return pd.DataFrame(movies)
+
+# Usage
+df = fetch_movie_data(["Inception", "Avatar"], "YOUR_KEY")
+print(df[["Title", "Year", "imdbRating"]])
 ```
 
 ---
 
-# User-Agent Headers
+# curl vs requests: Comparison
 
-**User-Agent** identifies your client to the server.
+| Aspect | curl | Python requests |
+|--------|------|-----------------|
+| **Use case** | Quick testing | Automation |
+| **Learning** | Interactive exploration | Production code |
+| **Looping** | Bash scripts | Native Python |
+| **JSON parsing** | Needs jq | Built-in .json() |
+| **Error handling** | Exit codes | Exceptions |
+| **DevTools** | Copy as curl (yes) | Convert from curl |
 
-**Browser User-Agent**:
-```
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-```
-
-**Python requests default**:
-```
-python-requests/2.28.1
-```
-
-**Best practice** - Identify yourself:
-```python
-headers = {
-    'User-Agent': 'MovieCollectorBot/1.0 (student@university.edu)'
-}
-requests.get(url, headers=headers)
-```
-
-**Why it matters**:
-- Helps admins contact you if issues arise
-- Some sites block generic User-Agents
-- Ethical transparency
+**Workflow**: DevTools → Copy as curl → Test → Convert to Python
 
 ---
 
-# Part 4: Web Scraping (BeautifulSoup)
+<!-- _class: lead -->
 
-When there is no API.
+# Part 10: Web Scraping
 
----
-
-# When to Scrape vs Use APIs
-
-**Prefer APIs when available**:
-- Structured, reliable data
-- Official support and documentation
-- Stable endpoints
-- Legal/ToS compliant
-
-**Scraping is needed when**:
-- No API exists
-- API is too expensive
-- API missing needed data
-- API has restrictive rate limits
-
-**Trade-offs**: Scraping is fragile (breaks when HTML changes).
+*When APIs don't exist*
 
 ---
 
-# HTML Structure: The DOM
+# When to Scrape?
 
-**DOM (Document Object Model)** is a tree structure.
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                                                                   │
+│   DO scrape when:                                                 │
+│      - No API available                                           │
+│      - API doesn't have the data you need                         │
+│      - API is too expensive                                       │
+│      - Public information on public websites                      │
+│                                                                   │
+│   DON'T scrape when:                                              │
+│      - robots.txt disallows it                                    │
+│      - Terms of Service prohibit it                               │
+│      - Data is behind login (personal data)                       │
+│      - It would harm the website                                  │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# API vs Scraping Comparison
+
+| Aspect | API | Scraping |
+|--------|-----|----------|
+| **Reliability** | Stable | Fragile (HTML changes) |
+| **Speed** | Fast | Slower |
+| **Data Format** | Structured JSON | Unstructured HTML |
+| **Rate Limits** | Documented | Unknown |
+| **Legality** | Clear TOS | Gray area |
+| **Maintenance** | Low | High |
+
+**Rule**: Always prefer APIs when available.
+
+---
+
+# HTML Structure Basics
+
+**HTML = Nested elements forming a tree (DOM)**
 
 ```html
+<!DOCTYPE html>
 <html>
+  <head>
+    <title>Movie Database</title>
+  </head>
   <body>
-    <div class="container">
-      <div class="movie-card">
-        <h1>Inception</h1>
-        <span class="rating">8.8</span>
-      </div>
+    <div class="movie" id="movie-123">
+      <h2 class="title">Inception</h2>
+      <span class="year">2010</span>
+      <p class="plot">A thief who steals...</p>
     </div>
   </body>
 </html>
 ```
 
-**Tree representation**:
+---
+
+# The DOM Tree
+
 ```
-html
-└── body
-    └── div.container
-        └── div.movie-card
-            ├── h1 ("Inception")
-            └── span.rating ("8.8")
+                    html
+                    /  \
+                 head   body
+                  |       |
+               title    div.movie
+                       /    |    \
+                   h2.title span.year  p.plot
+                      |         |         |
+                 "Inception"  "2010"   "A thief..."
+```
+
+**DOM** = Document Object Model
+**Scraping** = Navigating this tree to extract data
+
+---
+
+# CSS Selectors: Finding Elements
+
+| Selector | Meaning | Example Match |
+|----------|---------|---------------|
+| `div` | Element type | `<div>...</div>` |
+| `.movie` | Class name | `<div class="movie">` |
+| `#main` | Element ID | `<div id="main">` |
+| `div.movie` | Tag with class | `<div class="movie">` |
+| `.movie .title` | Nested element | `.title` inside `.movie` |
+| `a[href="/movies"]` | Attribute value | `<a href="/movies">` |
+
+---
+
+# BeautifulSoup: Setup
+
+```bash
+pip install beautifulsoup4 requests
+```
+
+```python
+from bs4 import BeautifulSoup
+import requests
+
+# Fetch the page
+response = requests.get("https://example.com/movies")
+html = response.text
+
+# Parse it
+soup = BeautifulSoup(html, 'html.parser')
+
+# Now we can search!
 ```
 
 ---
 
-# HTML Elements Anatomy
+# BeautifulSoup: Finding Elements
 
-Each element has:
-
-**Tag**: `<div>`, `<span>`, `<a>`, etc.
-**Attributes**: `class="rating"`, `id="main"`, `href="/movie/123"`
-**Content**: Text or child elements
-
-```html
-<a href="/movie/123" class="link" id="inception-link">
-  Inception
-</a>
-```
-
-**For scraping**: Find elements by tag, class, id, or attributes.
-
----
-
-# CSS Selectors (Theory)
-
-**CSS selectors** are patterns to select elements.
-
-| Selector | Meaning | Example |
-| :--- | :--- | :--- |
-| `tag` | Element by tag name | `div`, `span`, `a` |
-| `.class` | Element by class | `.rating`, `.movie-card` |
-| `#id` | Element by ID | `#main`, `#header` |
-| `tag.class` | Tag with class | `div.movie-card` |
-| `parent > child` | Direct child | `div > span` |
-| `parent descendant` | Any descendant | `div span` |
-| `[attr=value]` | By attribute | `[href="/home"]` |
-
-**BeautifulSoup uses these to find elements.**
-
----
-
-# Parsing with BeautifulSoup
-
-**BeautifulSoup** converts HTML to navigable Python objects.
-
-**Basic pattern**:
 ```python
 from bs4 import BeautifulSoup
 
-html = "<div class='movie'><h1>Inception</h1></div>"
+html = """
+<div class="movie">
+  <h2 class="title">Inception</h2>
+  <span class="year">2010</span>
+  <span class="rating">8.8</span>
+</div>
+"""
+
 soup = BeautifulSoup(html, 'html.parser')
 
-# Find by tag
-title = soup.find('h1')  # First <h1>
+# Find single element
+title = soup.find('h2', class_='title')
 print(title.text)  # "Inception"
 
-# Find by class
-movie = soup.find('div', class_='movie')
-
-# Find all matching elements
-all_divs = soup.find_all('div')
+# Find all elements
+all_movies = soup.find_all('div', class_='movie')
 ```
 
 ---
 
-# Navigating the Tree
+# BeautifulSoup: CSS Selectors
 
-**BeautifulSoup navigation methods**:
-
-**Children** (one level down):
 ```python
-parent.find('child-tag')        # First child
-parent.find_all('child-tag')    # All children
+soup = BeautifulSoup(html, 'html.parser')
+
+# Select first match
+title = soup.select_one('.movie .title')
+print(title.text)  # "Inception"
+
+# Select all matches
+all_titles = soup.select('.movie .title')
+for t in all_titles:
+    print(t.text)
+
+# Complex selectors
+links = soup.select('a[href^="/movies/"]')  # href starts with
 ```
 
-**Parents** (one level up):
+---
+
+# BeautifulSoup: Extracting Data
+
 ```python
-element.parent          # Direct parent
-element.find_parent()   # Find ancestor
+# Get text content
+element.text           # "Inception"
+element.get_text()     # Same, with options
+element.get_text(strip=True)  # Remove whitespace
+
+# Get attribute
+link = soup.select_one('a')
+link.get('href')       # "/movies/123"
+link['href']           # Same thing
+
+# Get all attributes
+link.attrs             # {'href': '/movies/123', 'class': ['btn']}
 ```
 
-**Siblings** (same level):
+---
+
+# Scraping Example: Movie List
+
 ```python
-element.next_sibling
-element.previous_sibling
-```
-
-**Useful for**: Complex layouts where structure matters.
-
----
-
-# Static vs Dynamic Websites
-
-**Static HTML**: Content in the initial HTML response
-- Works with `requests + BeautifulSoup`
-- Fast and simple
-- Example: Wikipedia, simple blogs
-
-**Dynamic JavaScript**: Content loaded after page loads
-- Requires browser automation (`Selenium`, `Playwright`)
-- Slower, heavier
-- Example: Twitter, Facebook, modern SPAs
-
-**Test**: `curl URL` and check if data is in the HTML source.
-
----
-
-# Scraping Strategies Compared
-
-| Approach | Tool | Speed | Difficulty | Use Case |
-| :--- | :--- | :---: | :---: | :--- |
-| **Static parsing** | BeautifulSoup | Fast | Easy | Server-rendered HTML |
-| **Browser automation** | Playwright | Slow | Medium | JavaScript-heavy sites |
-| **API inspection** | DevTools + requests | Fast | Medium | Hidden APIs in SPAs |
-| **Vision models** | GPT-4V | Slow | Easy | Complex/inaccessible layouts |
-
-**Rule**: Start simple (BeautifulSoup), escalate if needed.
-
----
-
-# Anti-Scraping Measures
-
-Websites use techniques to block scrapers:
-
-1. **Rate limiting**: Block IPs with too many requests
-2. **User-Agent filtering**: Block non-browser agents
-3. **CAPTCHAs**: Require human interaction
-4. **Session tracking**: Detect automated patterns
-5. **Dynamic content**: Render with JavaScript
-6. **IP blocking**: Ban suspicious IPs
-
-**Countermeasures** (ethical):
-- Respect `robots.txt`
-- Use delays between requests
-- Rotate User-Agents (within reason)
-- Use proxies sparingly
-
----
-
-# Data Licensing & Ethics
-
-**Can I use this data?**
-
-**Creative Commons licenses**:
-1. **Public Domain (CC0)**: Free to use for anything
-2. **Attribution (CC-BY)**: Must credit the source
-3. **Non-Commercial (NC)**: Academic OK, commercial NO
-4. **No Derivatives (ND)**: Can't modify the data
-
-**Copyright**: "All Rights Reserved"
-- **Fair Use**: Small excerpts for research may be OK (legal gray area)
-- **Scraping**: Generally legal for public data (US: hiQ v LinkedIn)
-- **ToS violation**: Can get you banned, but rarely legal consequences
-
----
-
-# Legal Considerations
-
-**Key court cases**:
-- **hiQ Labs v. LinkedIn (2019)**: Scraping public data is legal in the US
-- **Meta v. Bright Data (ongoing)**: Scraping vs ToS
-
-**Best practices**:
-1. **Check ToS**: Understand what's prohibited
-2. **Respect robots.txt**: It's the web standard
-3. **Rate limit yourself**: Don't overload servers
-4. **Don't bypass paywalls**: That's clearly wrong
-5. **Academic use**: Usually safer than commercial
-
-**When in doubt**: Ask the website owner or use public datasets.
-
----
-
-# Data Quality from Scraping
-
-**Challenges**:
-- **Inconsistent formatting**: Different pages, different structures
-- **Missing data**: Not all fields present
-- **Dirty data**: Extra whitespace, special characters
-- **Broken HTML**: Unclosed tags, invalid structure
-
-**Solutions**:
-- Defensive programming (check if element exists)
-- Data validation (Week 2 topic)
-- Regular expressions for cleaning
-- Fallback values for missing data
-
----
-
-# Advanced HTTP Concepts
-
-Additional theory for robust data collection.
-
----
-
-# HTTP Protocol Evolution
-
-**HTTP/1.1** (1997):
-- One request per connection (or sequential on keep-alive)
-- Text-based protocol
-- Head-of-line blocking problem
-
-**HTTP/2** (2015):
-- **Multiplexing**: Multiple requests over single connection
-- **Header compression**: Reduces overhead
-- **Server push**: Server can send resources proactively
-- **Binary protocol**: More efficient parsing
-
-**HTTP/3** (2022):
-- Uses **QUIC** over UDP instead of TCP
-- **No head-of-line blocking** at transport layer
-- **Faster connection establishment** (0-RTT)
-- Better performance on lossy networks
-
-**For ML data collection**: HTTP/2+ improves API throughput significantly.
-
----
-
-# Content Negotiation
-
-**Content negotiation** lets clients specify preferred response formats.
-
-**Request headers**:
-```http
-Accept: application/json
-Accept-Language: en-US,en
-Accept-Encoding: gzip, deflate, br
-```
-
-**Server response**:
-```http
-Content-Type: application/json; charset=utf-8
-Content-Language: en-US
-Content-Encoding: gzip
-```
-
-**Why it matters**:
-- Same endpoint can return JSON, XML, or CSV
-- Specify compression to reduce transfer size
-- Language-specific datasets for NLP
-
-**Example**:
-```python
-headers = {
-    'Accept': 'application/json',
-    'Accept-Encoding': 'gzip'
-}
-requests.get(url, headers=headers)
-```
-
----
-
-# HTTP Caching Mechanisms
-
-**Caching** reduces redundant requests and server load.
-
-**Cache-Control header**:
-```http
-Cache-Control: max-age=3600, public
-```
-- `max-age`: Cache lifetime in seconds
-- `public`: Can be cached by intermediaries (CDNs)
-- `private`: Only client can cache (user-specific data)
-- `no-cache`: Revalidate before using cached copy
-- `no-store`: Never cache (sensitive data)
-
-**Conditional requests** (efficiency):
-```http
-If-Modified-Since: Wed, 21 Oct 2023 07:28:00 GMT
-If-None-Match: "abc123xyz"  # ETag
-```
-
-**Server response**:
-- `304 Not Modified`: Use cached version
-- `200 OK`: New data provided
-
----
-
-# ETags for Change Detection
-
-**ETag (Entity Tag)** is a version identifier for resources.
-
-**First request**:
-```http
-GET /api/data
-→ 200 OK
-ETag: "v123"
-{...data...}
-```
-
-**Subsequent request**:
-```http
-GET /api/data
-If-None-Match: "v123"
-→ 304 Not Modified
-(No body - save bandwidth)
-```
-
-**Use case for ML**:
-- **Incremental data collection**: Only fetch changed data
-- **Version tracking**: Know when dataset updates
-- **Bandwidth savings**: Important for large datasets
-
----
-
-# CORS (Cross-Origin Resource Sharing)
-
-**CORS** controls which domains can access an API.
-
-**Problem**: Browser security prevents cross-domain requests.
-
-**Example**:
-- Your web app at `https://myapp.com`
-- Trying to call API at `https://api.example.com`
-- Browser blocks the request (same-origin policy)
-
-**Solution**: Server sends CORS headers:
-```http
-Access-Control-Allow-Origin: https://myapp.com
-Access-Control-Allow-Methods: GET, POST
-Access-Control-Allow-Headers: Content-Type
-```
-
-**For ML**:
-- Not an issue for server-side scripts (Python)
-- Matters when building browser-based data collection tools
-- Some APIs require specific `Origin` headers
-
----
-
-# API Pagination Strategies
-
-**Problem**: APIs don't return all data at once (performance, memory).
-
-**Offset-based pagination**:
-```python
-# Page 1: items 0-99
-GET /movies?limit=100&offset=0
-
-# Page 2: items 100-199
-GET /movies?limit=100&offset=100
-```
-
-**Pros**: Simple, can jump to any page
-**Cons**: Inconsistent if data changes (items added/removed)
-
-**Cursor-based pagination** (better):
-```python
-# First page
-GET /movies?limit=100
-→ {data: [...], next_cursor: "abc123"}
-
-# Next page
-GET /movies?limit=100&cursor=abc123
-→ {data: [...], next_cursor: "def456"}
-```
-
-**Pros**: Consistent even with data changes
-**Cons**: Can't jump to specific page
-
----
-
-# Pagination Implementation Pattern
-
-**Collect all pages**:
-```python
-def fetch_all_pages(url, params):
-    all_data = []
-    page = 1
-
-    while True:
-        params['page'] = page
-        resp = requests.get(url, params=params)
-        data = resp.json()
-
-        if not data.get('results'):
-            break  # No more data
-
-        all_data.extend(data['results'])
-
-        # Check for next page
-        if not data.get('next'):
-            break
-
-        page += 1
-        time.sleep(1)  # Rate limiting
-
-    return all_data
-```
-
-**Best practice**: Check for `next` link rather than guessing page count.
-
----
-
-# Data Serialization Formats
-
-**JSON** (most common):
-```json
-{"name": "John", "age": 30}
-```
-- Human-readable
-- Language-agnostic
-- Moderate size (~4KB for 1000 fields)
-
-**XML** (legacy):
-```xml
-<person><name>John</name><age>30</age></person>
-```
-- Verbose (larger)
-- Schema validation (XSD)
-- Used by older APIs (SOAP)
-
-**Protocol Buffers** (Google):
-```
-message Person {
-  string name = 1;
-  int32 age = 2;
-}
-```
-- Binary format (smallest size)
-- Requires schema definition
-- 3-10x smaller than JSON
-- Used in high-performance systems
-
----
-
-# Data Serialization Comparison
-
-| Format | Size | Speed | Human-Readable | Schema |
-|:-------|:----:|:-----:|:--------------:|:------:|
-| **JSON** | Medium | Fast | ✓ | Optional |
-| **XML** | Large | Slow | ✓ | ✓ (XSD) |
-| **Protocol Buffers** | Small | Very Fast | ✗ | Required |
-| **MessagePack** | Small | Very Fast | ✗ | Optional |
-| **CSV** | Small | Fast | ✓ | None |
-
-**For ML data collection**:
-- JSON: Default choice (balance of features)
-- Protocol Buffers: High-volume production systems
-- CSV: Tabular data, legacy systems
-
----
-
-# GraphQL vs REST
-
-**REST**: Multiple endpoints for different resources
-```
-GET /users/123
-GET /users/123/posts
-GET /posts/456/comments
-```
-**Problem**: Over-fetching (extra fields) or under-fetching (need multiple requests)
-
-**GraphQL**: Single endpoint, client specifies exactly what it needs
-```graphql
-query {
-  user(id: 123) {
-    name
-    posts {
-      title
-      comments { text }
+import requests
+from bs4 import BeautifulSoup
+
+url = "https://example.com/top-movies"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+movies = []
+for card in soup.select('.movie-card'):
+    movie = {
+        'title': card.select_one('.title').text.strip(),
+        'year': card.select_one('.year').text.strip(),
+        'rating': card.select_one('.rating').text.strip(),
     }
-  }
-}
+    movies.append(movie)
+
+print(f"Found {len(movies)} movies")
 ```
-
-**Trade-offs**:
-- **REST**: Simple, cacheable, widely supported
-- **GraphQL**: Flexible, efficient, complex to implement
-
-**For ML**: GraphQL is better for exploratory data collection.
 
 ---
 
-# API Versioning Strategies
+# Handling Pagination
 
-**Why versioning?**
-- APIs evolve (new features, breaking changes)
-- Need to support old clients
-
-**Three approaches**:
-
-**1. URL versioning**:
-```
-https://api.example.com/v1/movies
-https://api.example.com/v2/movies
-```
-
-**2. Header versioning**:
-```http
-GET /movies
-Accept: application/vnd.api.v1+json
-```
-
-**3. Query parameter**:
-```
-https://api.example.com/movies?version=1
-```
-
-**Best practice**: URL versioning (explicit, easy to test).
-
----
-
-# Session vs Token Authentication
-
-**Session-based** (stateful):
-1. Client sends credentials
-2. Server creates session, stores in database
-3. Server sends session ID (cookie)
-4. Client includes cookie in future requests
-
-**Token-based** (stateless, modern):
-1. Client sends credentials
-2. Server creates **JWT (JSON Web Token)**
-3. Client stores token, includes in `Authorization` header
-4. Server validates token (no database lookup)
-
-**JWT structure**:
-```
-header.payload.signature
-eyJhbGc...  .  eyJzdWI...  .  SflKxwRJ...
-```
-
-**For ML APIs**: Token-based is preferred (scalable, works across services).
-
----
-
-# JWT (JSON Web Token) Deep Dive
-
-**JWT contains three parts** (Base64-encoded):
-
-**1. Header**:
-```json
-{"alg": "HS256", "typ": "JWT"}
-```
-
-**2. Payload** (claims):
-```json
-{
-  "sub": "user123",
-  "name": "John Doe",
-  "exp": 1609459200  // Expiration timestamp
-}
-```
-
-**3. Signature**:
-```
-HMACSHA256(
-  base64(header) + "." + base64(payload),
-  secret_key
-)
-```
-
-**Security**: Server verifies signature to ensure token hasn't been tampered with.
-
-**Advantage**: Stateless (no database lookup on every request).
-
----
-
-# Webhooks: Push vs Pull
-
-**Pull model** (polling - what we've learned):
 ```python
-while True:
-    data = requests.get('/api/new-items')
-    if data:
-        process(data)
-    time.sleep(60)  # Check every minute
-```
-**Problem**: Wastes resources checking when nothing changed.
+import requests
+from bs4 import BeautifulSoup
+import time
 
-**Push model** (webhooks):
-```python
-# Your server exposes an endpoint
-@app.post('/webhook')
-def handle_webhook(data):
-    process(data)  # Called when event occurs
-```
+base_url = "https://example.com/movies?page="
+all_movies = []
 
-**How it works**:
-1. You register webhook URL with service
-2. Service POSTs to your URL when events occur
-3. Your server processes immediately
+for page in range(1, 11):  # Pages 1-10
+    response = requests.get(f"{base_url}{page}")
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-**Example**: GitHub webhooks notify you of new commits.
+    movies = soup.select('.movie-card')
+    if not movies:
+        break  # No more pages
 
----
+    for m in movies:
+        all_movies.append(m.select_one('.title').text)
 
-# Connection Pooling Theory
-
-**Problem**: Creating new TCP connections is expensive.
-- DNS lookup
-- TCP handshake (3-way)
-- TLS handshake (for HTTPS)
-
-**Solution: Connection pooling**
-- Reuse existing connections for multiple requests
-- `requests.Session()` does this automatically
-
-**Performance impact**:
-```python
-# Without pooling (slow)
-for url in urls:
-    requests.get(url)  # New connection each time
-
-# With pooling (fast)
-session = requests.Session()
-for url in urls:
-    session.get(url)  # Reuse connection
-```
-
-**Speedup**: 2-5x faster for multiple requests to same domain.
-
----
-
-# HTTP Keep-Alive
-
-**Keep-Alive** keeps TCP connection open for multiple requests.
-
-**Without Keep-Alive**:
-```
-Request 1: Connect → Request → Response → Close
-Request 2: Connect → Request → Response → Close
-```
-
-**With Keep-Alive**:
-```
-Connect → Request 1 → Response 1 → Request 2 → Response 2 → Close
-```
-
-**Headers**:
-```http
-Connection: keep-alive
-Keep-Alive: timeout=5, max=1000
-```
-
-**Benefits**:
-- Faster subsequent requests
-- Reduced server load
-- Lower latency
-
-**Enabled by default** in HTTP/1.1 and `requests.Session()`.
-
----
-
-# Character Encoding: UTF-8 vs ASCII
-
-**ASCII** (7-bit): Only English characters (128 chars)
-```python
-"Hello" → [72, 101, 108, 108, 111]
-```
-
-**UTF-8** (variable-length): All Unicode characters
-```python
-"Hello 世界" → [72, 101, 108, 108, 111, 32, 228, 184, 150, 231, 149, 140]
-```
-
-**Common issue**:
-```python
-# Wrong encoding causes gibberish
-resp.text  # Assumes UTF-8
-→ "Caf\xe9"  # Should be "Café"
-
-# Fix: Specify encoding
-resp.encoding = 'utf-8'
-resp.text  # Now correct
-```
-
-**For ML**: Critical for text data (NLP, international datasets).
-
----
-
-# HTTP Compression
-
-**Compression** reduces response size (faster transfer, lower bandwidth).
-
-**Common algorithms**:
-- **gzip**: Most common, good compression
-- **deflate**: Similar to gzip
-- **brotli (br)**: Better compression, slower
-
-**Request**:
-```http
-Accept-Encoding: gzip, deflate, br
-```
-
-**Response**:
-```http
-Content-Encoding: gzip
-Content-Length: 1234  # Compressed size
-```
-
-**Python handles automatically**:
-```python
-requests.get(url)  # Auto-decompresses
-```
-
-**Savings**: 70-90% for text data (JSON, HTML).
-
----
-
-# Regular Expressions for Data Extraction
-
-**Regex** extracts patterns from text when structure is inconsistent.
-
-**Common patterns**:
-```python
-import re
-
-# Extract email
-email = re.findall(r'[\w\.-]+@[\w\.-]+', text)
-
-# Extract URLs
-urls = re.findall(r'https?://[^\s]+', text)
-
-# Extract numbers
-numbers = re.findall(r'\d+\.?\d*', text)
-
-# Extract dates (YYYY-MM-DD)
-dates = re.findall(r'\d{4}-\d{2}-\d{2}', text)
-```
-
-**Use case**: Cleaning scraped data with inconsistent formatting.
-
-**Warning**: Regex is fragile; prefer structured parsing (JSON, HTML tags) when possible.
-
----
-
-# Web Crawling Strategies
-
-**Breadth-First Crawling**:
-```
-Start → Level 1 (all links) → Level 2 (all links) → ...
-```
-- **Use**: Discover all pages at same depth
-- **Example**: Site mapping, shallow scraping
-
-**Depth-First Crawling**:
-```
-Start → Follow first link → Follow its first link → ... → Backtrack
-```
-- **Use**: Deep exploration of specific paths
-- **Example**: Following article chains
-
-**Priority-based Crawling**:
-```python
-from queue import PriorityQueue
-
-queue = PriorityQueue()
-queue.put((priority, url))
-
-while not queue.empty():
-    priority, url = queue.get()
-    # Crawl important pages first
+    print(f"Page {page}: {len(movies)} movies")
+    time.sleep(1)  # Be polite!
 ```
 
 ---
 
-# Politeness Policies for Crawling
+# Scraping Ethics & Best Practices
 
-**Be a good citizen**:
-
-**1. Crawl delay**:
 ```python
 import time
-for url in urls:
-    fetch(url)
-    time.sleep(1)  # 1 second between requests
-```
+import requests
 
-**2. Respect robots.txt**:
-```python
-from urllib.robotparser import RobotFileParser
-
-rp = RobotFileParser()
-rp.set_url(f"{base_url}/robots.txt")
-rp.read()
-
-if rp.can_fetch("*", url):
-    fetch(url)
-```
-
-**3. Identify yourself**:
-```python
-headers = {'User-Agent': 'MyBot/1.0 (+http://mysite.com/bot)'}
-```
-
-**4. Limit concurrency**:
-```python
-# Max 5 concurrent requests
-from concurrent.futures import ThreadPoolExecutor
-with ThreadPoolExecutor(max_workers=5) as executor:
-    executor.map(fetch, urls)
-```
-
----
-
-# Handling Redirects
-
-**HTTP redirects** (3xx status codes):
-- `301 Moved Permanently`: Resource moved permanently
-- `302 Found`: Temporary redirect
-- `307 Temporary Redirect`: Keep request method
-- `308 Permanent Redirect`: Keep request method
-
-**Python requests handles automatically**:
-```python
-resp = requests.get(url)
-print(resp.url)  # Final URL after redirects
-print(resp.history)  # List of redirect responses
-```
-
-**Disable auto-redirect**:
-```python
-resp = requests.get(url, allow_redirects=False)
-if resp.status_code in [301, 302]:
-    new_url = resp.headers['Location']
-```
-
-**Use case**: Detect URL shorteners, track redirect chains.
-
----
-
-# Request Timeouts: Theory
-
-**Two types of timeout**:
-
-**1. Connection timeout**: How long to wait for server to accept connection
-```python
-requests.get(url, timeout=5)  # 5 seconds
-```
-
-**2. Read timeout**: How long to wait for server to send data
-```python
-requests.get(url, timeout=(3, 10))  # Connect: 3s, Read: 10s
-```
-
-**Best practice**:
-```python
-TIMEOUT = (3, 30)  # 3s connect, 30s read
-
-try:
-    resp = requests.get(url, timeout=TIMEOUT)
-except requests.Timeout:
-    # Handle timeout
-```
-
-**Why it matters**: Prevents hanging on slow/dead servers.
-
----
-
-# Handling Large Responses
-
-**Problem**: Loading 1GB JSON into memory crashes your script.
-
-**Solution: Streaming**:
-```python
-resp = requests.get(url, stream=True)
-
-# Process in chunks
-with open('large_file.json', 'wb') as f:
-    for chunk in resp.iter_content(chunk_size=8192):
-        f.write(chunk)
-```
-
-**For JSON streaming**:
-```python
-import ijson  # Streaming JSON parser
-
-with requests.get(url, stream=True) as resp:
-    objects = ijson.items(resp.raw, 'item')
-    for obj in objects:
-        process(obj)  # Process one item at a time
-```
-
-**Memory usage**: Constant (regardless of file size).
-
----
-
-# Proxy Usage for Data Collection
-
-**Proxies** route requests through intermediary servers.
-
-**Use cases**:
-1. **IP rotation**: Avoid rate limiting/blocking
-2. **Geo-location**: Access region-specific content
-3. **Anonymity**: Hide your identity
-
-**Implementation**:
-```python
-proxies = {
-    'http': 'http://proxy.example.com:8080',
-    'https': 'https://proxy.example.com:8080',
+headers = {
+    'User-Agent': 'MyBot/1.0 (contact@example.com)'
 }
 
-resp = requests.get(url, proxies=proxies)
-```
-
-**Commercial services**: ScraperAPI, Bright Data (rotating proxies).
-
-**Ethical note**: Use proxies responsibly, not to bypass security.
-
----
-
-# Data Collection Architecture Patterns
-
-**Pattern 1: Batch Collection** (simple):
-```python
-# Run once, collect all data
-data = []
-for item in items:
-    data.append(fetch(item))
-save(data)
-```
-
-**Pattern 2: Incremental Collection** (efficient):
-```python
-# Only fetch new items since last run
-last_id = load_checkpoint()
-new_items = fetch_since(last_id)
-save_checkpoint(max_id)
-```
-
-**Pattern 3: Streaming Collection** (real-time):
-```python
-# Continuous collection
-while True:
-    data = poll_api()
-    process_immediately(data)
-    sleep(interval)
-```
-
-**Choose based on**: Data update frequency, volume, and requirements.
-
----
-
-# Distributed Data Collection
-
-**Problem**: Single machine is too slow for large-scale collection.
-
-**Solution: Distributed workers**:
-
-**Master-Worker pattern**:
-```python
-# Master: Distributes URLs to workers
-from celery import Celery
-
-app = Celery('tasks', broker='redis://localhost')
-
-@app.task
-def fetch_url(url):
-    return requests.get(url).json()
-
-# Queue tasks
 for url in urls:
-    fetch_url.delay(url)
+    response = requests.get(url, headers=headers)
+    # Process...
+    time.sleep(1)  # Wait between requests
 ```
 
-**Workers**: Multiple machines process tasks in parallel.
-
-**Tools**: Celery, Apache Airflow, Prefect.
-
-**Speedup**: Linear with number of workers (10 workers = ~10x faster).
+**Rules:**
+1. Check `robots.txt` first
+2. Add delays between requests
+3. Identify yourself (User-Agent)
+4. Cache responses when possible
+5. Respect rate limits
 
 ---
 
-# Error Handling Patterns
+# Checking robots.txt
 
-**Retry with exponential backoff**:
-```python
-import backoff
-
-@backoff.on_exception(
-    backoff.expo,
-    requests.exceptions.RequestException,
-    max_tries=5
-)
-def fetch_with_retry(url):
-    return requests.get(url)
+```bash
+curl https://www.imdb.com/robots.txt
 ```
 
-**Circuit breaker pattern** (prevent cascading failures):
-```python
-class CircuitBreaker:
-    def __init__(self, failure_threshold=5):
-        self.failures = 0
-        self.threshold = failure_threshold
-        self.state = 'closed'  # closed, open, half-open
+```
+User-agent: *
+Disallow: /search/
+Disallow: /ap/
+Allow: /title/
+Crawl-delay: 1
+```
 
-    def call(self, func):
-        if self.state == 'open':
-            raise Exception("Circuit open")
+**Meaning:**
+- Cannot scrape `/search/` pages
+- Can scrape `/title/` pages (movie pages)
+- Wait 1 second between requests
 
-        try:
-            result = func()
-            self.failures = 0
-            return result
-        except:
-            self.failures += 1
-            if self.failures >= self.threshold:
-                self.state = 'open'
-            raise
+---
+
+<!-- _class: lead -->
+
+# Part 11: Putting It All Together
+
+*Back to our Netflix mission*
+
+---
+
+# Remember Our Goal?
+
+**Build a dataset for movie success prediction:**
+
+| Title | Year | Genre | Budget | Revenue | Rating | Director |
+|-------|------|-------|--------|---------|--------|----------|
+| ? | ? | ? | ? | ? | ? | ? |
+
+**We now have the tools!**
+- **DevTools** to find APIs
+- **curl** to test requests
+- **requests** to automate collection
+- **BeautifulSoup** for scraping
+
+---
+
+# Our Data Collection Pipeline
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  OMDb API   │────►│  Collect    │────►│   Store     │
+│  (requests) │     │  Metadata   │     │   as JSON   │
+└─────────────┘     └─────────────┘     └─────────────┘
+       │
+       ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  IMDb Page  │────►│  Scrape     │────►│   Merge     │
+│  (BeautifulSoup)  │  Reviews    │     │   Data      │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                               │
+                                               ▼
+                                        ┌─────────────┐
+                                        │  Final CSV  │
+                                        │  for ML     │
+                                        └─────────────┘
 ```
 
 ---
 
-# Monitoring Data Collection Pipelines
+# Step 1: Collect from API
 
-**Metrics to track**:
-1. **Success rate**: % of successful requests
-2. **Latency**: Average request time
-3. **Throughput**: Requests per second
-4. **Error rate**: % of failed requests
-5. **Data quality**: % of valid/complete records
-
-**Implementation**:
 ```python
+import requests
 import time
-from collections import Counter
 
-stats = Counter()
+API_KEY = "your_omdb_key"
+movies_to_fetch = ["Inception", "Avatar", "The Matrix"]
+results = []
 
-def fetch_with_logging(url):
-    start = time.time()
-    try:
-        resp = requests.get(url)
-        stats['success'] += 1
-        stats['total_time'] += time.time() - start
-        return resp
-    except:
-        stats['errors'] += 1
-        raise
+for title in movies_to_fetch:
+    response = requests.get(
+        "https://api.omdbapi.com/",
+        params={"apikey": API_KEY, "t": title}
+    )
 
-# Print stats
-print(f"Success rate: {stats['success']/sum(stats.values()):.2%}")
+    if response.ok:
+        data = response.json()
+        if data.get("Response") == "True":
+            results.append(data)
+
+    time.sleep(0.5)  # Rate limiting
+
+print(f"Collected {len(results)} movies")
 ```
 
 ---
 
-# Data Collection Best Practices Summary
+# Step 2: Extract Relevant Fields
 
-**Architecture**:
-1. ✅ Use connection pooling (`requests.Session()`)
-2. ✅ Implement retry logic with backoff
-3. ✅ Set appropriate timeouts
-4. ✅ Handle pagination correctly
-5. ✅ Stream large responses
+```python
+movies = []
 
-**Reliability**:
-6. ✅ Log all errors with context
-7. ✅ Save checkpoints for resumability
-8. ✅ Validate data immediately
-9. ✅ Monitor pipeline metrics
-10. ✅ Implement circuit breakers
-
-**Ethics & Legality**:
-11. ✅ Respect robots.txt
-12. ✅ Rate limit yourself
-13. ✅ Identify your bot
-14. ✅ Check data licenses
-15. ✅ Don't overload servers
+for data in results:
+    movie = {
+        "title": data.get("Title"),
+        "year": data.get("Year"),
+        "genre": data.get("Genre"),
+        "director": data.get("Director"),
+        "rating": data.get("imdbRating"),
+        "votes": data.get("imdbVotes"),
+        "runtime": data.get("Runtime"),
+        "imdb_id": data.get("imdbID")
+    }
+    movies.append(movie)
+```
 
 ---
 
-# Summary
+# Step 3: Save to CSV
 
-1.  **APIs > Scraping**: Always look for an API first (stable, legal).
-2.  **Tools**: `curl` for quick checks, `requests` for scripts.
-3.  **Robustness**: Handle errors, retries, and rate limits.
-4.  **Ethics**: Respect `robots.txt` and server load.
-5.  **Advanced techniques**: Caching, compression, streaming for efficiency.
-6.  **Architecture**: Design for scale, reliability, and maintainability.
+```python
+import pandas as pd
 
-**Next Up**: Now that we have data, it's probably messy. **Week 2: Data Validation**.
+# Convert to DataFrame
+df = pd.DataFrame(movies)
+
+# Clean data
+df['year'] = pd.to_numeric(df['year'], errors='coerce')
+df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
+df['votes'] = df['votes'].str.replace(',', '').astype(float)
+
+# Save
+df.to_csv('netflix_movie_data.csv', index=False)
+
+print(df.head())
+```
+
+---
+
+# The Result
+
+```
+         title  year                  genre            director  rating
+0    Inception  2010  Action, Adventure...  Christopher Nolan     8.8
+1       Avatar  2009  Action, Adventure...       James Cameron     7.9
+2   The Matrix  1999  Action, Sci-Fi        Lana Wachowski...     8.7
+```
+
+**Now ready for ML modeling!**
+
+---
+
+# What We Learned: Three Tools
+
+| Tool | When to Use | Key Commands |
+|------|-------------|--------------|
+| **Chrome DevTools** | Discover APIs, inspect requests | Network tab, Copy as curl |
+| **curl** | Test requests quickly | `-X`, `-H`, `-d`, `| jq` |
+| **Python requests** | Automate collection | `.get()`, `.post()`, `.json()` |
+
+**Plus BeautifulSoup** for scraping when needed!
+
+---
+
+<!-- _class: lead -->
+
+# Part 12: Looking Ahead
+
+*Lab preview and next week*
+
+---
+
+# This Week's Lab
+
+**Hands-on Practice:**
+
+1. **Chrome DevTools** - Inspect API calls on real websites
+2. **curl exercises** - Making API requests from terminal
+3. **OMDb API** - Collecting movie metadata
+4. **Python requests** - Building a data collection script
+5. **BeautifulSoup** - Scraping a sample website
+
+**Goal**: Build a working data collection pipeline.
+
+---
+
+# Lab Environment Setup
+
+```bash
+# Install dependencies
+pip install requests beautifulsoup4 pandas
+
+# Get your API keys
+# OMDb: https://www.omdbapi.com/apikey.aspx (free tier)
+
+# Verify installation
+python -c "import requests; print('Ready!')"
+```
+
+---
+
+# Next Week Preview
+
+## Week 2: Data Validation & Cleaning
+
+- Schema validation with Pydantic
+- Handling missing data
+- Type conversion and normalization
+- Data quality checks
+- Building validation pipelines
+
+**The data we collect today needs cleaning tomorrow!**
+
+---
+
+# Key Takeaways
+
+1. **Data collection is 80% of ML work** - don't underestimate it
+2. **DevTools reveals hidden APIs** - always check before scraping
+3. **curl for quick testing** - then convert to Python
+4. **requests for automation** - handle loops, errors, storage
+5. **Scraping is plan B** - use when APIs don't exist
+6. **Be ethical** - respect robots.txt, rate limits, ToS
+
+---
+
+# Resources
+
+**Documentation:**
+- curl: https://curl.se/docs/
+- requests: https://requests.readthedocs.io/
+- BeautifulSoup: https://beautiful-soup-4.readthedocs.io/
+
+**Free APIs for Practice:**
+- JSONPlaceholder: https://jsonplaceholder.typicode.com/
+- OMDb: https://www.omdbapi.com/
+- Public APIs list: https://github.com/public-apis/public-apis
+
+---
+
+<!-- _class: lead -->
+
+# Questions?
+
+---
+
+<!-- _class: lead -->
+
+# Thank You!
+
+See you in the lab!
