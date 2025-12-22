@@ -2,131 +2,364 @@
 marp: true
 theme: default
 paginate: true
-style: "@import \"custom.css\";"
+backgroundColor: #fff
+style: |
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+  @import 'custom.css';
 ---
 
 <!-- _class: lead -->
-<!-- _paginate: false -->
 
-# Data Labeling & Annotation
+# Week 3: Data Labeling & Annotation
 
 **CS 203: Software Tools and Techniques for AI**
-Prof. Nipun Batra, IIT Gandhinagar
+
+Prof. Nipun Batra
+IIT Gandhinagar
+
+---
+
+<!-- _class: lead -->
+
+# Part 1: The Motivation
+
+*From raw data to supervised learning*
+
+---
+
+# Previously on CS 203...
+
+**Week 1**: We collected movie data from the OMDB API
+
+```python
+movies = []
+for title in movie_list:
+    response = requests.get(OMDB_API, params={"t": title})
+    movies.append(response.json())
+```
+
+**Week 2**: We validated and cleaned the data
+
+```python
+# Validated schema, fixed types, removed duplicates
+clean_movies = validate_and_clean(raw_movies)
+print(f"Clean dataset: {len(clean_movies)} movies")
+```
+
+**Now**: We have 10,000 clean movies. Time to build a model!
+
+---
+
+# The Missing Ingredient
+
+```python
+# Our clean movie data
+movies = [
+    {"title": "Inception", "year": 2010, "plot": "A thief who..."},
+    {"title": "The Room", "year": 2003, "plot": "Johnny is a..."},
+    {"title": "Parasite", "year": 2019, "plot": "Greed and..."},
+    # ... 9,997 more movies
+]
+
+# We want to predict: Is this a good movie?
+# But wait... what makes a movie "good"?
+```
+
+**The data doesn't tell us the answer. We need LABELS.**
 
 ---
 
 # The Labeling Bottleneck
 
-**The Reality**:
-- Data is abundant (unlabeled).
-- Labels are scarce (expensive).
-- 80% of AI project time is Data Prep.
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                     THE AI REALITY CHECK                          │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   Unlabeled Data:   ABUNDANT   (web, sensors, logs, databases)   │
+│                                                                   │
+│   Labeled Data:     SCARCE     (expensive, time-consuming)       │
+│                                                                   │
+│   Time on Labeling: 80% of AI project effort                     │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
 
-**Why Labeling Matters**:
-- **Supervised Learning**: Needs ground truth ($y$). 
-- **Evaluation**: Even unsupervised methods need a test set to verify.
-- **Ambiguity**: Labeling forces you to define your problem clearly.
-
----
-
-# Types of Annotation: Overview
-
-**By Modality**:
-- **Text**: Classification, NER, QA, Summarization
-- **Images**: Classification, Detection, Segmentation, Keypoints
-- **Audio**: Transcription, Speaker ID, Event Detection
-- **Video**: Action Recognition, Tracking, Temporal Segmentation
-- **Multimodal**: Image Captioning, VQA, Audio-Visual
-
-**By Task Complexity**:
-- **Simple**: Binary classification (spam/not spam)
-- **Medium**: Multi-class, bounding boxes
-- **Complex**: Segmentation, relationship extraction
-- **Very Complex**: Dense video annotation, medical imaging
+**This is the bottleneck that slows down most AI projects.**
 
 ---
 
-# Annotation Taxonomy
+# Why Do We Need Labels?
 
-![Labeling Task Types](../figures/week03_annotation_taxonomy.png)
+**1. Supervised Learning requires ground truth**
+```
+Input: "This movie was terrible!"  -->  Model  -->  Output: ???
 
-**We'll cover**:
-1. Text annotation tasks (6 types)
-2. Image annotation tasks (5 types)
-3. Audio annotation tasks (4 types)
-4. Video annotation tasks (3 types)
-5. Metrics for each task type
+Without labels, model can't learn what "terrible" means for the task.
+```
+
+**2. Evaluation needs a test set**
+- Even unsupervised methods need labels to verify quality
+
+**3. Labeling forces you to define the problem**
+- What exactly is "spam"? What counts as "positive sentiment"?
+- Ambiguity in labeling = ambiguity in your model
 
 ---
 
-# Text Annotation: Classification
+# Today's Mission
 
-**Task**: Assign one or more labels to entire text.
+**Learn to transform unlabeled data into labeled training data.**
 
-**Examples**:
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                      TODAY'S JOURNEY                              │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   1. Where does unlabeled data come from?                         │
+│   2. Types of labeling tasks (text, image, audio, video)          │
+│   3. How to label: tools and platforms                            │
+│   4. How to measure label quality (IAA, Cohen's Kappa)            │
+│   5. Quality control and guidelines                               │
+│   6. Managing annotation teams                                    │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+<!-- _class: lead -->
+
+# Part 2: Where Does Data Come From?
+
+*Sources of unlabeled data*
+
+---
+
+# The Data Landscape
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                   SOURCES OF UNLABELED DATA                       │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   PUBLIC                          PRIVATE                         │
+│   ------                          -------                         │
+│   - Web scraping                  - Company databases             │
+│   - Public APIs                   - User uploads                  │
+│   - Open datasets                 - Internal logs                 │
+│   - Government data               - Sensor streams                │
+│   - Social media                  - Transaction records           │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**Unlabeled data is everywhere. The challenge is getting labels.**
+
+---
+
+# Public Data Sources
+
+**Web Scraping** (Week 1 topic):
+```python
+# News articles, product listings, reviews
+soup = BeautifulSoup(response.text)
+articles = soup.find_all('article')
+```
+
+**Public APIs**:
+- Twitter/X API - millions of tweets
+- Reddit API - discussions and comments
+- Wikipedia API - encyclopedic text
+
+**Open Datasets**:
+- Common Crawl - petabytes of web pages
+- ImageNet - millions of images (but WITH labels!)
+- The Pile - 800GB of diverse text
+
+---
+
+# Private/Enterprise Data
+
+**User-Generated Content**:
+```python
+# E-commerce reviews
+reviews = db.query("SELECT * FROM product_reviews")
+# No sentiment labels!
+```
+
+**Operational Logs**:
+```python
+# Server logs, user behavior
+logs = parse_log_files("/var/log/app/")
+# No "normal" vs "anomaly" labels!
+```
+
+**Sensor Data**:
+```python
+# IoT devices, cameras, microphones
+sensor_stream = read_sensor(device_id)
+# No event annotations!
+```
+
+---
+
+# The Label Gap
+
+```
+                    UNLABELED                      LABELED
+
+    Common Crawl    [================]
+    (400TB)
+                                                   ImageNet
+    YouTube         [==========]                   [=]
+    (500 hrs/min)                                  (14M images)
+
+    Company Logs    [========]                     SQuAD
+    (varies)                                       [.]
+                                                   (100K QA pairs)
+```
+
+**The gap between available data and labeled data is enormous.**
+
+---
+
+# From Unlabeled to Labeled
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Unlabeled  │     │   Labeling  │     │   Labeled   │
+│    Data     │ --> │   Process   │ --> │    Data     │
+│  (10,000)   │     │             │     │  (10,000)   │
+└─────────────┘     └─────────────┘     └─────────────┘
+                          |
+                          v
+                    ┌───────────┐
+                    │   Cost:   │
+                    │  $$$$$    │
+                    │   Time    │
+                    │  Effort   │
+                    └───────────┘
+```
+
+**The labeling process is where the real work happens.**
+
+---
+
+<!-- _class: lead -->
+
+# Part 3: Types of Labeling Tasks
+
+*Different problems, different annotation needs*
+
+---
+
+# Annotation Task Taxonomy
+
+| **TEXT** | **IMAGES** |
+|----------|------------|
+| Classification | Classification |
+| Named Entity Recognition | Object Detection (bbox) |
+| Sentiment Analysis | Segmentation (pixel) |
+| Question Answering | Keypoint Detection |
+| Relation Extraction | Instance Segmentation |
+
+| **AUDIO** | **VIDEO** |
+|-----------|-----------|
+| Transcription | Action Recognition |
+| Speaker Identification | Object Tracking |
+| Event Detection | Temporal Segmentation |
+| Emotion Recognition | Dense Captioning |
+
+---
+
+# Task Complexity Spectrum
+
+```
+SIMPLE                                                      COMPLEX
+  |                                                            |
+  v                                                            v
+
+Binary          Multi-class        Sequence        Pixel-level
+Classification  Classification     Labeling        Segmentation
+
+[Spam/Not]      [Cat/Dog/Bird]     [NER Tags]      [Every Pixel]
+
+  2 min/item     5 min/item        10 min/item     30+ min/item
+```
+
+**More complex tasks = more time = more cost**
+
+---
+
+<!-- _class: lead -->
+
+# Part 3a: Text Annotation Tasks
+
+---
+
+# Text: Classification
+
+**Task**: Assign label(s) to entire text.
+
 ```python
 # Binary Classification
 {"text": "This movie was terrible!", "label": "NEGATIVE"}
 
 # Multi-class Classification
-{"text": "Can I reset my password?", "label": "ACCOUNT_SUPPORT"}
+{"text": "How do I reset my password?", "label": "ACCOUNT_SUPPORT"}
 
 # Multi-label Classification
 {"text": "Great phone with poor battery",
- "labels": ["ELECTRONICS", "POSITIVE_FEATURE", "NEGATIVE_FEATURE"]}
+ "labels": ["POSITIVE_FEATURE", "NEGATIVE_FEATURE"]}
 ```
 
-**Annotation Interface**:
-- Radio buttons (single-label)
-- Checkboxes (multi-label)
-- Dropdown (many classes)
+**Annotation Interface**: Radio buttons, checkboxes, or dropdown
+
+**Speed**: 200-500 examples/hour
 
 ---
 
-# Text Classification: Metrics
+# Text Classification: Annotation Diagram
 
-**Inter-Annotator Agreement**:
-- **Cohen's Kappa**: Binary/multi-class
-- **Fleiss' Kappa**: Multiple annotators
-- **Krippendorff's Alpha**: General case
-
-**Model Evaluation**:
-```python
-from sklearn.metrics import classification_report, confusion_matrix
-
-# Metrics per class
-print(classification_report(y_true, y_pred,
-                           labels=['POSITIVE', 'NEGATIVE', 'NEUTRAL']))
-
-# Confusion matrix
-cm = confusion_matrix(y_true, y_pred)
-# Shows which classes are confused
 ```
-
-**Key Metrics**: Accuracy, Precision, Recall, F1-Score
-**Challenge**: Class imbalance (use weighted F1)
+┌───────────────────────────────────────────────────────────────────┐
+│  TEXT CLASSIFICATION INTERFACE                                    │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  Text: "The movie had stunning visuals but a weak plot."         │
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │  Select sentiment:                                           │ │
+│  │                                                              │ │
+│  │    ( ) Positive                                              │ │
+│  │    (o) Mixed           <-- Selected                          │ │
+│  │    ( ) Negative                                              │ │
+│  │    ( ) Neutral                                               │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                   │
+│                              [Submit]                             │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-# Text Annotation: Named Entity Recognition (NER)
+# Text: Named Entity Recognition (NER)
 
 **Task**: Identify and classify spans of text.
 
-**Example**:
 ```
-Text: "Apple CEO Tim Cook announced iPhone 15 in Cupertino on Sep 12."
+Text: "Apple CEO Tim Cook announced iPhone 15 in Cupertino."
 
 Entities:
-- "Apple" [0:5] → ORGANIZATION
-- "Tim Cook" [10:18] → PERSON
-- "iPhone 15" [29:38] → PRODUCT
-- "Cupertino" [42:51] → LOCATION
-- "Sep 12" [55:61] → DATE
+  [Apple]      @ 0:5   -> ORGANIZATION
+  [Tim Cook]   @ 10:18 -> PERSON
+  [iPhone 15]  @ 29:38 -> PRODUCT
+  [Cupertino]  @ 42:51 -> LOCATION
 ```
 
-![NER Example](../figures/week03_ner_example.png)
-
-**Label Format** (JSON):
+**Annotation Format** (JSON):
 ```json
 {
   "text": "Apple CEO Tim Cook...",
@@ -139,865 +372,519 @@ Entities:
 
 ---
 
-# NER: Annotation Challenges
+# NER: Annotation Diagram
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  NER ANNOTATION INTERFACE                                         │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  [Apple] CEO [Tim Cook] announced [iPhone 15] in [Cupertino].    │
+│   ─────       ────────            ─────────      ─────────       │
+│    ORG         PERSON               PRODUCT       LOCATION        │
+│                                                                   │
+│  Labels:                                                          │
+│  ┌─────────┬─────────┬─────────┬─────────┐                       │
+│  │   ORG   │ PERSON  │ PRODUCT │   LOC   │                       │
+│  └─────────┴─────────┴─────────┴─────────┘                       │
+│                                                                   │
+│  Instructions: Highlight text, then click label                   │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# NER: Common Challenges
 
 **1. Boundary Ambiguity**:
 ```
 "New York City Mayor"
-Should we tag "New York" or "New York City"?
+Tag "New York" or "New York City"?
 ```
 
 **2. Nested Entities**:
 ```
 "MIT AI Lab director"
-- "MIT AI Lab" → ORGANIZATION
-- "MIT" → ORGANIZATION (nested)
+- "MIT AI Lab" -> ORGANIZATION
+- "MIT" -> ORGANIZATION (nested inside!)
 ```
 
-**3. Discontinuous Entities**:
+**3. Overlapping Context**:
 ```
-"Pick the phone up"
-→ "Pick ... up" is a phrasal verb
+"Bank of America" - ORG or LOC?
+"Washington" - PERSON or LOC?
 ```
 
-**Solution**: Clear guidelines with examples
-```markdown
-# NER Guidelines
-- Include determiners: "the United Nations" (full span)
-- Longest match: "New York City" not "New York"
-- No nesting: Choose outermost entity
-```
+**Solution**: Clear guidelines with examples for every edge case.
 
 ---
 
-# NER: Metrics
+# Text: Sentiment Analysis
 
-**Span-Level Metrics** (exact match):
+**Task**: Classify opinion/emotion in text.
+
 ```python
-from seqeval.metrics import classification_report
+# Document-level: One label per document
+{"text": "Great movie! Loved every moment.", "sentiment": "POSITIVE"}
 
-# Format: List of token-level tags
-y_true = [['B-PER', 'I-PER', 'O', 'B-LOC']]
-y_pred = [['B-PER', 'I-PER', 'O', 'O']]
-
-print(classification_report(y_true, y_pred))
-# Output: Precision, Recall, F1 per entity type
-```
-
-**Token-Level vs Span-Level**:
-- **Token-Level**: Each word tagged correctly (lenient)
-- **Span-Level**: Entire entity span must match (strict)
-
-**Example**:
-```
-True:  [B-PER I-PER]    ("Tim Cook")
-Pred:  [B-PER O]        ("Tim")
-Token accuracy: 50%  |  Span accuracy: 0%
+# Sentence-level: Label each sentence
+{"text": "Great visuals. Poor story.", "sentences": [
+    {"text": "Great visuals.", "sentiment": "POSITIVE"},
+    {"text": "Poor story.", "sentiment": "NEGATIVE"}
+]}
 ```
 
 ---
 
-# Text Annotation: Relation Extraction
+# Sentiment: Aspect-Based Analysis
+
+```python
+# Aspect-based: Sentiment per feature/aspect
+{"text": "Great camera but poor battery", "aspects": [
+    {"aspect": "camera", "sentiment": "POSITIVE"},
+    {"aspect": "battery", "sentiment": "NEGATIVE"}
+]}
+```
+
+**Granularity Spectrum:**
+- **Document-level**: Simplest, fastest
+- **Sentence-level**: More nuanced
+- **Aspect-based**: Most detailed, slowest
+
+---
+
+# Sentiment: The Ambiguity Problem
+
+**Sarcasm**:
+```
+"Yeah, great service... 2 hour wait!"
+Literal: POSITIVE  |  Actual: NEGATIVE
+```
+
+**Mixed Sentiment**:
+```
+"Good product, terrible delivery"
+What's the overall label?
+```
+
+**Neutral vs No Opinion**:
+```
+"The phone is blue"    -> NEUTRAL (factual)
+"I received the phone" -> NEUTRAL (no sentiment)
+```
+
+**These require clear guidelines!**
+
+---
+
+# Text: Question Answering
+
+**Task**: Find answer span in passage.
+
+```json
+{
+  "context": "The Apollo program landed 12 astronauts on
+              the Moon between 1969 and 1972.",
+  "question": "When did Apollo land astronauts?",
+  "answers": [
+    {"text": "between 1969 and 1972", "start": 54}
+  ]
+}
+```
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  Context: The Apollo program landed 12 astronauts on the Moon    │
+│           [between 1969 and 1972].  <-- Highlighted answer        │
+│                                                                   │
+│  Question: When did Apollo land astronauts?                       │
+│                                                                   │
+│  [ ] No answer in text                                            │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# Text: Relation Extraction
 
 **Task**: Identify relationships between entities.
 
-**Example**:
 ```
 Text: "Steve Jobs founded Apple in 1976."
 
 Entities:
-- "Steve Jobs" → PERSON
-- "Apple" → ORGANIZATION
-- "1976" → DATE
+  - "Steve Jobs" -> PERSON
+  - "Apple" -> ORGANIZATION
+  - "1976" -> DATE
 
 Relations:
-- ("Steve Jobs", FOUNDED, "Apple")
-- ("Apple", FOUNDED_IN, "1976")
+  - (Steve Jobs, FOUNDED, Apple)
+  - (Apple, FOUNDED_IN, 1976)
 ```
 
 **Annotation Process**:
 1. First pass: Mark entities (NER)
 2. Second pass: Draw relations between entities
 
-**Applications**: Knowledge graphs, question answering, fact extraction
-
 ---
 
-# Relation Extraction: Metrics
+# Relation Extraction: Diagram
 
-**Evaluation**:
-```python
-# Relation is correct if:
-# 1. Both entities are correct (exact span match)
-# 2. Relation type is correct
-
-def evaluate_relations(gold, pred):
-    tp = 0  # True positives
-    fp = 0  # False positives
-    fn = 0  # False negatives
-
-    for rel in pred:
-        if rel in gold:
-            tp += 1
-        else:
-            fp += 1
-
-    fn = len(gold) - tp
-
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-
-    return precision, recall, f1
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  RELATION EXTRACTION INTERFACE                                    │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  Text: [Steve Jobs] founded [Apple] in [1976].                   │
+│         ───────────          ─────     ────                       │
+│           PERSON              ORG      DATE                       │
+│              │                 │         │                        │
+│              │    FOUNDED      │         │                        │
+│              └────────────────>│         │                        │
+│                                │ FOUNDED │                        │
+│                                │   IN    │                        │
+│                                └────────>│                        │
+│                                                                   │
+│  Relation Types: [FOUNDED] [WORKS_AT] [BORN_IN] [LOCATED_IN]     │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Text Annotation: Question Answering
+<!-- _class: lead -->
 
-**Task**: Find answer span in passage given question.
-
-**Example** (SQuAD format):
-```json
-{
-  "context": "The Apollo program landed 12 astronauts on the Moon between 1969 and 1972.",
-  "question": "When did the Apollo program land astronauts?",
-  "answers": [
-    {"text": "between 1969 and 1972", "answer_start": 54}
-  ]
-}
-```
-
-![QA Example](../figures/week03_qa_example.png)
-
-**Challenges**:
-- **Extractive QA**: Answer is substring of context
-- **Abstractive QA**: Answer must be generated
-- **Unanswerable**: Question has no answer in context
-
-**Annotation**: Highlight text span, handle "no answer"
+# Part 3b: Image Annotation Tasks
 
 ---
 
-# QA Annotation: Metrics
-
-**Extractive QA Metrics**:
-
-**Exact Match (EM)**:
-```python
-def exact_match(pred, gold):
-    """Strict: pred must exactly match at least one gold answer."""
-    return int(normalize(pred) in [normalize(g) for g in gold])
-
-def normalize(text):
-    """Remove articles, punctuation, fix whitespace."""
-    return ' '.join(text.lower().split())
-```
-
-**F1 Score** (token overlap):
-```python
-def f1_score(pred, gold):
-    """Partial credit for word overlap."""
-    pred_tokens = normalize(pred).split()
-    gold_tokens = normalize(gold).split()
-
-    common = set(pred_tokens) & set(gold_tokens)
-    if len(common) == 0:
-        return 0
-
-    precision = len(common) / len(pred_tokens)
-    recall = len(common) / len(gold_tokens)
-    return 2 * precision * recall / (precision + recall)
-```
-
----
-
-# Text Annotation: Sentiment Analysis
-
-**Task**: Classify opinion/emotion in text.
-
-**Levels of Granularity**:
-
-**1. Document-Level**:
-```python
-{"text": "This phone is amazing!", "sentiment": "POSITIVE"}
-```
-
-**2. Sentence-Level**:
-```python
-{
-  "text": "Great camera. Poor battery.",
-  "sentences": [
-    {"text": "Great camera.", "sentiment": "POSITIVE"},
-    {"text": "Poor battery.", "sentiment": "NEGATIVE"}
-  ]
-}
-```
-
-**3. Aspect-Based** (ABSA):
-```python
-{
-  "text": "Great camera but poor battery",
-  "aspects": [
-    {"aspect": "camera", "sentiment": "POSITIVE"},
-    {"aspect": "battery", "sentiment": "NEGATIVE"}
-  ]
-}
-```
-
-![Aspect-Based Sentiment Example](../figures/week03_sentiment_example.png)
-
----
-
-# Sentiment Analysis: Guidelines
-
-**Common Issues**:
-
-**1. Sarcasm**:
-```
-"Yeah, great service... 2 hour wait!"
-Literal: POSITIVE  |  Actual: NEGATIVE
-```
-
-**2. Mixed Sentiment**:
-```
-"Good product, terrible delivery"
-→ Label as MIXED or separate aspects
-```
-
-**3. Neutral vs No Opinion**:
-```
-"The phone is blue"  → NEUTRAL (factual)
-"I don't care"       → NEUTRAL (no opinion)
-```
-
-**Annotation Guidelines**:
-```markdown
-# Sentiment Labeling Rules
-1. Consider context (sarcasm, tone)
-2. MIXED: Explicit positive AND negative
-3. NEUTRAL: Factual statements, no emotion
-4. Ignore comparisons without clear sentiment
-```
-
----
-
-# Text Annotation: Text Summarization
-
-**Task**: Create concise summary of document.
-
-**Types**:
-- **Extractive**: Select important sentences
-- **Abstractive**: Write new summary
-
-**Annotation Format** (extractive):
-```json
-{
-  "document": "Long article with multiple paragraphs...",
-  "summary_sentences": [0, 3, 7, 12],  # Sentence indices
-  "rationale": "These sentences contain key points"
-}
-```
-
-**Annotation Format** (abstractive):
-```json
-{
-  "document": "Long article...",
-  "summary": "Concise 2-3 sentence summary written by human",
-  "length_constraint": "max 100 words"
-}
-```
-
----
-
-# Summarization: Quality Metrics
-
-**Automatic Metrics**:
-
-**ROUGE** (Recall-Oriented Understudy for Gisting Evaluation):
-```python
-from rouge import Rouge
-
-rouge = Rouge()
-scores = rouge.get_scores(
-    hyps=["the cat sat on the mat"],
-    refs=["cat on mat"]
-)
-
-# Output: ROUGE-1, ROUGE-2, ROUGE-L
-# Measures n-gram overlap
-```
-
-**Human Evaluation Criteria**:
-1. **Relevance**: Contains important information
-2. **Coherence**: Sentences flow logically
-3. **Consistency**: No contradictions with source
-4. **Fluency**: Grammatically correct
-5. **Coverage**: Captures main points
-
-**IAA**: Moderate (κ ≈ 0.4-0.6) due to subjectivity
-
----
-
-# Image Annotation: Classification
+# Image: Classification
 
 **Task**: Assign label(s) to entire image.
 
-**Examples**:
-
-**Single-Label**:
 ```json
-{"image": "cat.jpg", "label": "CAT"}
+// Single-label
+{"image": "photo.jpg", "label": "CAT"}
+
+// Multi-label
+{"image": "scene.jpg", "labels": ["OUTDOOR", "PEOPLE", "DAYTIME"]}
+
+// Fine-grained
+{"image": "dog.jpg", "breed": "GOLDEN_RETRIEVER", "category": "DOG"}
 ```
 
-**Multi-Label**:
-```json
-{
-  "image": "outdoor_scene.jpg",
-  "labels": ["OUTDOOR", "PEOPLE", "DAYTIME", "URBAN"]
-}
-```
-
-**Fine-Grained**:
-```json
-{
-  "image": "dog.jpg",
-  "breed": "GOLDEN_RETRIEVER",
-  "category": "DOG"
-}
-```
-
-**Tools**: Label Studio, CVAT, Labelbox
-**Speed**: 50-200 images/hour (depends on # classes)
+**Speed**: 100-300 images/hour
 
 ---
 
-# Image Classification: Metrics
+# Image Classification: Diagram
 
-**Inter-Annotator Agreement**:
-```python
-from sklearn.metrics import cohen_kappa_score
-
-# Two annotators label 100 images
-annotator1 = ['cat', 'dog', 'cat', ...]  # 100 labels
-annotator2 = ['cat', 'cat', 'cat', ...]  # 100 labels
-
-kappa = cohen_kappa_score(annotator1, annotator2)
-print(f"Cohen's Kappa: {kappa:.3f}")
-
-# Interpretation:
-# > 0.8: Excellent agreement
-# 0.6-0.8: Substantial agreement
-# < 0.6: Need to improve guidelines
 ```
-
-**Model Metrics**: Accuracy, Top-5 Accuracy, Confusion Matrix
-**Calibration**: Are model confidences reliable?
+┌───────────────────────────────────────────────────────────────────┐
+│  IMAGE CLASSIFICATION INTERFACE                                   │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   ┌─────────────────────────────────┐                            │
+│   │                                 │                            │
+│   │       [  Image of a cat  ]      │                            │
+│   │                                 │                            │
+│   └─────────────────────────────────┘                            │
+│                                                                   │
+│   What animal is in this image?                                   │
+│                                                                   │
+│   [  Cat  ]  [ Dog ]  [ Bird ]  [ Other ]                        │
+│       ^                                                           │
+│       Selected                                                    │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-# Image Annotation: Object Detection
+# Image: Object Detection
 
 **Task**: Locate and classify objects with bounding boxes.
 
-![Object Detection Example](../figures/week03_object_detection_example.png)
-
-**Annotation Format**:
 ```json
 {
   "image": "street.jpg",
-  "width": 1920,
-  "height": 1080,
+  "width": 1920, "height": 1080,
   "objects": [
-    {
-      "class": "car",
-      "bbox": [100, 200, 400, 500],  # [x, y, width, height]
-      "confidence": 1.0
-    },
-    {
-      "class": "person",
-      "bbox": [800, 150, 120, 350]
-    }
+    {"class": "car", "bbox": [100, 200, 400, 300]},
+    {"class": "person", "bbox": [800, 150, 100, 350]}
   ]
 }
 ```
 
-**Annotation Considerations**:
-- **Occlusion**: Label partially visible objects?
-- **Truncation**: Object cut off by image boundary?
-- **Crowd**: Many small objects (e.g., crowd of people)
+**bbox format**: `[x, y, width, height]` or `[x1, y1, x2, y2]`
+
+**Speed**: 20-50 images/hour (5-10 objects each)
 
 ---
 
-# Object Detection: Common Issues
+# Object Detection: Diagram
 
-**1. Bounding Box Tightness**:
 ```
-Too Loose:  [    |--object--|     ]  ❌
-Too Tight:  [--object--]            ❌  (cuts off parts)
-Just Right: [  |--object--|  ]      ✅  (small margin)
-```
-
-**2. Overlapping Objects**:
-```
-Person behind car - label both?
-→ Yes, even if heavily occluded (>20% visible)
-```
-
-**3. Ambiguous Objects**:
-```
-Reflection in mirror?  → Depends on task
-Toy car vs real car?   → Specify in guidelines
-```
-
-**Quality Control**:
-```python
-def validate_bbox(bbox, img_width, img_height):
-    x, y, w, h = bbox
-    # Check if bbox is within image bounds
-    assert 0 <= x < img_width
-    assert 0 <= y < img_height
-    assert x + w <= img_width
-    assert y + h <= img_height
-    # Check minimum size (avoid tiny boxes)
-    assert w >= 10 and h >= 10
+┌───────────────────────────────────────────────────────────────────┐
+│  OBJECT DETECTION INTERFACE                                       │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   ┌─────────────────────────────────────────────────────────┐    │
+│   │                                                         │    │
+│   │     ┌──────────────┐                                    │    │
+│   │     │              │        ┌────┐                      │    │
+│   │     │     CAR      │        │PERS│                      │    │
+│   │     │              │        │ ON │                      │    │
+│   │     └──────────────┘        └────┘                      │    │
+│   │                                                         │    │
+│   └─────────────────────────────────────────────────────────┘    │
+│                                                                   │
+│   Tools: [Rectangle] [Zoom] [Undo]   Labels: [Car] [Person]      │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Object Detection: Metrics
+# Object Detection: Best Practices
 
-**Intersection over Union (IoU)**:
-
-![IoU Visualization](../figures/week03_iou_visualization.png)
-
-```python
-def iou(box1, box2):
-    """Compute IoU between two boxes [x, y, w, h]."""
-    x1, y1, w1, h1 = box1
-    x2, y2, w2, h2 = box2
-
-    # Intersection area
-    xi = max(x1, x2)
-    yi = max(y1, y2)
-    wi = max(0, min(x1 + w1, x2 + w2) - xi)
-    hi = max(0, min(y1 + h1, y2 + h2) - yi)
-    intersection = wi * hi
-
-    # Union area
-    union = w1 * h1 + w2 * h2 - intersection
-
-    return intersection / union if union > 0 else 0
-
-# Example
-box1 = [100, 100, 50, 50]  # Ground truth
-box2 = [110, 110, 50, 50]  # Prediction
-print(f"IoU: {iou(box1, box2):.2f}")  # ~0.68
+**Bounding Box Tightness**:
+```
+Too Loose:  [    |--object--|     ]  Bad
+Too Tight:  [--objec]               Bad (cuts off)
+Just Right: [ |--object--| ]        Good (small margin)
 ```
 
-**IAA for Detection**: Mean IoU > 0.7 considered good
+**Occlusion Rules**:
+- Label partially visible objects? (>20% visible = yes)
+- How to handle overlapping boxes?
+
+**Edge Cases**:
+- Reflections in mirrors?
+- Objects in pictures on walls?
+- Tiny/distant objects?
 
 ---
 
-# Object Detection: mAP Metric
-
-**mean Average Precision (mAP)**:
-
-**Steps**:
-1. For each class, compute Average Precision (AP)
-2. Average AP across all classes → mAP
-
-**AP Calculation**:
-```python
-# For each predicted box:
-# - If IoU > threshold (e.g., 0.5) → True Positive
-# - Otherwise → False Positive
-# Plot Precision-Recall curve, compute area under curve
-
-from sklearn.metrics import average_precision_score
-
-# Sort predictions by confidence
-predictions_sorted = sorted(predictions, key=lambda x: x['confidence'], reverse=True)
-
-# Compute precision-recall at each threshold
-precisions, recalls = compute_pr_curve(predictions_sorted, ground_truth)
-
-# AP = Area under PR curve
-ap = average_precision_score(recalls, precisions)
-```
-
-**Common Thresholds**: mAP@0.5, mAP@0.75, mAP@[0.5:0.95]
-
----
-
-# Image Annotation: Semantic Segmentation
+# Image: Semantic Segmentation
 
 **Task**: Classify every pixel in image.
 
-**Example**:
 ```
-Input:  RGB image (1920×1080×3)
-Output: Label mask (1920×1080) where each pixel ∈ {0, 1, 2, ...}
+Input:  RGB image (1920x1080x3)
+Output: Label mask (1920x1080) where each pixel in {0,1,2,...}
 
 Pixel values:
-0 → Background
-1 → Person
-2 → Car
-3 → Road
-...
+  0 -> Background
+  1 -> Person
+  2 -> Car
+  3 -> Road
+  ...
 ```
 
-![Semantic vs Instance Segmentation](../figures/week03_segmentation_comparison.png)
+**Speed**: 5-15 images/hour (very time-consuming!)
 
-**Annotation Format**:
-```json
-{
-  "image": "street.jpg",
-  "segmentation_mask": "street_mask.png",  # Each pixel is class ID
-  "classes": {
-    "0": "background",
-    "1": "person",
-    "2": "car",
-    "3": "road"
-  }
-}
+---
+
+# Segmentation: Diagram
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  SEGMENTATION INTERFACE                                           │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   Original Image              Segmentation Mask                   │
+│   ┌─────────────────┐        ┌─────────────────┐                 │
+│   │   ████████      │        │   ████████      │ <- Person (red) │
+│   │   ████████      │   ->   │   ████████      │                 │
+│   │ ████████████    │        │ ▓▓▓▓▓▓▓▓▓▓▓▓    │ <- Car (blue)   │
+│   │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│        │░░░░░░░░░░░░░░░░│ <- Road (gray)  │
+│   └─────────────────┘        └─────────────────┘                 │
+│                                                                   │
+│   Tools: [Brush] [Polygon] [Magic Wand] [SAM]                    │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Semantic Segmentation: Tools & Speed
+# Instance vs Semantic Segmentation
 
-**Annotation Tools**:
-- **Polygon Tool**: Draw polygon around object
-- **Brush Tool**: Paint over pixels
-- **Magic Wand**: Auto-select similar pixels
-- **SAM (Segment Anything)**: AI-assisted segmentation
-
-**Annotation Time**:
 ```
-Simple object (car):      2-5 minutes
-Complex object (person):  5-10 minutes
-Full street scene:        30-60 minutes
-Medical scan:             1-4 hours (high precision required)
-```
-
-**Speed-up Techniques**:
-1. **Pre-segmentation**: Use model predictions, human corrects
-2. **Active learning**: Segment uncertain regions only
-3. **Interpolation**: Label keyframes, interpolate between
-
----
-
-# Semantic Segmentation: Metrics
-
-**Pixel Accuracy**:
-```python
-correct_pixels = (pred_mask == true_mask).sum()
-total_pixels = pred_mask.size
-accuracy = correct_pixels / total_pixels
-```
-**Problem**: Dominated by large classes (e.g., background)
-
-**Intersection over Union (IoU)** per class:
-```python
-def iou_per_class(pred, true, class_id):
-    pred_mask = (pred == class_id)
-    true_mask = (true == class_id)
-
-    intersection = (pred_mask & true_mask).sum()
-    union = (pred_mask | true_mask).sum()
-
-    return intersection / union if union > 0 else 0
-
-# Mean IoU across all classes
-ious = [iou_per_class(pred, true, c) for c in range(num_classes)]
-mean_iou = np.mean(ious)
-```
-
-**Typical Values**: mIoU > 0.7 is good, > 0.8 is excellent
-
----
-
-# Image Annotation: Instance Segmentation
-
-**Task**: Segment and identify each object instance.
-
-**Difference from Semantic Segmentation**:
-```
-Semantic: All "person" pixels labeled as 1
-Instance: Person #1 → 1, Person #2 → 2, Person #3 → 3
-```
-
-**Annotation Format** (COCO style):
-```json
-{
-  "image": "crowd.jpg",
-  "annotations": [
-    {
-      "id": 1,
-      "category_id": 1,  # Person
-      "segmentation": [[x1, y1, x2, y2, ...]],  # Polygon points
-      "bbox": [100, 200, 50, 80],
-      "area": 4000
-    }
-  ]
-}
-```
-
-**Applications**: Counting objects, tracking, robotics
-
----
-
-# Instance Segmentation: Metrics
-
-**Mask AP (Average Precision)**:
-- Similar to object detection mAP
-- But uses mask IoU instead of bbox IoU
-
-```python
-def mask_iou(mask1, mask2):
-    """Compute IoU between two binary masks."""
-    intersection = np.logical_and(mask1, mask2).sum()
-    union = np.logical_or(mask1, mask2).sum()
-    return intersection / union if union > 0 else 0
-
-# Match predicted instances to ground truth
-# Using Hungarian algorithm (bipartite matching)
-from scipy.optimize import linear_sum_assignment
-
-# Compute cost matrix (1 - IoU for each pred-gt pair)
-cost_matrix = np.zeros((len(pred_instances), len(gt_instances)))
-for i, pred in enumerate(pred_instances):
-    for j, gt in enumerate(gt_instances):
-        cost_matrix[i, j] = 1 - mask_iou(pred, gt)
-
-# Find optimal matching
-pred_idx, gt_idx = linear_sum_assignment(cost_matrix)
+┌───────────────────────────────────────────────────────────────────┐
+│                  SEGMENTATION COMPARISON                          │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   SEMANTIC SEGMENTATION         INSTANCE SEGMENTATION             │
+│                                                                   │
+│   All "person" pixels           Person #1 -> Instance 1           │
+│   get class ID = 1              Person #2 -> Instance 2           │
+│                                 Person #3 -> Instance 3           │
+│                                                                   │
+│   ┌─────────────┐               ┌─────────────┐                  │
+│   │ ██  ██  ██  │               │ ██  ▓▓  ░░  │                  │
+│   │ ██  ██  ██  │               │ ██  ▓▓  ░░  │                  │
+│   │ all same    │               │ different   │                  │
+│   └─────────────┘               └─────────────┘                  │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Image Annotation: Keypoint Detection
+# Image: Keypoint Detection
 
-**Task**: Locate specific points on objects (e.g., body joints, facial landmarks).
+**Task**: Locate specific points (joints, landmarks).
 
-![Keypoint Detection Example](../figures/week03_keypoint_example.png)
-
-**Example** (Human Pose):
 ```json
 {
   "image": "person.jpg",
   "keypoints": [
     {"name": "nose", "x": 120, "y": 80, "visible": 1},
     {"name": "left_eye", "x": 110, "y": 75, "visible": 1},
-    {"name": "right_eye", "x": 130, "y": 75, "visible": 1},
     {"name": "left_shoulder", "x": 100, "y": 150, "visible": 1},
-    {"name": "right_shoulder", "x": 140, "y": 150, "visible": 0}  # occluded
-  ],
-  "skeleton": [[0, 1], [0, 2], [0, 3], [0, 4]]  # Connections
-}
-```
-
-**Visibility Flags**:
-- `0`: Not visible (occluded)
-- `1`: Visible
-- `2`: Not in image
-
----
-
-# Keypoint Detection: Metrics
-
-**Object Keypoint Similarity (OKS)**:
-```python
-def oks(pred_kpts, gt_kpts, bbox_area, kpt_sigmas):
-    """
-    Similar to IoU but for keypoints.
-
-    Args:
-        pred_kpts: Predicted keypoints [(x, y, v), ...]
-        gt_kpts: Ground truth keypoints [(x, y, v), ...]
-        bbox_area: Bounding box area (for normalization)
-        kpt_sigmas: Per-keypoint standard deviation (how precise to be)
-    """
-    distances = []
-    for (px, py, pv), (gx, gy, gv), sigma in zip(pred_kpts, gt_kpts, kpt_sigmas):
-        if gv == 0:  # Skip if not labeled
-            continue
-
-        # Euclidean distance
-        d = np.sqrt((px - gx)**2 + (py - gy)**2)
-
-        # Normalized by bbox size and keypoint precision
-        distances.append(np.exp(-(d**2) / (2 * bbox_area * sigma**2)))
-
-    return np.mean(distances) if distances else 0
-```
-
-**Threshold**: OKS > 0.5 considered correct
-
----
-
-# Audio Annotation: Speech Transcription
-
-**Task**: Convert speech to text.
-
-**Annotation Format**:
-```json
-{
-  "audio": "interview.wav",
-  "duration": 120.5,
-  "transcription": [
-    {
-      "start": 0.0,
-      "end": 3.2,
-      "speaker": "A",
-      "text": "Hello, how are you?"
-    },
-    {
-      "start": 3.5,
-      "end": 5.8,
-      "speaker": "B",
-      "text": "I'm doing well, thank you."
-    }
+    {"name": "right_shoulder", "x": 140, "y": 150, "visible": 0}
   ]
 }
 ```
 
-**Annotation Guidelines**:
-- **Verbatim**: Include filler words (um, uh) or clean?
-- **Punctuation**: Add proper punctuation
-- **Inaudible**: Mark with `[inaudible]` or `[?]`
-- **Background**: Note background sounds `[laughter]`, `[music]`
+**Visibility flags**: 0=occluded, 1=visible, 2=outside image
 
 ---
 
-# Speech Transcription: Challenges
+# Keypoint Detection: Diagram
 
-**1. Speaker Diarization**:
 ```
-"Who is speaking when?"
-→ Label each segment with speaker ID
-```
-
-**2. Overlapping Speech**:
-```
-[0.0-2.0] Speaker A: "I think that—"
-[1.5-3.0] Speaker B: "No wait, listen..."
-→ Overlap at 1.5-2.0
-```
-
-**3. Accents & Dialects**:
-```
-Non-standard pronunciation → Transcribe what was said, not standard form
-Example: "gonna" vs "going to"
-```
-
-**4. Code-Switching**:
-```
-"Let's meet mañana for lunch"
-→ Mark language: "Let's meet <es>mañana</es> for lunch"
+┌───────────────────────────────────────────────────────────────────┐
+│  KEYPOINT ANNOTATION (Human Pose)                                 │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│                        o  <- nose                                 │
+│                      /   \                                        │
+│                     o     o  <- eyes                              │
+│                       \ /                                         │
+│                        |                                          │
+│                   o----+----o  <- shoulders                       │
+│                   |    |    |                                     │
+│                   o    |    o  <- elbows                          │
+│                   |    |    |                                     │
+│                   o    |    o  <- wrists                          │
+│                        |                                          │
+│                   o----+----o  <- hips                            │
+│                   |         |                                     │
+│                   o         o  <- knees                           │
+│                   |         |                                     │
+│                   o         o  <- ankles                          │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Speech Transcription: Metrics
+<!-- _class: lead -->
 
-**Word Error Rate (WER)**:
-```python
-from jiwer import wer
-
-reference = "hello world how are you"
-hypothesis = "hello word how you"
-
-error_rate = wer(reference, hypothesis)
-print(f"WER: {error_rate:.2%}")  # 40% (2 errors / 5 words)
-
-# WER = (Substitutions + Deletions + Insertions) / Total Words
-```
-
-**Character Error Rate (CER)**:
-- Similar to WER but at character level
-- Better for languages without clear word boundaries
-
-**IAA for Transcription**:
-- **High agreement**: WER < 5% between annotators
-- **Moderate**: WER 5-15%
-- **Low**: WER > 15% (need clearer guidelines)
+# Part 3c: Audio Annotation Tasks
 
 ---
 
-# Audio Annotation: Sound Event Detection
+# Audio: Transcription
+
+**Task**: Convert speech to text with timestamps.
+
+```json
+{
+  "audio": "interview.wav",
+  "transcription": [
+    {"start": 0.0, "end": 3.2, "speaker": "A",
+     "text": "Hello, how are you?"},
+    {"start": 3.5, "end": 5.8, "speaker": "B",
+     "text": "I'm doing well, thank you."}
+  ]
+}
+```
+
+**Speed**: 15-30 min of audio per hour of work (3-4x real-time)
+
+---
+
+# Audio Transcription: Diagram
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  AUDIO TRANSCRIPTION INTERFACE                                    │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   Waveform:                                                       │
+│   ▂▃▅▇█▇▅▃▂▁▂▃▅▇█▇▅▃▂▁▂▃▅▇█▇▅▃▂▁                                │
+│   |---------|------------|---------|                              │
+│   0:00      0:03         0:06      0:09                           │
+│                                                                   │
+│   Segments:                                                       │
+│   [Speaker A: "Hello, how are you?"]  [0:00 - 0:03]              │
+│   [Speaker B: "I'm doing well."]      [0:03 - 0:06]              │
+│                                                                   │
+│   Controls: [Play] [Pause] [0.5x] [1x] [1.5x] [Loop]             │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# Transcription Challenges
+
+**1. Speaker Diarization** - Who is speaking?
+```
+[0:00-0:02] Speaker A: "I think that--"
+[0:01-0:03] Speaker B: "No wait, listen..."  <- Overlap!
+```
+
+**2. Background Sounds**
+```
+"The cat [dog barking] jumped over the fence"
+```
+
+**3. Accents & Dialects**
+```
+"gonna" vs "going to" - Transcribe verbatim?
+```
+
+**4. Filler Words**
+```
+"So, um, I was thinking, like, maybe we could, uh..."
+Include or remove?
+```
+
+---
+
+# Audio: Sound Event Detection
 
 **Task**: Identify and timestamp sound events.
 
-![Audio Annotation Example](../figures/week03_audio_annotation_example.png)
-
-**Example** (Smart home):
 ```json
 {
   "audio": "home_audio.wav",
   "events": [
     {"start": 2.3, "end": 3.1, "label": "door_slam"},
     {"start": 5.0, "end": 8.2, "label": "dog_bark"},
-    {"start": 10.5, "end": 11.0, "label": "glass_break"},
-    {"start": 15.0, "end": 45.0, "label": "music", "overlap": true}
+    {"start": 10.5, "end": 11.0, "label": "glass_break"}
   ]
 }
 ```
 
 **Applications**:
-- **Surveillance**: Gunshot, glass break, scream
-- **Healthcare**: Cough, snore, breathing anomaly
-- **Environment**: Bird species, vehicle type
+- Surveillance: gunshot, glass break
+- Healthcare: cough, snore
+- Environment: bird species, vehicles
 
 ---
 
-# Sound Event Detection: Metrics
+# Audio: Speaker & Emotion Recognition
 
-**Event-Based Metrics**:
-
-**1. Onset/Offset tolerance**:
-```python
-def event_based_f1(pred_events, true_events, tolerance=0.2):
-    """
-    Allow tolerance in start/end times.
-
-    Args:
-        tolerance: Allowed time difference (seconds)
-    """
-    tp = 0
-    for pred in pred_events:
-        for true in true_events:
-            # Check label match
-            if pred['label'] != true['label']:
-                continue
-
-            # Check temporal overlap within tolerance
-            if (abs(pred['start'] - true['start']) < tolerance and
-                abs(pred['end'] - true['end']) < tolerance):
-                tp += 1
-                break
-
-    precision = tp / len(pred_events) if pred_events else 0
-    recall = tp / len(true_events) if true_events else 0
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-
-    return f1
-```
-
----
-
-# Audio Annotation: Speaker Recognition
-
-**Task**: Identify who is speaking.
-
-**Types**:
-
-**1. Speaker Identification** (closed-set):
+**Speaker Recognition**:
 ```json
 {
   "audio": "meeting.wav",
-  "speakers": ["Alice", "Bob", "Charlie"],
   "segments": [
     {"start": 0, "end": 5, "speaker": "Alice"},
     {"start": 5, "end": 12, "speaker": "Bob"}
@@ -1005,89 +892,53 @@ def event_based_f1(pred_events, true_events, tolerance=0.2):
 }
 ```
 
-**2. Speaker Verification** (is this person X?):
-```json
-{
-  "audio": "voice_sample.wav",
-  "claimed_speaker": "Alice",
-  "is_match": true  # Boolean
-}
-```
-
-**Metrics**: Accuracy, Equal Error Rate (EER)
-
----
-
-# Audio Annotation: Emotion Recognition
-
-**Task**: Classify emotion in speech.
-
-**Labels** (common taxonomy):
-```python
-emotions = [
-    "neutral",
-    "happy",
-    "sad",
-    "angry",
-    "fearful",
-    "surprised",
-    "disgusted"
-]
-```
-
-**Annotation Format**:
+**Emotion Recognition**:
 ```json
 {
   "audio": "utterance.wav",
-  "text": "I can't believe this happened!",
   "emotion": "angry",
-  "arousal": 7,  # 1-9 scale (calm to excited)
-  "valence": 2   # 1-9 scale (negative to positive)
+  "arousal": 7,    // 1-9 scale (calm to excited)
+  "valence": 2     // 1-9 scale (negative to positive)
 }
 ```
 
-**Challenge**: Subjectivity → Low IAA (κ ≈ 0.4-0.6)
+**Challenge**: Emotion is subjective - expect lower IAA
 
 ---
 
-# Video Annotation: Action Recognition
+<!-- _class: lead -->
+
+# Part 3d: Video Annotation Tasks
+
+---
+
+# Video: Action Recognition
 
 **Task**: Classify actions in video clips.
 
-**Annotation Format**:
 ```json
 {
   "video": "sports.mp4",
   "fps": 30,
   "actions": [
-    {
-      "start_frame": 0,
-      "end_frame": 90,  # 3 seconds at 30fps
-      "label": "running"
-    },
-    {
-      "start_frame": 90,
-      "end_frame": 150,
-      "label": "jumping"
-    }
+    {"start_frame": 0, "end_frame": 90, "label": "running"},
+    {"start_frame": 90, "end_frame": 150, "label": "jumping"},
+    {"start_frame": 150, "end_frame": 200, "label": "landing"}
   ]
 }
 ```
 
 **Types**:
-- **Clip-level**: Entire clip = one action
-- **Temporal**: Start/end frames for each action
+- **Clip-level**: One label per clip
+- **Temporal**: Start/end for each action
 - **Dense**: Label every frame
 
 ---
 
-# Video Annotation: Object Tracking
+# Video: Object Tracking
 
 **Task**: Follow objects across frames.
 
-![Video Tracking Example](../figures/week03_video_tracking_example.png)
-
-**Annotation Format** (MOT - Multiple Object Tracking):
 ```json
 {
   "video": "traffic.mp4",
@@ -1100,54 +951,44 @@ emotions = [
         {"frame": 1, "bbox": [105, 202, 50, 80]},
         {"frame": 2, "bbox": [110, 204, 50, 80]}
       ]
-    },
-    {
-      "track_id": 2,
-      "category": "person",
-      "bboxes": [...]
     }
   ]
 }
 ```
 
-**Challenges**: Occlusion, re-identification after disappearance
+**Challenges**: Occlusion, re-identification after disappearing
 
 ---
 
-# Video Tracking: Metrics
+# Video Tracking: Diagram
 
-**CLEAR MOT Metrics**:
-
-**1. MOTA (Multiple Object Tracking Accuracy)**:
-```python
-MOTA = 1 - (FP + FN + IDSW) / GT
-
-where:
-- FP: False positives (wrong detections)
-- FN: False negatives (missed objects)
-- IDSW: ID switches (track lost then found with new ID)
-- GT: Total ground truth objects
 ```
-
-**2. MOTP (Multiple Object Tracking Precision)**:
-```python
-MOTP = Σ IoU(matched_pairs) / |matched_pairs|
-# Average IoU of correctly matched detections
-```
-
-**3. IDF1** (ID F1 Score):
-```python
-# Measures how well identities are preserved
-IDF1 = 2 * IDTP / (2 * IDTP + IDFP + IDFN)
+┌───────────────────────────────────────────────────────────────────┐
+│  VIDEO TRACKING INTERFACE                                         │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  Frame 1          Frame 2          Frame 3          Frame 4      │
+│  ┌───────┐        ┌───────┐        ┌───────┐        ┌───────┐   │
+│  │ [1]   │        │  [1]  │        │   [1] │        │    [1]│   │
+│  │       │   ->   │       │   ->   │       │   ->   │       │   │
+│  │   [2] │        │   [2] │        │   [2] │        │   [2] │   │
+│  └───────┘        └───────┘        └───────┘        └───────┘   │
+│                                                                   │
+│  Track 1: Car (ID=1) - continuous path                           │
+│  Track 2: Person (ID=2) - stationary                             │
+│                                                                   │
+│  Timeline: [====|====|====|====|====|====|====|====]             │
+│            0    1    2    3    4    5    6    7    8              │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Video Annotation: Temporal Segmentation
+# Video: Temporal Segmentation
 
 **Task**: Divide video into meaningful segments.
 
-**Example** (Cooking video):
 ```json
 {
   "video": "cooking_recipe.mp4",
@@ -1160,1278 +1001,1018 @@ IDF1 = 2 * IDTP / (2 * IDTP + IDFP + IDFN)
 }
 ```
 
-**Applications**:
-- **Sports**: Play-by-play analysis
-- **Surveillance**: Activity monitoring
-- **Medical**: Surgical phase recognition
-
-**Metrics**: Frame-wise accuracy, Segment F1-score
+**Applications**: Sports analysis, surgical videos, tutorials
 
 ---
 
-# Multimodal Annotation: Image Captioning
+# Annotation Speed Benchmarks
 
-**Task**: Generate textual description of image.
+| Task Type | Speed (per hour) | Complexity |
+|-----------|------------------|------------|
+| Text Classification | 200-500 items | Low |
+| Sentiment Analysis | 150-300 items | Low |
+| NER | 50-150 sentences | Medium |
+| Image Classification | 100-300 images | Low |
+| Bounding Boxes | 20-50 images | Medium |
+| Segmentation | 5-15 images | High |
+| Audio Transcription | 15-30 min audio | Medium |
+| Video Tracking | 5-10 min video | High |
 
-**Annotation Format**:
-```json
-{
-  "image": "beach.jpg",
-  "captions": [
-    "A person walking on the beach at sunset",
-    "Someone enjoying a peaceful evening walk by the ocean",
-    "A solitary figure strolls along the sandy shore"
-  ]
-}
+**Use these to estimate labeling time and cost!**
+
+---
+
+<!-- _class: lead -->
+
+# Part 4: Labeling Tools & Platforms
+
+*Software for annotation*
+
+---
+
+# Labeling Tool Landscape
+
+| **Open Source** | **Commercial** |
+|-----------------|----------------|
+| Label Studio (flexible) | Labelbox (enterprise) |
+| CVAT (video/CV focused) | Scale AI (full service) |
+| Doccano (NLP focused) | V7 (auto-annotation) |
+| VGG Image Annotator | Prodigy (active learning) |
+| | Amazon SageMaker GT |
+
+**Start open source, scale to commercial when needed.**
+
+---
+
+# Label Studio: The Swiss Army Knife
+
+**Open-source, web-based, highly flexible**
+
+```bash
+# Installation
+pip install label-studio
+
+# Start server
+label-studio start
+
+# Access at http://localhost:8080
 ```
 
-**Why Multiple Captions?**
-- Captures different aspects
-- Handles ambiguity
-- Improves model diversity
-
-**Evaluation**: BLEU, METEOR, CIDEr, SPICE
+**Key Features**:
+- Supports all modalities (text, image, audio, video)
+- Customizable interfaces via XML config
+- Export to many formats (JSON, CSV, COCO, YOLO)
+- ML-assisted labeling
+- Multi-user support
 
 ---
 
-# Multimodal Annotation: Visual Question Answering
+# Label Studio: Text Classification Config
 
-**Task**: Answer questions about images.
-
-**Example**:
-```json
-{
-  "image": "kitchen.jpg",
-  "qa_pairs": [
-    {"question": "How many people are in the image?", "answer": "2"},
-    {"question": "What color is the refrigerator?", "answer": "white"},
-    {"question": "Are they cooking?", "answer": "yes"}
-  ]
-}
+```xml
+<View>
+  <Text name="text" value="$text"/>
+  <Choices name="sentiment" toName="text" choice="single">
+    <Choice value="Positive"/>
+    <Choice value="Negative"/>
+    <Choice value="Neutral"/>
+  </Choices>
+</View>
 ```
 
-**Answer Types**:
-- **Number**: Counting questions
-- **Yes/No**: Binary questions
-- **Other**: Open-ended ("What is the person holding?")
-
-**Metrics**: Accuracy (exact match), F1 (for multi-word answers)
+**Result**: Text displayed with radio buttons for selection.
 
 ---
 
-# Annotation Metrics: Summary by Task
+# Label Studio: NER Config
 
-| Task | Primary Metric | IAA Metric | Typical IAA |
-|------|---------------|------------|-------------|
-| **Text Classification** | F1-Score | Cohen's κ | 0.7-0.9 |
-| **NER** | Span F1 | Entity-level κ | 0.6-0.8 |
-| **Object Detection** | mAP@0.5 | Mean IoU | > 0.7 |
-| **Segmentation** | mIoU | Pixel agreement | > 0.8 |
-| **Keypoints** | OKS | Mean distance | < 5 pixels |
-| **Speech Transcription** | WER | WER between annotators | < 5% |
-| **Sound Events** | Event F1 | Temporal IoU | > 0.7 |
-| **Action Recognition** | Clip accuracy | Temporal IoU | 0.6-0.8 |
-| **Object Tracking** | MOTA/IDF1 | Track IoU | > 0.6 |
-
----
-
-# Annotation Speed: Benchmarks
-
-**Text (per hour)**:
-- Classification: 200-500 examples
-- NER: 50-150 sentences
-- Relation extraction: 20-50 documents
-
-**Image (per hour)**:
-- Classification: 100-300 images
-- Bounding boxes: 20-50 images (5-10 objects each)
-- Segmentation: 5-15 images (high complexity)
-
-**Audio (per hour of annotation work)**:
-- Transcription: 15-30 min of audio
-- Event labeling: 30-60 min of audio
-
-**Video (per hour)**:
-- Action clips: 50-100 clips
-- Object tracking: 5-10 min of video
-
----
-
-# Cost Estimation for Annotation
-
-**Example Project**: Label 10,000 images for object detection
-
-**Scenario 1: In-house team**
-```python
-images = 10000
-time_per_image = 3  # minutes
-hourly_rate = 20  # USD
-
-total_hours = (images * time_per_image) / 60  # 500 hours
-total_cost = total_hours * hourly_rate  # $10,000
+```xml
+<View>
+  <Labels name="ner" toName="text">
+    <Label value="PERSON" background="#FF0000"/>
+    <Label value="ORG" background="#00FF00"/>
+    <Label value="LOCATION" background="#0000FF"/>
+    <Label value="DATE" background="#FFFF00"/>
+  </Labels>
+  <Text name="text" value="$text"/>
+</View>
 ```
 
-**Scenario 2: Crowdsourcing (MTurk)**
-```python
-cost_per_image = 0.50  # USD (cheaper but lower quality)
-redundancy = 3  # annotations per image
-
-total_cost = images * cost_per_image * redundancy  # $15,000
-```
-
-**Scenario 3: Professional service (Scale AI)**
-```python
-cost_per_image = 2.00  # USD (higher quality)
-total_cost = images * cost_per_image  # $20,000
-```
+**Result**: Highlight text to assign entity labels.
 
 ---
 
-# Annotation Best Practices by Modality
+# Label Studio: Object Detection Config
 
-**Text**:
-- Provide clear label definitions with examples
-- Handle edge cases explicitly in guidelines
-- Use consensus for ambiguous cases
-
-**Images**:
-- Zoom tools for precise boundaries
-- Grid overlay for alignment
-- Pre-annotation with models to speed up
-
-**Audio**:
-- High-quality headphones required
-- Waveform visualization
-- Playback speed control (0.5x for difficult segments)
-
-**Video**:
-- Keyframe sampling for efficiency
-- Interpolation between keyframes
-- Tracking assistance tools (SAM, optical flow)
-
----
-
-# Annotation Interfaces: Label Studio
-
-**Label Studio**: Open-source, flexible, web-based tool.
-
-**Configuration (XML)**:
 ```xml
 <View>
   <Image name="img" value="$image"/>
-  <RectangleLabels name="tag" toName="img">
+  <RectangleLabels name="bbox" toName="img">
     <Label value="Car" background="red"/>
     <Label value="Person" background="blue"/>
+    <Label value="Bicycle" background="green"/>
   </RectangleLabels>
 </View>
 ```
 
-**Why usage XML?**
-- Allows custom UI layouts.
-- Can mix modalities (Image + Text + Audio).
+**Supports**: Rectangles, polygons, brush, keypoints
 
 ---
 
-# Quality Control: The Gold Standard
+# CVAT: Video & CV Focus
 
-**How do we know if labels are "correct"?**
+**Computer Vision Annotation Tool** (Intel)
 
-1.  **Gold Standard (Ground Truth)**:
-    - Experts label a small subset (e.g., 100 items).
-    - Annotators are tested against this set.
-    
-2.  **Consensus (Majority Vote)**:
-    - 3 annotators label the same item.
-    - If 2 say "Cat" and 1 says "Dog", label is "Cat".
+**Strengths**:
+- Excellent for video annotation
+- Automatic tracking (interpolation)
+- Semi-automatic annotation with models
+- 3D cuboid support
 
----
-
-# Inter-Annotator Agreement (IAA)
-
-**Measure of reliability**. Do annotators agree with each other?
-
-**Percent Agreement**:
-$$ 	ext{Agreement} = \frac{\text{Agreed Items}}{\text{Total Items}} $$
-*Problem*: Doesn't account for chance agreement.
-
-**Cohen's Kappa ($\kappa$)**:
-$$ \kappa = \frac{p_o - p_e}{1 - p_e} $$
-- $p_o$: Observed agreement.
-- $p_e$: Expected agreement by chance.
-
----
-
-# Cohen's Kappa Example
-
-**Scenario**: 2 Annotators, 100 items (Yes/No).
-- Both say Yes: 45
-- Both say No: 45
-- Disagree: 10
-- $p_o = 0.90$
-
-**Chance Calculation**:
-- A says Yes 50% of time.
-- B says Yes 50% of time.
-- Chance they agree on Yes = $0.5 \times 0.5 = 0.25$.
-- Chance they agree on No = $0.25$.
-- $p_e = 0.50$.
-
-$$ \kappa = \frac{0.90 - 0.50}{1 - 0.50} = \frac{0.40}{0.50} = 0.8 $$
-**Interpretation**: 0.8 is "Substantial Agreement".
-
----
-
-# Managing Labeling Teams
-
-**Workflow**:
-1.  **Guidelines**: Write detailed instructions (e.g., "Does a reflection count as a car?").
-2.  **Pilot**: Label 50 items, calculate Kappa. Refine guidelines.
-3.  **Production**: Label large batch.
-4.  **Review**: Spot check 10% of labels.
-
-**Human-in-the-Loop**:
-- Use Model to pre-label (Predictions).
-- Humans verify/correct (faster than starting from scratch).
-
----
-
-# Active Learning: Smart Sampling
-
-**Problem**: Labeling all data is expensive.
-**Solution**: Label only the most informative examples.
-
-**Uncertainty Sampling**:
-```python
-def uncertainty_sampling(model, unlabeled_pool, n=100):
-    """Select examples where model is least confident."""
-    predictions = model.predict_proba(unlabeled_pool)
-
-    # Entropy-based uncertainty
-    entropy = -np.sum(predictions * np.log(predictions + 1e-10), axis=1)
-
-    # Select top-n most uncertain
-    top_indices = np.argsort(entropy)[-n:]
-
-    return unlabeled_pool[top_indices]
+```bash
+# Docker installation
+docker-compose up -d
 ```
 
-**Benefit**: Can achieve 90% accuracy with 20-30% of labeled data.
-
----
-
-# Active Learning Strategies
-
-**1. Uncertainty Sampling**:
-- **Least Confidence**: $1 - P(\hat{y}|x)$
-- **Margin**: $P(y_1|x) - P(y_2|x)$ (difference between top 2)
-- **Entropy**: $-\sum P(y|x) \log P(y|x)$
-
-**2. Query-by-Committee**:
-- Train ensemble of models
-- Select examples with highest disagreement
-
-**3. Expected Model Change**:
-- Select examples that would change model most if labeled
-
-**4. Diversity Sampling**:
-- Ensure selected samples are diverse (avoid redundancy)
-
----
-
-# Active Learning Implementation
-
-```python
-from sklearn.ensemble import RandomForestClassifier
-from scipy.stats import entropy
-
-class ActiveLearner:
-    def __init__(self, model, X_pool, y_pool=None):
-        self.model = model
-        self.X_pool = X_pool
-        self.y_pool = y_pool
-        self.X_labeled = []
-        self.y_labeled = []
-
-    def query(self, n_samples=10, strategy='entropy'):
-        """Query most informative samples."""
-        if strategy == 'entropy':
-            probs = self.model.predict_proba(self.X_pool)
-            scores = entropy(probs.T)
-        elif strategy == 'margin':
-            probs = self.model.predict_proba(self.X_pool)
-            probs_sorted = np.sort(probs, axis=1)
-            scores = probs_sorted[:, -1] - probs_sorted[:, -2]
-
-        # Select top-n uncertain samples
-        query_idx = np.argsort(scores)[-n_samples:]
-        return query_idx
-
-    def teach(self, idx, labels):
-        """Add labeled samples to training set."""
-        self.X_labeled.extend(self.X_pool[idx])
-        self.y_labeled.extend(labels)
-
-        # Remove from pool
-        self.X_pool = np.delete(self.X_pool, idx, axis=0)
-
-        # Retrain model
-        self.model.fit(self.X_labeled, self.y_labeled)
-```
-
----
-
-# Weak Supervision: Programmatic Labeling
-
-**Idea**: Write labeling functions instead of manually labeling.
-
-**Example** (Spam detection):
-```python
-# Labeling Function 1: Check for money mentions
-def lf_contains_money(text):
-    if re.search(r'\$\d+|\bmoney\b', text, re.I):
-        return 1  # SPAM
-    return -1  # NOT_SPAM
-
-# Labeling Function 2: All caps
-def lf_all_caps(text):
-    if text.isupper() and len(text) > 10:
-        return 1  # SPAM
-    return -1  # NOT_SPAM
-
-# Labeling Function 3: Urgency words
-def lf_urgency(text):
-    urgent_words = ['urgent', 'act now', 'limited time']
-    if any(word in text.lower() for word in urgent_words):
-        return 1  # SPAM
-    return -1  # NOT_SPAM
-```
-
-**Combine**: Use majority vote or probabilistic model (Snorkel).
-
----
-
-# Snorkel Framework
-
-**Snorkel**: Framework for weak supervision.
-
-**Workflow**:
-1. Write labeling functions (LFs)
-2. Apply LFs to unlabeled data
-3. Learn generative model to denoise labels
-4. Train final classifier on probabilistic labels
-
-```python
-from snorkel.labeling import labeling_function, PandasLFApplier
-from snorkel.labeling.model import LabelModel
-
-@labeling_function()
-def lf_keyword_spam(x):
-    keywords = ['free', 'win', 'click here']
-    return 1 if any(k in x.text.lower() for k in keywords) else -1
-
-# Apply LFs
-lfs = [lf_keyword_spam, lf_contains_money, lf_urgency]
-applier = PandasLFApplier(lfs=lfs)
-L_train = applier.apply(df_train)
-
-# Train label model (denoising)
-label_model = LabelModel(cardinality=2, verbose=True)
-label_model.fit(L_train, n_epochs=500)
-
-# Get probabilistic labels
-probs = label_model.predict_proba(L_train)
-```
-
----
-
-# Weak Supervision: Benefits and Challenges
-
-**Benefits**:
-- **Scalability**: Label thousands of examples in minutes
-- **Flexibility**: Encode domain knowledge
-- **Iteration**: Easy to update rules vs re-labeling
-- **Cost**: Much cheaper than manual annotation
-
-**Challenges**:
-- **Quality**: LFs may be noisy or conflicting
-- **Coverage**: LFs may abstain on many examples
-- **Bias**: Rules encode human biases
-- **Complexity**: Need to balance precision vs coverage
-
-**When to use**:
-- Limited budget for labeling
-- Domain expertise available (for writing rules)
-- Patterns exist in data (keywords, regex, heuristics)
-
----
-
-# Semi-Supervised Learning
-
-**Setting**: Small labeled set + Large unlabeled set.
-
-**Self-Training**:
-1. Train model on labeled data
-2. Predict on unlabeled data
-3. Add high-confidence predictions to labeled set
-4. Repeat
-
-```python
-def self_training(model, X_labeled, y_labeled, X_unlabeled, threshold=0.9):
-    """Iterative self-training."""
-    for iteration in range(10):
-        # Train on current labeled set
-        model.fit(X_labeled, y_labeled)
-
-        # Predict on unlabeled
-        probs = model.predict_proba(X_unlabeled)
-        max_probs = np.max(probs, axis=1)
-        preds = np.argmax(probs, axis=1)
-
-        # Select high-confidence predictions
-        confident_idx = max_probs > threshold
-
-        if confident_idx.sum() == 0:
-            break  # No more confident predictions
-
-        # Add to labeled set
-        X_labeled = np.vstack([X_labeled, X_unlabeled[confident_idx]])
-        y_labeled = np.hstack([y_labeled, preds[confident_idx]])
-
-        # Remove from unlabeled
-        X_unlabeled = X_unlabeled[~confident_idx]
-
-        print(f"Iteration {iteration}: Added {confident_idx.sum()} samples")
-
-    return model
-```
-
----
-
-# Co-Training: Multi-View Learning
-
-**Idea**: Use different views of same data.
-
-**Example** (Web page classification):
-- View 1: Page text
-- View 2: Anchor text from links to page
-
-**Algorithm**:
-1. Train classifier on each view independently
-2. Each classifier labels unlabeled data
-3. Add high-confidence predictions from one view to other view's training set
-
-```python
-def co_training(X1, X2, y, X1_unlabeled, X2_unlabeled, n_iter=10):
-    """Co-training with two views."""
-    model1 = RandomForestClassifier()
-    model2 = RandomForestClassifier()
-
-    for i in range(n_iter):
-        # Train on labeled data
-        model1.fit(X1, y)
-        model2.fit(X2, y)
-
-        # Predict on unlabeled
-        probs1 = model1.predict_proba(X1_unlabeled)
-        probs2 = model2.predict_proba(X2_unlabeled)
-
-        # Select top-k confident from each
-        k = 10
-        conf1_idx = np.argsort(np.max(probs1, axis=1))[-k:]
-        conf2_idx = np.argsort(np.max(probs2, axis=1))[-k:]
-
-        # Add to labeled set (cross-teach)
-        X1 = np.vstack([X1, X1_unlabeled[conf2_idx]])
-        X2 = np.vstack([X2, X2_unlabeled[conf1_idx]])
-        y = np.hstack([y, np.argmax(probs2[conf2_idx], axis=1)])
-
-    return model1, model2
-```
+**Best for**: Video object tracking, autonomous driving datasets
 
 ---
 
 # Crowdsourcing Platforms
 
-**Major Platforms**:
+| Platform | Cost | Quality | Best For |
+|----------|------|---------|----------|
+| Amazon MTurk | $0.01-0.10/task | Variable | Simple tasks |
+| Scale AI | $1-5/task | High | Complex CV |
+| Labelbox | Subscription | Med-High | Enterprise |
+| Prolific | $0.10-0.50/task | Higher | Research |
+| Appen | Variable | Medium | Multilingual |
 
-| Platform | Use Case | Cost | Quality |
-| :--- | :--- | :---: | :---: |
-| **Amazon MTurk** | Generic tasks | Low | Variable |
-| **Scale AI** | High-quality CV/NLP | High | High |
-| **Labelbox** | Enterprise labeling | Medium | Medium-High |
-| **Hive** | Image/video annotation | Medium | High |
-| **Appen** | Multilingual, global | Medium | Medium |
-
-**Key Considerations**:
-- **Task complexity**: Simple (MTurk) vs Expert (Scale AI)
-- **Quality control**: Gold standard questions, redundancy
-- **Pricing**: Per-task vs per-hour vs subscription
-- **Turnaround time**: Hours (MTurk) vs days (Scale AI)
+**Key Insight**: You get what you pay for.
 
 ---
 
-# Crowdsourcing: Quality Control
+# Tool Selection Guide
 
-**Challenge**: Workers may be inattentive or malicious.
+| Use Case | Recommended Tool |
+|----------|------------------|
+| Prototyping / Learning | Label Studio |
+| Video / Tracking | CVAT |
+| NLP / Text Focus | Prodigy or Doccano |
+| Enterprise Scale | Labelbox |
+| Full-Service | Scale AI |
+| Research Crowdsourcing | Prolific |
+| Budget Crowdsourcing | Amazon MTurk |
 
-**Solutions**:
+**Start with Label Studio (free), scale up as needed.**
 
-**1. Gold Standard Questions** (Test questions):
-```python
-# Mix 10% gold questions into tasks
-gold_questions = [
-    {"text": "The sky is blue", "label": "POSITIVE"},  # Known
-]
+---
 
-# Check worker accuracy on gold questions
-if worker_accuracy < 0.8:
-    reject_worker()
+<!-- _class: lead -->
+
+# Part 5: Label Quality & IAA
+
+*How do we know labels are correct?*
+
+---
+
+# The Quality Problem
+
+**Labels are created by humans. Humans make mistakes.**
+
+```
+Annotator 1: "This movie was okay" -> POSITIVE
+Annotator 2: "This movie was okay" -> NEUTRAL
+Annotator 3: "This movie was okay" -> NEGATIVE
 ```
 
-**2. Redundancy** (Multiple workers per item):
-- Assign same task to 3-5 workers
-- Use majority vote or probabilistic model
+**Who is right?**
 
-**3. Worker Reputation**:
-- Track accuracy over time
-- Weight votes by reputation
-
-**4. Attention Checks**:
-- "Please select 'Strongly Agree' for this question"
+We need a way to measure agreement and quality.
 
 ---
 
-# Advanced IAA: Fleiss' Kappa
+# Types of Agreement Metrics
 
-**Fleiss' Kappa**: Extends Cohen's Kappa to >2 annotators.
+| Data Type | Metrics |
+|-----------|---------|
+| **Categorical** | Percent Agreement, Cohen's Kappa (2 raters), Fleiss' Kappa (3+ raters), Krippendorff's Alpha |
+| **Continuous/Ordinal** | Pearson Correlation, Spearman Correlation, Intraclass Correlation |
+| **Spatial (Images)** | IoU (Intersection over Union), Dice Coefficient |
 
-**Formula**:
-$$ \kappa = \frac{\bar{P} - \bar{P}_e}{1 - \bar{P}_e} $$
+**Choose metric based on your data type and number of annotators!**
 
-Where:
-- $\bar{P}$: Overall agreement
-- $\bar{P}_e$: Expected agreement by chance
+---
 
-**Implementation**:
+# Percent Agreement: The Naive Approach
+
+```python
+agreed = sum(ann1 == ann2 for ann1, ann2 in zip(labels1, labels2))
+agreement = agreed / total_items
+```
+
+**Problem**: Doesn't account for chance!
+
+**Example**:
+- Binary task (Yes/No)
+- Both annotators guess randomly
+- Expected agreement by chance: 50%
+- 60% agreement sounds okay, but it's barely better than random!
+
+---
+
+# Cohen's Kappa
+
+**Accounts for chance agreement**
+
+```
+         observed_agreement - chance_agreement
+kappa = ────────────────────────────────────────
+              1 - chance_agreement
+```
+
+**In notation**:
+```
+     P_observed - P_expected
+k = ─────────────────────────
+        1 - P_expected
+```
+
+---
+
+# Cohen's Kappa: Python
+
+```python
+from sklearn.metrics import cohen_kappa_score
+
+annotator1 = ['pos', 'neg', 'pos', 'pos', 'neg', 'pos', 'neg', 'neg']
+annotator2 = ['pos', 'neg', 'neg', 'pos', 'neg', 'pos', 'neg', 'pos']
+
+kappa = cohen_kappa_score(annotator1, annotator2)
+print(f"Cohen's Kappa: {kappa:.2f}")  # 0.50
+```
+
+---
+
+# Kappa Interpretation
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                    KAPPA INTERPRETATION                           │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│   Kappa Value     Agreement Level      Action                     │
+│   -----------     ---------------      ------                     │
+│   < 0.00          Poor                 Redesign task              │
+│   0.00 - 0.20     Slight               Major guideline revision   │
+│   0.21 - 0.40     Fair                 Significant revision       │
+│   0.41 - 0.60     Moderate             Minor revision             │
+│   0.61 - 0.80     Substantial          Guidelines working         │
+│   0.81 - 1.00     Almost Perfect       Excellent!                 │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**Target**: kappa >= 0.8 for most production tasks
+
+**If kappa < 0.6**: Improve your guidelines before proceeding!
+
+---
+
+# Kappa Example: Step by Step
+
+**Scenario**: 2 annotators label 100 items (Spam / Not Spam)
+
+```
+                    Annotator B
+                    Spam    Not Spam    Total
+Annotator A  Spam    45        5         50
+             Not     5        45         50
+             Total   50       50        100
+```
+
+**Step 1**: Observed Agreement
+```
+P_o = (45 + 45) / 100 = 0.90
+```
+
+---
+
+# Kappa Example: Step by Step (cont.)
+
+**Step 2**: Expected Agreement by Chance
+```
+P(A says Spam) = 50/100 = 0.5
+P(B says Spam) = 50/100 = 0.5
+
+P(both say Spam by chance) = 0.5 * 0.5 = 0.25
+P(both say Not Spam by chance) = 0.5 * 0.5 = 0.25
+
+P_e = 0.25 + 0.25 = 0.50
+```
+
+**Step 3**: Calculate Kappa
+```
+      P_o - P_e     0.90 - 0.50
+k = ─────────── = ───────────── = 0.80
+      1 - P_e       1 - 0.50
+```
+
+**Result**: Substantial agreement!
+
+---
+
+# Fleiss' Kappa: Multiple Annotators
+
+**When you have more than 2 annotators:**
+
 ```python
 from statsmodels.stats.inter_rater import fleiss_kappa
+import numpy as np
 
 # Data format: (n_items, n_categories)
-# Each row: counts of categories for an item
+# Each cell = count of annotators who chose that category
 data = np.array([
-    [0, 0, 3],  # Item 1: 3 annotators chose category 2
+    [3, 0, 0],  # Item 1: all 3 chose category 0
     [1, 2, 0],  # Item 2: 1 chose cat 0, 2 chose cat 1
-    [2, 1, 0],
+    [0, 1, 2],  # Item 3: 1 chose cat 1, 2 chose cat 2
 ])
 
-kappa = fleiss_kappa(data)
-print(f"Fleiss' Kappa: {kappa:.3f}")
+print(f"Fleiss' Kappa: {fleiss_kappa(data):.3f}")
 ```
-
-**Interpretation**:
-- < 0: Poor agreement
-- 0.0-0.20: Slight
-- 0.21-0.40: Fair
-- 0.41-0.60: Moderate
-- 0.61-0.80: Substantial
-- 0.81-1.00: Almost perfect
 
 ---
 
-# Krippendorff's Alpha
+# IoU for Spatial Annotations
 
-**Most general IAA metric**:
-- Works with any number of annotators
-- Handles missing data
-- Works with different data types (nominal, ordinal, interval, ratio)
+**For bounding boxes and segmentation:**
 
-**Formula**:
-$$ \alpha = 1 - \frac{D_o}{D_e} $$
+```
+                 Area of Overlap
+IoU = ─────────────────────────────────
+       Area of Union (both boxes)
 
-Where:
-- $D_o$: Observed disagreement
-- $D_e$: Expected disagreement by chance
+      ┌─────────────┐
+      │    ┌────────┼───────┐
+      │    │////////│       │
+      │    │//Ovrlp/│       │
+      └────┼────────┘       │
+           │                │
+           └────────────────┘
+
+IoU = Overlap / (Box1 + Box2 - Overlap)
+```
+
+**IoU > 0.5**: Generally considered a match
+**IoU > 0.7**: Good agreement for detection tasks
+
+---
+
+# IoU: Python Implementation
 
 ```python
-import krippendorff
+def calculate_iou(box1, box2):
+    """Calculate IoU between two boxes [x1, y1, x2, y2]."""
+    # Intersection coordinates
+    x1, y1 = max(box1[0], box2[0]), max(box1[1], box2[1])
+    x2, y2 = min(box1[2], box2[2]), min(box1[3], box2[3])
 
-# Data format: (n_annotators, n_items)
-reliability_data = [
-    [1, 2, 3, 1, 2],  # Annotator 1
-    [1, 2, 3, 1, 3],  # Annotator 2
-    [None, 2, 3, 1, 2],  # Annotator 3 (missing value)
+    if x2 < x1 or y2 < y1:
+        return 0.0  # No overlap
+
+    intersection = (x2 - x1) * (y2 - y1)
+    area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+
+    return intersection / (area1 + area2 - intersection)
+```
+
+---
+
+# IoU: Usage Example
+
+```python
+box1 = [100, 100, 200, 200]  # Ground truth
+box2 = [150, 150, 250, 250]  # Prediction
+
+iou = calculate_iou(box1, box2)
+print(f"IoU: {iou:.2f}")  # 0.14
+
+# Thresholds
+if iou > 0.7:
+    print("Good match!")
+elif iou > 0.5:
+    print("Acceptable match")
+else:
+    print("Poor match - boxes don't align well")
+```
+
+---
+
+# Typical IAA by Task Type
+
+| Task | Metric | Typical Good IAA |
+|------|--------|------------------|
+| Text Classification | Cohen's Kappa | > 0.8 |
+| Sentiment Analysis | Cohen's Kappa | > 0.7 |
+| NER | Span F1 | > 0.85 |
+| Object Detection | Mean IoU | > 0.7 |
+| Segmentation | Mean IoU | > 0.8 |
+| Transcription | WER < 5% | Between annotators |
+| Emotion Recognition | Cohen's Kappa | > 0.6 (subjective) |
+
+---
+
+<!-- _class: lead -->
+
+# Part 6: Quality Control
+
+*Ensuring consistent, accurate labels*
+
+---
+
+# The Quality Control Framework
+
+| Pillar | Description |
+|--------|-------------|
+| **1. GUIDELINES** | Clear, detailed annotation instructions |
+| **2. TRAINING** | Calibration sessions with annotators |
+| **3. GOLD STANDARD** | Known-correct examples for testing |
+| **4. REDUNDANCY** | Multiple annotators per item |
+| **5. MONITORING** | Ongoing IAA and accuracy tracking |
+| **6. ADJUDICATION** | Expert resolution of disagreements |
+
+**All six pillars work together for quality labels!**
+
+---
+
+# 1. Guidelines: The Foundation
+
+**Good guidelines include:**
+
+**Clear Definitions**:
+```markdown
+SPAM: Unsolicited commercial email sent in bulk.
+NOT SPAM: Personal email, newsletters you subscribed to.
+```
+
+**Positive and Negative Examples**:
+```markdown
+SPAM examples:
+  - "Buy cheap meds now! Click here!"
+  - "You've won $1,000,000!"
+
+NOT SPAM examples:
+  - "Meeting tomorrow at 3pm"
+  - "Your order has shipped"
+```
+
+---
+
+# Guidelines: Edge Cases
+
+**The real value is in edge cases:**
+
+```markdown
+## Edge Cases
+
+Q: Promotional email from a store I bought from?
+A: NOT SPAM (established commercial relationship)
+
+Q: Newsletter I don't remember subscribing to?
+A: NOT SPAM if it has unsubscribe link, SPAM otherwise
+
+Q: Email from unknown sender asking for information?
+A: SPAM (even if not selling anything - potential phishing)
+```
+
+---
+
+# Guidelines: Decision Trees
+
+```
+Is the email from a known sender?
+├── Yes: Is the content relevant?
+│   ├── Yes: NOT SPAM
+│   └── No: Does it have unsubscribe link?
+│       ├── Yes: NOT SPAM (newsletter)
+│       └── No: SPAM
+└── No: Does it ask for money or personal info?
+    ├── Yes: SPAM
+    └── No: Is it selling something?
+        ├── Yes: SPAM
+        └── No: Probably NOT SPAM (review manually)
+```
+
+**Decision trees reduce annotator uncertainty.**
+
+---
+
+# 2. Training: Calibration Sessions
+
+**Before Production Labeling:**
+
+1. **Study guidelines** - All annotators read same document
+2. **Practice round** - Label 20-50 items independently
+3. **Group discussion** - Review disagreements together
+4. **Update guidelines** - Add clarifications based on discussion
+5. **Second practice** - Label another 20-50 items
+6. **Measure IAA** - Must reach threshold before production
+
+```python
+# Target: Kappa > 0.8 before production
+if kappa < 0.8:
+    print("Need more calibration!")
+    revise_guidelines()
+    run_another_practice_round()
+```
+
+---
+
+# 3. Gold Standard Questions
+
+**Mix known-correct items into the task:**
+
+```python
+# Create gold standard set (obvious examples)
+gold_items = [
+    {"text": "FREE MONEY CLICK NOW!!!", "label": "SPAM"},
+    {"text": "Meeting at 3pm tomorrow", "label": "NOT_SPAM"},
+    {"text": "Your Amazon order shipped", "label": "NOT_SPAM"},
 ]
 
-alpha = krippendorff.alpha(
-    reliability_data=reliability_data,
-    level_of_measurement='nominal'
-)
-print(f"Krippendorff's Alpha: {alpha:.3f}")
-```
-
-**Advantage**: Handles complex annotation scenarios better than Cohen's or Fleiss'.
-
----
-
-# Labeling Bias: Types and Impact
-
-**Types of Bias**:
-
-**1. Selection Bias**:
-- Annotators label non-representative subset
-- Example: Only labeling easy cases
-
-**2. Confirmation Bias**:
-- Annotators favor pre-existing beliefs
-- Example: Political bias in sentiment labeling
-
-**3. Anchoring Bias**:
-- First label influences subsequent labels
-- Example: Seeing "spam" first makes next emails look more like spam
-
-**4. Fatigue**:
-- Quality degrades over long sessions
-- Solution: Limit session length, insert breaks
-
-**5. Label Leakage**:
-- Annotators see previous labels or model predictions
-- Can lead to confirmation of errors
-
----
-
-# Mitigating Labeling Bias
-
-**Strategies**:
-
-**1. Blind Annotation**:
-```python
-# Don't show annotators previous labels or predictions
-# Randomize order to prevent patterns
-def randomize_annotation_order(tasks):
-    return random.sample(tasks, len(tasks))
-```
-
-**2. Calibration Sessions**:
-- Train annotators together
-- Discuss edge cases and establish consensus
-
-**3. Regular Audits**:
-```python
-def audit_annotator_quality(annotations, gold_standard):
-    """Track annotator drift over time."""
-    accuracy_over_time = []
-
-    for batch in annotations.groupby('batch_id'):
-        acc = (batch['label'] == gold_standard[batch.index]).mean()
-        accuracy_over_time.append(acc)
-
-    # Alert if accuracy drops
-    if accuracy_over_time[-1] < 0.85:
-        print("⚠️ Annotator quality degrading")
-
-    return accuracy_over_time
-```
-
-**4. Diverse Annotator Pool**:
-- Multiple backgrounds reduce systematic bias
-
----
-
-# Label Noise: Detection and Handling
-
-**Sources of Noise**:
-- Genuine ambiguity in data
-- Annotator mistakes
-- Poorly defined guidelines
-
-**Confident Learning** (cleanlab):
-```python
-from cleanlab.classification import CleanLearning
-
-# Wrap any sklearn classifier
-cl = CleanLearning(RandomForestClassifier())
-
-# Automatically identify and remove noisy labels
-cl.fit(X_train, y_train)
-
-# Get indices of likely label errors
-label_errors = cl.get_label_issues()
-
-print(f"Found {len(label_errors)} potential label errors")
-
-# Train on cleaned data
-X_clean = X_train[~label_errors]
-y_clean = y_train[~label_errors]
-```
-
-**Theory**: Uses predicted probabilities to find labels that don't match model's confidence.
-
----
-
-# Consensus Mechanisms: Dawid-Skene Model
-
-**Problem**: Annotators have different error rates.
-
-**Dawid-Skene Model**:
-- Probabilistic model for aggregating labels
-- Learns confusion matrix per annotator
-- Estimates true labels given noisy annotations
-
-```python
-from crowdkit.aggregation import DawidSkene
-
-# Data format: DataFrame with columns ['task', 'worker', 'label']
-annotations = pd.DataFrame([
-    {'task': 1, 'worker': 'A', 'label': 'spam'},
-    {'task': 1, 'worker': 'B', 'label': 'spam'},
-    {'task': 1, 'worker': 'C', 'label': 'not_spam'},
-    {'task': 2, 'worker': 'A', 'label': 'spam'},
-    {'task': 2, 'worker': 'B', 'label': 'not_spam'},
-])
-
-ds = DawidSkene(n_iter=100)
-aggregated_labels = ds.fit_predict(annotations)
-
-print(aggregated_labels)
-# Output: Probabilistic consensus labels
-```
-
-**Better than majority vote**: Weighs reliable annotators more.
-
----
-
-# Cost-Quality Tradeoffs
-
-**Annotation Budget**: $B$ dollars
-
-**Decision Variables**:
-- $n$: Number of samples to label
-- $k$: Annotators per sample
-- $c$: Cost per annotation
-
-**Constraint**: $n \times k \times c \leq B$
-
-**Quality vs Quantity**:
-- **High $n$, low $k$**: More data, less reliable
-- **Low $n$, high $k$**: Less data, more reliable
-
-**Optimal strategy depends on task**:
-```python
-def optimize_annotation_budget(budget, cost_per_annotation, target_accuracy):
-    """Find optimal n and k."""
-    best_config = None
-    best_score = 0
-
-    for k in range(1, 10):  # Annotators per sample
-        n = budget // (k * cost_per_annotation)  # Samples
-
-        # Estimated quality (simplified)
-        quality = 1 - (0.3 ** k)  # More annotators = higher quality
-
-        # Combined score (quality * quantity)
-        score = quality * n
-
-        if score > best_score and quality >= target_accuracy:
-            best_score = score
-            best_config = {'n': n, 'k': k, 'quality': quality}
-
-    return best_config
+# Mix 10% gold items into annotation queue
+all_items = real_items + random.sample(gold_items, k=n//10)
+random.shuffle(all_items)
 ```
 
 ---
 
-# Annotation Guidelines: Best Practices
+# Gold Standard: Monitoring Accuracy
 
-**Key Elements**:
+```python
+def evaluate_annotator(annotations, gold_answers):
+    correct = sum(a == g for a, g in zip(annotations, gold_answers))
+    return correct / len(gold_answers)
 
-**1. Clear Definitions**:
-```markdown
-# Spam Classification Guidelines
+# Check annotator performance on gold items
+accuracy = evaluate_annotator(annotator_labels, gold_labels)
 
-## Definition
-Spam: Unsolicited commercial email sent in bulk.
-
-## Examples
-✅ Spam: "Buy cheap meds now! Click here!"
-❌ Not Spam: Newsletter you subscribed to
-⚠️ Edge case: Promotional email from company you bought from
+if accuracy < 0.9:
+    flag_annotator_for_review()
+    print(f"Annotator accuracy: {accuracy:.0%} - needs retraining")
 ```
 
-**2. Decision Trees**:
-```
-Is email from known sender?
-├─ Yes: Is content relevant?
-│  ├─ Yes: NOT SPAM
-│  └─ No: Check if unsubscribe link present
-│     ├─ Yes: NOT SPAM
-│     └─ No: SPAM
-└─ No: Does it offer products/services?
-   ├─ Yes: SPAM
-   └─ No: Check for phishing...
-```
-
-**3. Visual Examples** (for image tasks)
-
-**4. FAQ Section** (address common confusions)
+**Target: >90% accuracy on gold questions**
 
 ---
 
-# Measuring Annotation Productivity
+# 4. Redundancy
 
-**Metrics**:
-
-**1. Throughput**:
-```python
-throughput = annotations_completed / time_spent_hours
-# Target: 50-100 simple labels/hour
-```
-
-**2. Learning Curve**:
-```python
-def plot_learning_curve(annotations_df):
-    """Plot annotator speed over time."""
-    annotations_df['time_per_label'] = (
-        annotations_df.groupby('annotator')['timestamp']
-        .diff()
-        .dt.total_seconds()
-    )
-
-    # Group by batch
-    avg_time = annotations_df.groupby('batch_id')['time_per_label'].mean()
-
-    plt.plot(avg_time.index, avg_time.values)
-    plt.xlabel('Batch Number')
-    plt.ylabel('Avg Time per Label (seconds)')
-    plt.title('Annotation Speed Over Time')
-```
-
-**3. Quality-Adjusted Productivity**:
-$$ \text{QAP} = \frac{\text{Throughput} \times \text{Accuracy}}{1} $$
-
----
-
-# Data Programming: Advanced Patterns
-
-**Labeling Function Patterns**:
-
-**1. Pattern Matching**:
-```python
-@labeling_function()
-def lf_regex_email(x):
-    """Detect emails in text."""
-    pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-    return 1 if re.search(pattern, x.text) else -1
-```
-
-**2. External Knowledge**:
-```python
-from nltk.corpus import wordnet
-
-@labeling_function()
-def lf_wordnet_positive(x):
-    """Use WordNet to detect positive sentiment."""
-    positive_words = set(['good', 'great', 'excellent', 'amazing'])
-    words = x.text.lower().split()
-
-    if any(w in positive_words for w in words):
-        return 1  # POSITIVE
-    return -1  # NEGATIVE
-```
-
-**3. Third-Party Models**:
-```python
-from textblob import TextBlob
-
-@labeling_function()
-def lf_textblob_polarity(x):
-    """Use TextBlob for sentiment."""
-    polarity = TextBlob(x.text).sentiment.polarity
-    if polarity > 0.1:
-        return 1  # POSITIVE
-    elif polarity < -0.1:
-        return 0  # NEGATIVE
-    return -1  # ABSTAIN
-```
-
----
-
-# Few-Shot Learning for Labeling
-
-**Goal**: Train model with very few examples (5-10 per class).
-
-**Meta-Learning Approach**:
-```python
-from sentence_transformers import SentenceTransformer
-
-# Few-shot classifier using embeddings
-class FewShotClassifier:
-    def __init__(self, model_name='all-MiniLM-L6-v2'):
-        self.model = SentenceTransformer(model_name)
-        self.support_embeddings = None
-        self.support_labels = None
-
-    def fit(self, support_texts, support_labels):
-        """Train on few examples."""
-        self.support_embeddings = self.model.encode(support_texts)
-        self.support_labels = np.array(support_labels)
-
-    def predict(self, query_texts, k=3):
-        """Predict using k-nearest neighbors."""
-        query_embeddings = self.model.encode(query_texts)
-
-        predictions = []
-        for query_emb in query_embeddings:
-            # Compute cosine similarity
-            similarities = np.dot(self.support_embeddings, query_emb) / (
-                np.linalg.norm(self.support_embeddings, axis=1) *
-                np.linalg.norm(query_emb)
-            )
-
-            # Get top-k neighbors
-            top_k_idx = np.argsort(similarities)[-k:]
-            top_k_labels = self.support_labels[top_k_idx]
-
-            # Majority vote
-            pred = np.bincount(top_k_labels).argmax()
-            predictions.append(pred)
-
-        return np.array(predictions)
-```
-
----
-
-# Prompt-Based Labeling with LLMs
-
-**Modern Approach**: Use GPT-4 or Claude for labeling.
+**Multiple annotators per item:**
 
 ```python
-import anthropic
-
-def llm_label(text, task_description, examples):
-    """Use LLM for zero/few-shot labeling."""
-    client = anthropic.Anthropic()
-
-    prompt = f"""Task: {task_description}
-
-Examples:
-{examples}
-
-Now classify this text:
-Text: {text}
-
-Classification:"""
-
-    message = client.messages.create(
-        model="claude-3-5-sonnet-20241022",
-        max_tokens=10,
-        messages=[{"role": "user", "content": prompt}]
-    )
-
-    return message.content[0].text.strip()
-
-# Example usage
-task = "Classify sentiment as POSITIVE or NEGATIVE"
-examples = """
-Text: "I love this product!" → POSITIVE
-Text: "Terrible experience." → NEGATIVE
-"""
-
-label = llm_label("The service was amazing!", task, examples)
-print(label)  # Output: POSITIVE
-```
-
-**Cost-Quality Analysis**: LLM labeling at $0.01/label vs human at $0.10/label.
-
----
-
-# Synthetic Data Generation
-
-**Goal**: Generate labeled data programmatically.
-
-**Text Augmentation**:
-```python
-import nlpaug.augmenter.word as naw
-
-# Synonym replacement
-aug_synonym = naw.SynonymAug(aug_src='wordnet')
-text = "The movie was great"
-augmented = aug_synonym.augment(text)
-# Output: "The film was excellent"
-
-# Back-translation
-from googletrans import Translator
-translator = Translator()
-
-def back_translate(text, intermediate_lang='fr'):
-    """Translate to intermediate language and back."""
-    # English -> French
-    translated = translator.translate(text, dest=intermediate_lang).text
-    # French -> English
-    back = translator.translate(translated, dest='en').text
-    return back
-
-augmented = back_translate("The movie was great")
-# Output: "The film was great" (slightly different)
-```
-
-**Image Augmentation**: Rotation, flip, crop, color jitter.
-
----
-
-# Transfer Learning to Reduce Labeling
-
-**Pre-trained Models**: Already learned general features.
-
-**Fine-tuning Strategy**:
-```python
-from transformers import AutoModelForSequenceClassification, Trainer
-
-# Load pre-trained model
-model = AutoModelForSequenceClassification.from_pretrained(
-    'distilbert-base-uncased',
-    num_labels=2
-)
-
-# Fine-tune on small labeled set (100-1000 examples)
-trainer = Trainer(
-    model=model,
-    train_dataset=small_labeled_dataset,
-    eval_dataset=validation_dataset,
-)
-
-trainer.train()
-```
-
-**Effectiveness**:
-- Pre-trained on 100M examples
-- Fine-tune on 1K examples
-- Achieve 95% accuracy (vs 70% training from scratch)
-
-**Reduces labeling needs by 10-100x**.
-
----
-
-# Annotation Tools Comparison
-
-| Tool | Type | Strengths | Weaknesses | Cost |
-| :--- | :--- | :--- | :--- | :---: |
-| **Label Studio** | Open-source | Flexible, customizable | Setup required | Free |
-| **CVAT** | Open-source | Video annotation, tracking | CV-focused only | Free |
-| **Labelbox** | Commercial | Enterprise features, QC | Expensive | $$$ |
-| **V7** | Commercial | Auto-annotation, versioning | Learning curve | $$$ |
-| **Prodigy** | Commercial | Active learning built-in | License per user | $$ |
-| **Scale AI** | Service | Full-service labeling | Least control | $$$$ |
-
-**Recommendation**:
-- **Prototyping**: Label Studio
-- **Production CV**: CVAT or Labelbox
-- **Production NLP**: Prodigy or Label Studio
-- **Outsourcing**: Scale AI
-
----
-
-# Multi-Task Annotation
-
-**Scenario**: Annotate multiple attributes simultaneously.
-
-**Example** (Product reviews):
-```json
-{
-  "text": "Great phone but battery life is poor",
-  "annotations": {
-    "overall_sentiment": "MIXED",
-    "aspects": [
-      {"aspect": "phone", "sentiment": "POSITIVE"},
-      {"aspect": "battery", "sentiment": "NEGATIVE"}
-    ],
-    "rating": 3,
-    "would_recommend": false
-  }
+# Assign each item to 3 annotators
+annotations = {
+    "item_1": ["SPAM", "SPAM", "NOT_SPAM"],
+    "item_2": ["NOT_SPAM", "NOT_SPAM", "NOT_SPAM"],
+    "item_3": ["SPAM", "NOT_SPAM", "SPAM"],
 }
+
+# Majority vote aggregation
+def majority_vote(labels):
+    return max(set(labels), key=labels.count)
+
+final_labels = {item: majority_vote(lbls) for item, lbls in annotations.items()}
 ```
-
-**Benefits**:
-- More efficient than separate tasks
-- Captures relationships between attributes
-
-**Challenge**: More complex guidelines, higher cognitive load.
 
 ---
 
-# Handling Edge Cases and Ambiguity
-
-**Define Ambiguity Threshold**:
-```python
-# In annotation interface, allow "UNCERTAIN" label
-labels = ["POSITIVE", "NEGATIVE", "NEUTRAL", "UNCERTAIN"]
-
-# Later, handle uncertain labels
-def resolve_uncertain_labels(annotations):
-    """Send uncertain cases to expert annotators."""
-    uncertain = annotations[annotations['label'] == 'UNCERTAIN']
-
-    # Send to expert pool
-    expert_annotations = expert_annotate(uncertain)
-
-    # Merge back
-    annotations.loc[uncertain.index, 'label'] = expert_annotations
-
-    return annotations
-```
-
-**Escalation Protocol**:
-1. Regular annotators handle clear cases
-2. Flag ambiguous cases
-3. Senior annotators resolve flags
-4. Update guidelines based on patterns
-
----
-
-# Annotation Audit Trails
-
-**Track Everything**:
-```python
-annotation_log = {
-    "id": "ann_12345",
-    "task_id": "task_789",
-    "annotator_id": "user_42",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "label": "SPAM",
-    "confidence": 0.9,  # Annotator confidence
-    "time_spent_seconds": 12,
-    "annotations_history": [  # If label was changed
-        {"timestamp": "2024-01-15T10:29:50Z", "label": "NOT_SPAM"},
-        {"timestamp": "2024-01-15T10:30:00Z", "label": "SPAM"}
-    ],
-    "notes": "Unclear sender but obvious commercial intent"
-}
-```
-
-**Benefits**:
-- Debug quality issues
-- Measure annotator performance
-- Reproducibility
-
----
-
-# Label Taxonomy Design
-
-**Hierarchical Labels**:
-```
-Product Review
-├── Electronics
-│   ├── Smartphones
-│   │   ├── Android
-│   │   └── iOS
-│   └── Laptops
-│       ├── Gaming
-│       └── Business
-└── Clothing
-    ├── Men's
-    └── Women's
-```
-
-**Considerations**:
-- **Depth**: Too many levels = confusion
-- **Balance**: Similar number of examples per category
-- **Mutual Exclusivity**: Clear boundaries
+# Redundancy: Handling Disagreements
 
 ```python
-# Hierarchical labeling
-def hierarchical_label(text, taxonomy):
-    """Multi-level classification."""
-    labels = {}
+# Flag items with low agreement for expert review
+for item, labels in annotations.items():
+    if len(set(labels)) > 1:  # Any disagreement
+        send_to_expert(item)
 
-    # Level 1: Electronics vs Clothing
-    labels['category'] = classify(text, ['Electronics', 'Clothing'])
+# Example output
+# item_1: 2/3 agree -> majority vote = SPAM
+# item_2: 3/3 agree -> unanimous = NOT_SPAM
+# item_3: 2/3 agree -> majority vote = SPAM (flagged for review)
+```
 
-    # Level 2: Subcategory
-    if labels['category'] == 'Electronics':
-        labels['subcategory'] = classify(text, ['Smartphones', 'Laptops'])
+**Typical redundancy**: 2-5 annotators per item
 
-    return labels
+---
+
+# 5. Monitoring: Track Quality Over Time
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  ANNOTATOR QUALITY DASHBOARD                                      │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  Annotator    Gold Acc.   IAA     Speed     Status                │
+│  ---------    ---------   ---     -----     ------                │
+│  Alice        95%         0.85    120/hr    Good                  │
+│  Bob          92%         0.82    145/hr    Good                  │
+│  Charlie      78%         0.65    180/hr    REVIEW NEEDED         │
+│  Diana        89%         0.78    100/hr    OK                    │
+│                                                                   │
+│  Overall IAA: 0.81 (Substantial)                                  │
+│  Items completed: 4,523 / 10,000                                  │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Domain Adaptation for Labeling
+# 6. Adjudication
 
-**Problem**: Labels from one domain don't transfer well.
+**When annotators disagree, who decides?**
 
-**Example**: Sentiment in product reviews vs movie reviews.
+**Option 1: Majority Vote**
+```python
+labels = ["spam", "spam", "not_spam"]
+final = max(set(labels), key=labels.count)  # "spam"
+```
 
-**Solution**: Active learning + Transfer learning.
+**Option 2: Expert Adjudication**
+```python
+if len(set(labels)) > 1:  # Disagreement
+    final = expert_decides(item, labels)
+```
+
+**Option 3: Weighted Vote**
+```python
+# Weight by annotator historical accuracy
+weights = [0.95, 0.88, 0.75]  # Alice, Bob, Charlie
+final = weighted_vote(labels, weights)
+```
+
+---
+
+# The Quality Control Workflow
+
+**1. PILOT (50-100 items)**
+- Multiple annotators label same items
+- Calculate IAA (target: kappa > 0.8)
+- Discuss disagreements, refine guidelines
+
+**2. PRODUCTION**
+- Label large batch
+- 10-20% overlap for ongoing IAA
+- Gold standard checks (10% of items)
+
+**3. REVIEW**
+- Spot check 5-10% of labels
+- Identify problematic annotators
+- Expert adjudication for disagreements
+
+**Iterate until quality targets are met!**
+
+---
+
+<!-- _class: lead -->
+
+# Part 7: Cost Estimation
+
+*Planning your annotation budget*
+
+---
+
+# Cost Factors
+
+| Factor | Low Cost | High Cost |
+|--------|----------|-----------|
+| **Task Complexity** | Classification: $0.01-0.05/item | Segmentation: $1-5/item |
+| **Quality** | Single annotator: 1x | 3x redundancy: 3x |
+| **Domain** | General: $10-20/hr | Expert: $50-200/hr |
+| **Platform** | MTurk: variable | Scale AI: premium |
+
+**Key insight: Cost = Complexity x Redundancy x Expertise**
+
+---
+
+# Cost Example: Image Object Detection
+
+**Project**: Label 10,000 images with bounding boxes (5 objects/image)
+
+**Scenario 1: In-house team**
+```python
+images = 10000
+time_per_image = 3  # minutes
+hourly_rate = 25    # USD
+
+total_hours = (images * time_per_image) / 60  # 500 hours
+total_cost = total_hours * hourly_rate        # $12,500
+```
+
+**Scenario 2: Crowdsourcing (MTurk)**
+```python
+cost_per_image = 0.30    # USD
+redundancy = 3           # annotators per image
+
+total_cost = images * cost_per_image * redundancy  # $9,000
+```
+
+---
+
+# Cost Example (continued)
+
+**Scenario 3: Professional service (Scale AI)**
+```python
+cost_per_image = 1.50    # USD (high quality)
+redundancy = 1           # They handle QC internally
+
+total_cost = images * cost_per_image  # $15,000
+```
+
+**Trade-off Summary**:
+| Approach | Cost | Quality | Speed |
+|----------|------|---------|-------|
+| In-house | $12,500 | High (control) | Slow |
+| MTurk | $9,000 | Variable | Fast |
+| Scale AI | $15,000 | High (guaranteed) | Medium |
+
+---
+
+# Budget Planning Formula
 
 ```python
-# Train on source domain (movie reviews)
-model.fit(X_source, y_source)
+def estimate_annotation_budget(n_items, complexity, quality, domain):
+    # Base rates per item (USD)
+    base_rates = {"simple": 0.05, "medium": 0.30, "complex": 2.00}
 
-# Active learning on target domain (product reviews)
-for iteration in range(10):
-    # Select uncertain examples from target
-    uncertain_idx = uncertainty_sampling(model, X_target_unlabeled)
+    # Quality multipliers (redundancy factor)
+    quality_mult = {"low": 1, "medium": 2, "high": 3}
 
-    # Label selected examples
-    y_selected = manual_label(X_target_unlabeled[uncertain_idx])
+    # Domain expertise multipliers
+    domain_mult = {"general": 1, "expert": 5}
 
-    # Add to target training set
-    X_target_labeled = np.vstack([X_target_labeled,
-                                   X_target_unlabeled[uncertain_idx]])
-    y_target_labeled = np.hstack([y_target_labeled, y_selected])
-
-    # Fine-tune on target
-    model.fit(X_target_labeled, y_target_labeled)
+    cost = n_items * base_rates[complexity] * quality_mult[quality] \
+           * domain_mult[domain]
+    return cost
 ```
 
-**Result**: Achieve target domain accuracy with 10-20% of labeling effort.
+---
+
+# Budget Planning: Example
+
+```python
+# Project: 10,000 items, medium complexity, high quality, general domain
+budget = estimate_annotation_budget(
+    n_items=10000,
+    complexity="medium",
+    quality="high",
+    domain="general"
+)
+print(f"Estimated budget: ${budget:,.0f}")  # $9,000
+
+# Same project with expert annotators (medical/legal)
+expert_budget = estimate_annotation_budget(10000, "medium", "high", "expert")
+print(f"Expert budget: ${expert_budget:,.0f}")  # $45,000
+```
+
+**Formula**: `items * base_rate * redundancy * expertise`
 
 ---
 
-# Summary: Annotation Best Practices
+<!-- _class: lead -->
 
-**Before Labeling**:
-1. Define clear taxonomy and guidelines
-2. Set up quality control (gold standard, IAA)
-3. Choose appropriate tools and platform
-4. Budget allocation (n samples, k annotators)
+# Part 8: Managing Annotation Teams
 
-**During Labeling**:
-1. Monitor IAA and quality metrics
-2. Regular calibration sessions
-3. Handle edge cases and ambiguity
-4. Track productivity and fatigue
-
-**After Labeling**:
-1. Detect and clean label noise
-2. Audit final dataset
-3. Document annotation process
-4. Update guidelines for future iterations
+*People, not just tools*
 
 ---
 
-# Advanced Techniques Summary
+# Team Structures: Small & Medium Projects
 
-| Technique | Use Case | Effort Reduction |
-| :--- | :--- | :---: |
-| **Active Learning** | Limited budget | 50-80% |
-| **Weak Supervision** | Domain expertise available | 70-90% |
-| **Semi-Supervised** | Large unlabeled pool | 40-60% |
-| **Few-Shot Learning** | Very few examples | 90-95% |
-| **Transfer Learning** | Pre-trained models exist | 80-90% |
-| **LLM Labeling** | High budget, quality needed | 60-80% |
-| **Synthetic Data** | Augmentation tasks | 30-50% |
+```
+SMALL PROJECT (<1000 items)
 
-**Combine techniques** for maximum efficiency!
+    ┌───────────┐
+    │    You    │  ->  Do it yourself or with 1-2 helpers
+    └───────────┘
+
+
+MEDIUM PROJECT (1k-10k items)
+
+    ┌───────────┐
+    │   Lead    │  ->  1 lead + 3-5 annotators
+    └─────┬─────┘
+          │
+    ┌─────┼─────┐
+    v     v     v
+  [A1]  [A2]  [A3]
+```
 
 ---
 
-# Lab Preview
+# Team Structures: Large Projects
 
-**Today's Goals**:
-1.  **Install Label Studio**.
-2.  **Config**: Set up a Sentiment Analysis project.
-3.  **Label**: Annotate 10 examples.
-4.  **Export**: Get JSON/CSV data.
-5.  **Analysis**: Write a Python script to calculate Cohen's Kappa between two "simulated" annotators.
+```
+LARGE PROJECT (>10k items)
 
-Let's start labeling!
+        ┌─────────────────┐
+        │  Project Lead   │
+        └────────┬────────┘
+                 │
+      ┌──────────┼──────────┐
+      v          v          v
+  [QC Lead]  [QC Lead]  [QC Lead]
+      |          |          |
+      v          v          v
+  [Team A]   [Team B]   [Team C]
+  (5 ann)    (5 ann)    (5 ann)
+```
+
+**Roles:**
+- **Project Lead**: Guidelines, training, escalations
+- **QC Lead**: Monitor quality, adjudicate, retrain
+- **Annotators**: Label items according to guidelines
+
+---
+
+# Annotator Selection
+
+**What to look for:**
+
+1. **Attention to detail** - Test with ambiguous examples
+2. **Consistency** - Same answer for same item on different days
+3. **Speed vs Quality balance** - Not too fast, not too slow
+4. **Communication** - Asks questions when unsure
+5. **Domain knowledge** (if needed) - Medical, legal, technical
+
+**Red flags:**
+- Suspiciously fast completion
+- Random-looking answers on gold questions
+- Never asks clarifying questions
+- Quality degrades over time
+
+---
+
+# Common Annotator Issues
+
+**Issue 1: Fatigue**
+```
+Quality degrades over long sessions
+
+Solution:
+- Limit sessions to 2-3 hours
+- Insert mandatory breaks
+- Mix easy and hard items
+```
+
+**Issue 2: Anchoring Bias**
+```
+First few items influence later decisions
+
+Solution:
+- Randomize order
+- Warm-up period not counted
+```
+
+**Issue 3: Label Leakage**
+```
+Annotator sees previous labels or predictions
+
+Solution:
+- Hide previous annotations
+- Don't show model predictions (unless intentional)
+```
+
+---
+
+# Annotator Feedback Loop
+
+```
+   ┌─────────────┐
+   │  Annotator  │  <-- Individual feedback on quality
+   │   Labels    │
+   └──────┬──────┘
+          │
+          v
+   ┌─────────────┐      ┌─────────────┐
+   │   Quality   │ ---> │   Feedback  │  --> Weekly quality reports
+   │   Check     │      │   to Team   │
+   └──────┬──────┘      └─────────────┘
+          │
+          v
+   ┌─────────────┐
+   │   Update    │  --> FAQ, edge case clarifications
+   │  Guidelines │
+   └─────────────┘
+```
+
+**Continuous improvement through regular feedback!**
+
+---
+
+<!-- _class: lead -->
+
+# Part 9: Key Takeaways
+
+---
+
+# Key Takeaways
+
+1. **Labels are the bottleneck** - 80% of AI project time
+
+2. **Different tasks, different challenges** - NER != Classification != Segmentation
+
+3. **Start with Label Studio** - Free, flexible, supports all modalities
+
+4. **Measure agreement** - Cohen's Kappa >= 0.8 before production
+
+5. **Invest in guidelines** - Decision trees, examples, edge cases
+
+6. **Quality control is ongoing** - Gold questions, redundancy, monitoring
+
+7. **Budget realistically** - complexity * redundancy * domain expertise
+
+---
+
+<!-- _class: lead -->
+
+# Part 10: Lab Preview
+
+*What you'll build today*
+
+---
+
+# This Week's Lab
+
+**Hands-on Practice:**
+
+1. **Install Label Studio** - Set up local annotation server
+
+2. **Create annotation project** - Configure for sentiment analysis
+
+3. **Write guidelines** - Clear definitions and examples
+
+4. **Label data** - Annotate 30 movie reviews
+
+5. **Calculate IAA** - Measure Cohen's Kappa with a partner
+
+6. **Discuss disagreements** - Refine guidelines based on edge cases
+
+---
+
+# Lab Setup Preview
+
+```bash
+# Install Label Studio
+pip install label-studio
+
+# Start the server
+label-studio start
+
+# Access at http://localhost:8080
+```
+
+**You'll create a sentiment analysis project and experience the full annotation workflow!**
+
+---
+
+# Next Week Preview
+
+**Week 4: Optimizing Labeling**
+
+- Active Learning - smart sampling to reduce labeling effort
+- Weak Supervision - programmatic labeling with rules
+- LLM-based labeling - using GPT/Claude as annotators
+- Noisy label detection and handling
+
+**The techniques to make labeling 10x more efficient!**
+
+---
+
+# Resources
+
+**Tools:**
+- Label Studio: https://labelstud.io/
+- CVAT: https://cvat.ai/
+- Prodigy: https://prodi.gy/
+
+**Metrics:**
+- sklearn.metrics.cohen_kappa_score
+- statsmodels fleiss_kappa
+
+**Reading:**
+- Annotation guidelines (Google, Amazon, Microsoft examples online)
+
+---
+
+<!-- _class: lead -->
+
+# Questions?
+
+---
+
+<!-- _class: lead -->
+
+# Thank You!
+
+See you in the lab!
