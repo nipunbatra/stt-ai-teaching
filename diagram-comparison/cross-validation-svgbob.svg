@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="424" height="160" class="svgbob">
+  <style>.svgbob line, .svgbob path, .svgbob circle, .svgbob rect, .svgbob polygon {
+  stroke: black;
+  stroke-width: 2;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+}
+
+.svgbob text {
+  white-space: pre;
+  fill: black;
+  font-family: Iosevka Fixed, monospace;
+  font-size: 14px;
+}
+
+.svgbob rect.backdrop {
+  stroke: none;
+  fill: white;
+}
+
+.svgbob .broken {
+  stroke-dasharray: 8;
+}
+
+.svgbob .filled {
+  fill: black;
+}
+
+.svgbob .bg_filled {
+  fill: white;
+  stroke-width: 1;
+}
+
+.svgbob .nofill {
+  fill: white;
+}
+
+.svgbob .end_marked_arrow {
+  marker-end: url(#arrow);
+}
+
+.svgbob .start_marked_arrow {
+  marker-start: url(#arrow);
+}
+
+.svgbob .end_marked_diamond {
+  marker-end: url(#diamond);
+}
+
+.svgbob .start_marked_diamond {
+  marker-start: url(#diamond);
+}
+
+.svgbob .end_marked_circle {
+  marker-end: url(#circle);
+}
+
+.svgbob .start_marked_circle {
+  marker-start: url(#circle);
+}
+
+.svgbob .end_marked_open_circle {
+  marker-end: url(#open_circle);
+}
+
+.svgbob .start_marked_open_circle {
+  marker-start: url(#open_circle);
+}
+
+.svgbob .end_marked_big_open_circle {
+  marker-end: url(#big_open_circle);
+}
+
+.svgbob .start_marked_big_open_circle {
+  marker-start: url(#big_open_circle);
+}
+
+</style>
+  <defs>
+    <marker id="arrow" viewBox="-2 -2 8 8" refX="4" refY="2" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <polygon points="0,0 0,4 4,2 0,0"></polygon>
+    </marker>
+    <marker id="diamond" viewBox="-2 -2 8 8" refX="4" refY="2" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <polygon points="0,2 2,0 4,2 2,4 0,2"></polygon>
+    </marker>
+    <marker id="circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="2" class="filled"></circle>
+    </marker>
+    <marker id="open_circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="2" class="bg_filled"></circle>
+    </marker>
+    <marker id="big_open_circle" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <circle cx="4" cy="4" r="3" class="bg_filled"></circle>
+    </marker>
+  </defs>
+  <rect class="backdrop" x="0" y="0" width="424" height="160"></rect>
+  <text x="74" y="12" >5</text>
+  <line x1="80" y1="8" x2="88" y2="8" class="solid"></line>
+  <text x="90" y="12" >Fold</text>
+  <text x="130" y="12" >Cross</text>
+  <line x1="168" y1="8" x2="176" y2="8" class="solid"></line>
+  <text x="178" y="12" >Validation</text>
+  <text x="18" y="44" >Fold</text>
+  <text x="18" y="60" >Fold</text>
+  <text x="18" y="76" >Fold</text>
+  <text x="18" y="92" >Fold</text>
+  <text x="18" y="108" >Fold</text>
+  <text x="58" y="44" >1</text>
+  <line x1="68" y1="32" x2="68" y2="112" class="broken"></line>
+  <text x="58" y="60" >2</text>
+  <text x="58" y="76" >3</text>
+  <text x="58" y="92" >4</text>
+  <text x="58" y="108" >5</text>
+  <text x="82" y="44" >[TEST][Train][Train][Train][Train]</text>
+  <text x="82" y="60" >[Train][TEST][Train][Train][Train]</text>
+  <text x="82" y="76" >[Train][Train][TEST][Train][Train]</text>
+  <text x="82" y="92" >[Train][Train][Train][TEST][Train]</text>
+  <text x="82" y="108" >[Train][Train][Train][Train][TEST]</text>
+  <line x1="368" y1="40" x2="376" y2="40" class="solid"></line>
+  <polygon points="376,36 384,40 376,44" class="filled"></polygon>
+  <line x1="368" y1="56" x2="376" y2="56" class="solid"></line>
+  <polygon points="376,52 384,56 376,60" class="filled"></polygon>
+  <line x1="368" y1="72" x2="376" y2="72" class="solid"></line>
+  <polygon points="376,68 384,72 376,76" class="filled"></polygon>
+  <line x1="368" y1="88" x2="376" y2="88" class="solid"></line>
+  <polygon points="376,84 384,88 376,92" class="filled"></polygon>
+  <line x1="368" y1="104" x2="376" y2="104" class="solid"></line>
+  <polygon points="376,100 384,104 376,108" class="filled"></polygon>
+  <text x="394" y="44" >82%</text>
+  <text x="394" y="60" >85%</text>
+  <text x="394" y="76" >84%</text>
+  <text x="394" y="92" >81%</text>
+  <text x="394" y="108" >83%</text>
+  <text x="74" y="140" >Average:</text>
+  <text x="146" y="140" >83%</text>
+  <text x="178" y="140" >+</text>
+  <text x="210" y="140" >1.5%</text>
+  <g>
+    <line x1="192" y1="128" x2="184" y2="144" class="solid"></line>
+    <line x1="188" y1="136" x2="200" y2="136" class="solid"></line>
+  </g>
+</svg>

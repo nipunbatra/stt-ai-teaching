@@ -1,0 +1,32 @@
+# ML Workflow Diagram
+
+direction: down
+
+data: Your Data {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+}
+
+split: Split Data {
+  shape: rectangle
+  style.fill: "#fff3e0"
+}
+
+train: Train Model {
+  shape: rectangle
+  style.fill: "#e8f5e9"
+}
+
+evaluate: Evaluate {
+  shape: rectangle
+  style.fill: "#fce4ec"
+}
+
+data -> split: ""
+split -> train: ""
+train -> evaluate: ""
+
+# Annotations
+split.note: "Training + Test set"
+train.note: "Model learns patterns"
+evaluate.note: "How good is it?"

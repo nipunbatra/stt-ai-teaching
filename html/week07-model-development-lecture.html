@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en-IN"><head><title>Week 7: Building Your First ML Models</title><meta property="og:title" content="Week 7: Building Your First ML Models"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0"><meta name="apple-mobile-web-app-capable" content="yes"><meta http-equiv="X-UA-Compatible" content="ie=edge"><meta property="og:type" content="website"><meta name="twitter:card" content="summary"><style>@media screen{body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button{appearance:none;background-color:initial;border:0;color:inherit;cursor:pointer;font-size:inherit;opacity:.8;outline:none;padding:0;transition:opacity .2s linear;-webkit-tap-highlight-color:transparent}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:disabled,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:disabled{cursor:not-allowed;opacity:.15!important}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover{opacity:1}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:active,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover:active{opacity:.6}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:not(:disabled),body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover:not(:disabled){transition:none}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button.bespoke-marp-presenter-info-page-prev{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNNjggOTAgMjggNTBsNDAtNDAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button.bespoke-marp-presenter-info-page-next{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJtMzIgOTAgNDAtNDAtNDAtNDAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI2MCIgeD0iMTAiIHk9IjIwIiBjbGFzcz0iYSIgcng9IjUuNjciLz48cGF0aCBkPSJNNDAgNzBIMjBWNTBtMjAgMEwyMCA3MG00MC00MGgyMHYyMG0tMjAgMCAyMC0yMCIgY2xhc3M9ImEiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button.exit[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button.exit[data-bespoke-marp-osc=fullscreen]{background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI2MCIgeD0iMTAiIHk9IjIwIiBjbGFzcz0iYSIgcng9IjUuNjciLz48cGF0aCBkPSJNMjAgNTBoMjB2MjBtLTIwIDAgMjAtMjBtNDAgMEg2MFYzMG0yMCAwTDYwIDUwIiBjbGFzcz0iYSIvPjwvc3ZnPg==")}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNODcuOCA0Ny41Qzg5IDUwIDg3LjcgNTIgODUgNTJIMzVhOC43IDguNyAwIDAgMS03LjItNC41bC0xNS42LTMxQzExIDE0IDEyLjIgMTIgMTUgMTJoNTBhOC44IDguOCAwIDAgMSA3LjIgNC41ek02MCA1MnYzNm0tMTAgMGgyME00NSA0MmgyMCIvPjwvc3ZnPg==") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button.bespoke-marp-presenter-note-bigger{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNMTIgNTBoODBNNTIgOTBWMTAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button.bespoke-marp-presenter-note-smaller{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNMTIgNTBoODAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}}@keyframes __bespoke_marp_transition_reduced_outgoing__{0%{opacity:1}to{opacity:0}}@keyframes __bespoke_marp_transition_reduced_incoming__{0%{mix-blend-mode:plus-lighter;opacity:0}to{mix-blend-mode:plus-lighter;opacity:1}}.bespoke-marp-note,.bespoke-marp-osc,.bespoke-progress-parent{display:none;transition:none}@media screen{::view-transition-group(*){animation-duration:var(--marp-bespoke-transition-animation-duration,.5s);animation-timing-function:ease}::view-transition-new(*),::view-transition-old(*){animation-delay:0s;animation-direction:var(--marp-bespoke-transition-animation-direction,normal);animation-duration:var(--marp-bespoke-transition-animation-duration,.5s);animation-fill-mode:both;animation-name:var(--marp-bespoke-transition-animation-name,var(--marp-bespoke-transition-animation-name-fallback,__bespoke_marp_transition_no_animation__));mix-blend-mode:normal}::view-transition-old(*){--marp-bespoke-transition-animation-name-fallback:__bespoke_marp_transition_reduced_outgoing__;animation-timing-function:ease}::view-transition-new(*){--marp-bespoke-transition-animation-name-fallback:__bespoke_marp_transition_reduced_incoming__;animation-timing-function:ease}::view-transition-new(root),::view-transition-old(root){animation-timing-function:linear}::view-transition-new(__bespoke_marp_transition_osc__),::view-transition-old(__bespoke_marp_transition_osc__){animation-duration:0s!important;animation-name:__bespoke_marp_transition_osc__!important}::view-transition-new(__bespoke_marp_transition_osc__){opacity:0!important}.bespoke-marp-transition-warming-up::view-transition-group(*),.bespoke-marp-transition-warming-up::view-transition-new(*),.bespoke-marp-transition-warming-up::view-transition-old(*){animation-play-state:paused!important}body,html{height:100%;margin:0}body{background:#000;overflow:hidden}svg.bespoke-marp-slide{content-visibility:hidden;opacity:0;pointer-events:none;z-index:-1}svg.bespoke-marp-slide:not(.bespoke-marp-active) *{view-transition-name:none!important}svg.bespoke-marp-slide.bespoke-marp-active{content-visibility:visible;opacity:1;pointer-events:auto;z-index:0}svg.bespoke-marp-slide.bespoke-marp-active.bespoke-marp-active-ready *{animation-name:__bespoke_marp__!important}@supports not (content-visibility:hidden){svg.bespoke-marp-slide[data-bespoke-marp-load=hideable]{display:none}svg.bespoke-marp-slide[data-bespoke-marp-load=hideable].bespoke-marp-active{display:block}}}@media screen and (prefers-reduced-motion:reduce){svg.bespoke-marp-slide *{view-transition-name:none!important}}@media screen{[data-bespoke-marp-fragment=inactive]{visibility:hidden}body[data-bespoke-view=""] .bespoke-marp-parent,body[data-bespoke-view=next] .bespoke-marp-parent{inset:0;position:absolute}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc{background:#000000a6;border-radius:7px;bottom:50px;color:#fff;contain:paint;display:block;font-family:Helvetica,Arial,sans-serif;font-size:16px;left:50%;line-height:0;opacity:1;padding:12px;position:absolute;touch-action:manipulation;transform:translateX(-50%);transition:opacity .2s linear;-webkit-user-select:none;user-select:none;white-space:nowrap;will-change:transform;z-index:1;view-transition-name:__bespoke_marp_transition_osc__}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>*,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>*{margin-left:6px}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>:first-child,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>:first-child{margin-left:0}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>span,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>span{opacity:.8}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>span[data-bespoke-marp-osc=page],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>span[data-bespoke-marp-osc=page]{display:inline-block;min-width:140px;text-align:center}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev]{height:32px;line-height:32px;width:32px}body[data-bespoke-view=""] .bespoke-marp-parent.bespoke-marp-inactive,body[data-bespoke-view=next] .bespoke-marp-parent.bespoke-marp-inactive{cursor:none}body[data-bespoke-view=""] .bespoke-marp-parent.bespoke-marp-inactive>.bespoke-marp-osc,body[data-bespoke-view=next] .bespoke-marp-parent.bespoke-marp-inactive>.bespoke-marp-osc{opacity:0;pointer-events:none}body[data-bespoke-view=""] svg.bespoke-marp-slide,body[data-bespoke-view=next] svg.bespoke-marp-slide{height:100%;left:0;position:absolute;top:0;width:100%}body[data-bespoke-view=""] .bespoke-progress-parent{background:#222;display:flex;height:5px;width:100%}body[data-bespoke-view=""] .bespoke-progress-parent+.bespoke-marp-parent{top:5px}body[data-bespoke-view=""] .bespoke-progress-parent .bespoke-progress-bar{background:#0288d1;flex:0 0 0;transition:flex-basis .2s cubic-bezier(0,1,1,1)}body[data-bespoke-view=next]{background:#0000}body[data-bespoke-view=presenter]{background:#161616}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container{display:grid;font-family:Helvetica,Arial,sans-serif;grid-template:"current dragbar next" minmax(140px,1fr) "current dragbar note" 2fr "info    dragbar note" 3em;grid-template-columns:minmax(3px,var(--bespoke-marp-presenter-split-ratio,66%)) 0 minmax(3px,1fr);height:100%;left:0;position:absolute;top:0;width:100%}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent{grid-area:current;overflow:hidden;position:relative}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent svg.bespoke-marp-slide{height:calc(100% - 40px);left:20px;pointer-events:none;position:absolute;top:20px;-webkit-user-select:none;user-select:none;width:calc(100% - 40px)}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent svg.bespoke-marp-slide.bespoke-marp-active{filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container{background:#0288d1;cursor:col-resize;grid-area:dragbar;margin-left:-3px;opacity:0;position:relative;transition:opacity .4s linear .1s;width:6px;z-index:10}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container:hover{opacity:1}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container.active{opacity:1;transition-delay:0s}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container{background:#222;cursor:pointer;display:none;grid-area:next;overflow:hidden;position:relative}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container.active{display:block}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container iframe.bespoke-marp-presenter-next{background:#0000;border:0;display:block;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5));height:calc(100% - 40px);left:20px;pointer-events:none;position:absolute;top:20px;-webkit-user-select:none;user-select:none;width:calc(100% - 40px)}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container{background:#222;color:#eee;grid-area:note;position:relative;z-index:1}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button{height:1.5em;line-height:1.5em;width:1.5em}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-wrapper{display:block;inset:0;position:absolute}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-buttons{background:#000000a6;border-radius:4px;bottom:0;display:flex;gap:4px;margin:12px;opacity:0;padding:6px;pointer-events:none;position:absolute;right:0;transition:opacity .2s linear}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-buttons:focus-within,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-wrapper:focus-within+.bespoke-marp-presenter-note-buttons,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container:hover .bespoke-marp-presenter-note-buttons{opacity:1;pointer-events:auto}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note{box-sizing:border-box;font-size:calc(1.1em*var(--bespoke-marp-note-font-scale, 1));height:calc(100% - 40px);margin:20px;overflow:auto;padding-right:3px;white-space:pre-wrap;width:calc(100% - 40px);word-wrap:break-word;scrollbar-color:#eeeeee80 #0000;scrollbar-width:thin}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar{width:6px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar-track{background:#0000}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar-thumb{background:#eeeeee80;border-radius:6px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note:empty{pointer-events:none}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note.active{display:block}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note p:first-child{margin-top:0}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note p:last-child{margin-bottom:0}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container{align-items:center;box-sizing:border-box;color:#eee;display:flex;flex-wrap:nowrap;grid-area:info;justify-content:center;overflow:hidden;padding:0 10px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-time,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer{box-sizing:border-box;display:block;padding:0 10px;white-space:nowrap;width:100%}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button{height:1.5em;line-height:1.5em;width:1.5em}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page{order:2;text-align:center}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page .bespoke-marp-presenter-info-page-text{display:inline-block;min-width:120px;text-align:center}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-time{color:#999;order:1;text-align:left}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer{color:#999;order:3;text-align:right}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer:hover{cursor:pointer}}@media print{.bespoke-marp-presenter-info-container,.bespoke-marp-presenter-next-container,.bespoke-marp-presenter-note-container{display:none}}</style><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');@import 'custom.css';div#\:\$p > svg > foreignObject > section{width:1280px;height:720px;box-sizing:border-box;overflow:hidden;position:relative;scroll-snap-align:center center;-webkit-text-size-adjust:100%;text-size-adjust:100%}div#\:\$p > svg > foreignObject > section::after{bottom:0;content:attr(data-marpit-pagination);padding:inherit;pointer-events:none;position:absolute;right:0}div#\:\$p > svg > foreignObject > section:not([data-marpit-pagination])::after{display:none}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1){font-size:2em;margin-block:0.67em}div#\:\$p > svg > foreignObject > section video::-webkit-media-controls{will-change:transform}@page {size:1280px 720px;margin:0}@media print{html, body{background-color:#fff;margin:0;page-break-inside:avoid;break-inside:avoid-page}div#\:\$p > svg > foreignObject > section{page-break-before:always;break-before:page}div#\:\$p > svg > foreignObject > section, div#\:\$p > svg > foreignObject > section *{-webkit-print-color-adjust:exact!important;animation-delay:0s!important;animation-duration:0s!important;color-adjust:exact!important;print-color-adjust:exact!important;transition:none!important}div#\:\$p > svg[data-marpit-svg]{display:block;height:100vh;width:100vw}}div#\:\$p > svg > foreignObject > :where(section){container-type:size}div#\:\$p > svg > foreignObject > section img[data-marp-twemoji]{background:transparent;height:1em;margin:0 .05em 0 .1em;vertical-align:-.1em;width:1em}div#\:\$p > svg > foreignObject > section{--focus-outlineColor:light-dark(#0969da, #1f6feb);--fgColor-default:light-dark(#1f2328, #f0f6fc);--fgColor-muted:light-dark(#59636e, #9198a1);--fgColor-accent:light-dark(#0969da, #4493f8);--fgColor-success:light-dark(#1a7f37, #3fb950);--fgColor-attention:light-dark(#9a6700, #d29922);--fgColor-danger:light-dark(#d1242f, #f85149);--fgColor-done:light-dark(#8250df, #ab7df8);--bgColor-default:light-dark(#fff, #0d1117);--bgColor-muted:light-dark(#f6f8fa, #151b23);--bgColor-neutral-muted:light-dark(#818b981f, #656c7633);--bgColor-attention-muted:light-dark(#fff8c5, #bb800926);--borderColor-default:light-dark(#d1d9e0, #3d444d);--borderColor-muted:light-dark(#d1d9e0b3, #3d444db3);--borderColor-neutral-muted:light-dark(#d1d9e0b3, #3d444db3);--borderColor-accent-emphasis:light-dark(#0969da, #1f6feb);--borderColor-success-emphasis:light-dark(#1a7f37, #238636);--borderColor-attention-emphasis:light-dark(#9a6700, #9e6a03);--borderColor-danger-emphasis:light-dark(#cf222e, #da3633);--borderColor-done-emphasis:light-dark(#8250df, #8957e5);--color-prettylights-syntax-comment:light-dark(#59636e, #9198a1);--color-prettylights-syntax-constant:light-dark(#0550ae, #79c0ff);--color-prettylights-syntax-constant-other-reference-link:light-dark(#0a3069, #a5d6ff);--color-prettylights-syntax-entity:light-dark(#6639ba, #d2a8ff);--color-prettylights-syntax-storage-modifier-import:light-dark(#1f2328, #f0f6fc);--color-prettylights-syntax-entity-tag:light-dark(#0550ae, #7ee787);--color-prettylights-syntax-keyword:light-dark(#cf222e, #ff7b72);--color-prettylights-syntax-string:light-dark(#0a3069, #a5d6ff);--color-prettylights-syntax-variable:light-dark(#953800, #ffa657);--color-prettylights-syntax-brackethighlighter-unmatched:light-dark(#82071e, #f85149);--color-prettylights-syntax-brackethighlighter-angle:light-dark(#59636e, #9198a1);--color-prettylights-syntax-invalid-illegal-text:light-dark(#f6f8fa, #f0f6fc);--color-prettylights-syntax-invalid-illegal-bg:light-dark(#82071e, #8e1519);--color-prettylights-syntax-carriage-return-text:light-dark(#f6f8fa, #f0f6fc);--color-prettylights-syntax-carriage-return-bg:light-dark(#cf222e, #b62324);--color-prettylights-syntax-string-regexp:light-dark(#116329, #7ee787);--color-prettylights-syntax-markup-list:light-dark(#3b2300, #f2cc60);--color-prettylights-syntax-markup-heading:light-dark(#0550ae, #1f6feb);--color-prettylights-syntax-markup-italic:light-dark(#1f2328, #f0f6fc);--color-prettylights-syntax-markup-bold:light-dark(#1f2328, #f0f6fc);--color-prettylights-syntax-markup-deleted-text:light-dark(#82071e, #ffdcd7);--color-prettylights-syntax-markup-deleted-bg:light-dark(#ffebe9, #67060c);--color-prettylights-syntax-markup-inserted-text:light-dark(#116329, #aff5b4);--color-prettylights-syntax-markup-inserted-bg:light-dark(#dafbe1, #033a16);--color-prettylights-syntax-markup-changed-text:light-dark(#953800, #ffdfb6);--color-prettylights-syntax-markup-changed-bg:light-dark(#ffd8b5, #5a1e02);--color-prettylights-syntax-markup-ignored-text:light-dark(#d1d9e0, #f0f6fc);--color-prettylights-syntax-markup-ignored-bg:light-dark(#0550ae, #1158c7);--color-prettylights-syntax-meta-diff-range:light-dark(#8250df, #d2a8ff);--color-prettylights-syntax-sublimelinter-gutter-mark:light-dark(#818b98, #3d444d);--base-size-4:calc(var(--marpit-root-font-size, 1rem) * 0.25);--base-size-8:calc(var(--marpit-root-font-size, 1rem) * 0.5);--base-size-16:calc(var(--marpit-root-font-size, 1rem) * 1);--base-size-24:calc(var(--marpit-root-font-size, 1rem) * 1.5);--base-size-40:calc(var(--marpit-root-font-size, 1rem) * 2.5);--base-text-weight-normal:400;--base-text-weight-medium:500;--base-text-weight-semibold:600;--fontStack-monospace:ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fgColor-accent:Highlight;}/*!
+<!DOCTYPE html><html lang="en-IN"><head><title>Week 7: Building Your First ML Models</title><meta property="og:title" content="Week 7: Building Your First ML Models"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0"><meta name="apple-mobile-web-app-capable" content="yes"><meta http-equiv="X-UA-Compatible" content="ie=edge"><meta property="og:type" content="website"><meta name="twitter:card" content="summary"><style>@media screen{body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button{appearance:none;background-color:initial;border:0;color:inherit;cursor:pointer;font-size:inherit;opacity:.8;outline:none;padding:0;transition:opacity .2s linear;-webkit-tap-highlight-color:transparent}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:disabled,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:disabled{cursor:not-allowed;opacity:.15!important}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover{opacity:1}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:active,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover:active{opacity:.6}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:not(:disabled),body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover:not(:disabled){transition:none}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button.bespoke-marp-presenter-info-page-prev{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNNjggOTAgMjggNTBsNDAtNDAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button.bespoke-marp-presenter-info-page-next{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJtMzIgOTAgNDAtNDAtNDAtNDAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI2MCIgeD0iMTAiIHk9IjIwIiBjbGFzcz0iYSIgcng9IjUuNjciLz48cGF0aCBkPSJNNDAgNzBIMjBWNTBtMjAgMEwyMCA3MG00MC00MGgyMHYyMG0tMjAgMCAyMC0yMCIgY2xhc3M9ImEiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button.exit[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button.exit[data-bespoke-marp-osc=fullscreen]{background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI2MCIgeD0iMTAiIHk9IjIwIiBjbGFzcz0iYSIgcng9IjUuNjciLz48cGF0aCBkPSJNMjAgNTBoMjB2MjBtLTIwIDAgMjAtMjBtNDAgMEg2MFYzMG0yMCAwTDYwIDUwIiBjbGFzcz0iYSIvPjwvc3ZnPg==")}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNODcuOCA0Ny41Qzg5IDUwIDg3LjcgNTIgODUgNTJIMzVhOC43IDguNyAwIDAgMS03LjItNC41bC0xNS42LTMxQzExIDE0IDEyLjIgMTIgMTUgMTJoNTBhOC44IDguOCAwIDAgMSA3LjIgNC41ek02MCA1MnYzNm0tMTAgMGgyME00NSA0MmgyMCIvPjwvc3ZnPg==") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button.bespoke-marp-presenter-note-bigger{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNMTIgNTBoODBNNTIgOTBWMTAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button.bespoke-marp-presenter-note-smaller{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNMTIgNTBoODAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}}@keyframes __bespoke_marp_transition_reduced_outgoing__{0%{opacity:1}to{opacity:0}}@keyframes __bespoke_marp_transition_reduced_incoming__{0%{mix-blend-mode:plus-lighter;opacity:0}to{mix-blend-mode:plus-lighter;opacity:1}}.bespoke-marp-note,.bespoke-marp-osc,.bespoke-progress-parent{display:none;transition:none}@media screen{::view-transition-group(*){animation-duration:var(--marp-bespoke-transition-animation-duration,.5s);animation-timing-function:ease}::view-transition-new(*),::view-transition-old(*){animation-delay:0s;animation-direction:var(--marp-bespoke-transition-animation-direction,normal);animation-duration:var(--marp-bespoke-transition-animation-duration,.5s);animation-fill-mode:both;animation-name:var(--marp-bespoke-transition-animation-name,var(--marp-bespoke-transition-animation-name-fallback,__bespoke_marp_transition_no_animation__));mix-blend-mode:normal}::view-transition-old(*){--marp-bespoke-transition-animation-name-fallback:__bespoke_marp_transition_reduced_outgoing__;animation-timing-function:ease}::view-transition-new(*){--marp-bespoke-transition-animation-name-fallback:__bespoke_marp_transition_reduced_incoming__;animation-timing-function:ease}::view-transition-new(root),::view-transition-old(root){animation-timing-function:linear}::view-transition-new(__bespoke_marp_transition_osc__),::view-transition-old(__bespoke_marp_transition_osc__){animation-duration:0s!important;animation-name:__bespoke_marp_transition_osc__!important}::view-transition-new(__bespoke_marp_transition_osc__){opacity:0!important}.bespoke-marp-transition-warming-up::view-transition-group(*),.bespoke-marp-transition-warming-up::view-transition-new(*),.bespoke-marp-transition-warming-up::view-transition-old(*){animation-play-state:paused!important}body,html{height:100%;margin:0}body{background:#000;overflow:hidden}svg.bespoke-marp-slide{content-visibility:hidden;opacity:0;pointer-events:none;z-index:-1}svg.bespoke-marp-slide:not(.bespoke-marp-active) *{view-transition-name:none!important}svg.bespoke-marp-slide.bespoke-marp-active{content-visibility:visible;opacity:1;pointer-events:auto;z-index:0}svg.bespoke-marp-slide.bespoke-marp-active.bespoke-marp-active-ready *{animation-name:__bespoke_marp__!important}@supports not (content-visibility:hidden){svg.bespoke-marp-slide[data-bespoke-marp-load=hideable]{display:none}svg.bespoke-marp-slide[data-bespoke-marp-load=hideable].bespoke-marp-active{display:block}}}@media screen and (prefers-reduced-motion:reduce){svg.bespoke-marp-slide *{view-transition-name:none!important}}@media screen{[data-bespoke-marp-fragment=inactive]{visibility:hidden}body[data-bespoke-view=""] .bespoke-marp-parent,body[data-bespoke-view=next] .bespoke-marp-parent{inset:0;position:absolute}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc{background:#000000a6;border-radius:7px;bottom:50px;color:#fff;contain:paint;display:block;font-family:Helvetica,Arial,sans-serif;font-size:16px;left:50%;line-height:0;opacity:1;padding:12px;position:absolute;touch-action:manipulation;transform:translateX(-50%);transition:opacity .2s linear;-webkit-user-select:none;user-select:none;white-space:nowrap;will-change:transform;z-index:1;view-transition-name:__bespoke_marp_transition_osc__}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>*,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>*{margin-left:6px}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>:first-child,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>:first-child{margin-left:0}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>span,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>span{opacity:.8}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>span[data-bespoke-marp-osc=page],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>span[data-bespoke-marp-osc=page]{display:inline-block;min-width:140px;text-align:center}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev]{height:32px;line-height:32px;width:32px}body[data-bespoke-view=""] .bespoke-marp-parent.bespoke-marp-inactive,body[data-bespoke-view=next] .bespoke-marp-parent.bespoke-marp-inactive{cursor:none}body[data-bespoke-view=""] .bespoke-marp-parent.bespoke-marp-inactive>.bespoke-marp-osc,body[data-bespoke-view=next] .bespoke-marp-parent.bespoke-marp-inactive>.bespoke-marp-osc{opacity:0;pointer-events:none}body[data-bespoke-view=""] svg.bespoke-marp-slide,body[data-bespoke-view=next] svg.bespoke-marp-slide{height:100%;left:0;position:absolute;top:0;width:100%}body[data-bespoke-view=""] .bespoke-progress-parent{background:#222;display:flex;height:5px;width:100%}body[data-bespoke-view=""] .bespoke-progress-parent+.bespoke-marp-parent{top:5px}body[data-bespoke-view=""] .bespoke-progress-parent .bespoke-progress-bar{background:#0288d1;flex:0 0 0;transition:flex-basis .2s cubic-bezier(0,1,1,1)}body[data-bespoke-view=next]{background:#0000}body[data-bespoke-view=presenter]{background:#161616}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container{display:grid;font-family:Helvetica,Arial,sans-serif;grid-template:"current dragbar next" minmax(140px,1fr) "current dragbar note" 2fr "info    dragbar note" 3em;grid-template-columns:minmax(3px,var(--bespoke-marp-presenter-split-ratio,66%)) 0 minmax(3px,1fr);height:100%;left:0;position:absolute;top:0;width:100%}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent{grid-area:current;overflow:hidden;position:relative}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent svg.bespoke-marp-slide{height:calc(100% - 40px);left:20px;pointer-events:none;position:absolute;top:20px;-webkit-user-select:none;user-select:none;width:calc(100% - 40px)}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-parent svg.bespoke-marp-slide.bespoke-marp-active{filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container{background:#0288d1;cursor:col-resize;grid-area:dragbar;margin-left:-3px;opacity:0;position:relative;transition:opacity .4s linear .1s;width:6px;z-index:10}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container:hover{opacity:1}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container.active{opacity:1;transition-delay:0s}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container{background:#222;cursor:pointer;display:none;grid-area:next;overflow:hidden;position:relative}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container.active{display:block}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container iframe.bespoke-marp-presenter-next{background:#0000;border:0;display:block;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5));height:calc(100% - 40px);left:20px;pointer-events:none;position:absolute;top:20px;-webkit-user-select:none;user-select:none;width:calc(100% - 40px)}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container{background:#222;color:#eee;grid-area:note;position:relative;z-index:1}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button{height:1.5em;line-height:1.5em;width:1.5em}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-wrapper{display:block;inset:0;position:absolute}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-buttons{background:#000000a6;border-radius:4px;bottom:0;display:flex;gap:4px;margin:12px;opacity:0;padding:6px;pointer-events:none;position:absolute;right:0;transition:opacity .2s linear}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-buttons:focus-within,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-wrapper:focus-within+.bespoke-marp-presenter-note-buttons,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container:hover .bespoke-marp-presenter-note-buttons{opacity:1;pointer-events:auto}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note{box-sizing:border-box;font-size:calc(1.1em*var(--bespoke-marp-note-font-scale, 1));height:calc(100% - 40px);margin:20px;overflow:auto;padding-right:3px;white-space:pre-wrap;width:calc(100% - 40px);word-wrap:break-word;scrollbar-color:#eeeeee80 #0000;scrollbar-width:thin}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar{width:6px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar-track{background:#0000}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar-thumb{background:#eeeeee80;border-radius:6px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note:empty{pointer-events:none}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note.active{display:block}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note p:first-child{margin-top:0}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note p:last-child{margin-bottom:0}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container{align-items:center;box-sizing:border-box;color:#eee;display:flex;flex-wrap:nowrap;grid-area:info;justify-content:center;overflow:hidden;padding:0 10px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-time,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer{box-sizing:border-box;display:block;padding:0 10px;white-space:nowrap;width:100%}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button{height:1.5em;line-height:1.5em;width:1.5em}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page{order:2;text-align:center}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page .bespoke-marp-presenter-info-page-text{display:inline-block;min-width:120px;text-align:center}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-time{color:#999;order:1;text-align:left}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer{color:#999;order:3;text-align:right}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer:hover{cursor:pointer}}@media print{.bespoke-marp-presenter-info-container,.bespoke-marp-presenter-next-container,.bespoke-marp-presenter-note-container{display:none}}</style><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');@import 'custom.css';div#\:\$p > svg > foreignObject > section{width:1280px;height:720px;box-sizing:border-box;overflow:hidden;position:relative;scroll-snap-align:center center;-webkit-text-size-adjust:100%;text-size-adjust:100%}div#\:\$p > svg > foreignObject > section::after{bottom:0;content:attr(data-marpit-pagination);padding:inherit;pointer-events:none;position:absolute;right:0}div#\:\$p > svg > foreignObject > section:not([data-marpit-pagination])::after{display:none}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1){font-size:2em;margin-block:0.67em}div#\:\$p > svg > foreignObject > section video::-webkit-media-controls{will-change:transform}@page {size:1280px 720px;margin:0}@media print{html, body{background-color:#fff;margin:0;page-break-inside:avoid;break-inside:avoid-page}div#\:\$p > svg > foreignObject > section{page-break-before:always;break-before:page}div#\:\$p > svg > foreignObject > section, div#\:\$p > svg > foreignObject > section *{-webkit-print-color-adjust:exact!important;animation-delay:0s!important;animation-duration:0s!important;color-adjust:exact!important;print-color-adjust:exact!important;transition:none!important}div#\:\$p > svg[data-marpit-svg]{display:block;height:100vh;width:100vw}}div#\:\$p > svg > foreignObject > :where(section){container-type:size}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"]{direction:ltr}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"] > svg{overflow:visible;min-height:1px;min-width:1px}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"] > svg a{fill:blue;stroke:blue}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"][display="true"]{display:block;text-align:center;margin:1em 0}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"][display="true"][width="full"]{display:flex}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"][justify="left"]{text-align:left}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"][justify="right"]{text-align:right}div#\:\$p > svg > foreignObject > section g[data-mml-node="merror"] > g{fill:red;stroke:red}div#\:\$p > svg > foreignObject > section g[data-mml-node="merror"] > rect[data-background]{fill:yellow;stroke:none}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > line[data-line], div#\:\$p > svg > foreignObject > section svg[data-table] > g > line[data-line]{stroke-width:70px;fill:none}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > rect[data-frame], div#\:\$p > svg > foreignObject > section svg[data-table] > g > rect[data-frame]{stroke-width:70px;fill:none}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > .mjx-dashed, div#\:\$p > svg > foreignObject > section svg[data-table] > g > .mjx-dashed{stroke-dasharray:140}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > .mjx-dotted, div#\:\$p > svg > foreignObject > section svg[data-table] > g > .mjx-dotted{stroke-linecap:round;stroke-dasharray:0,140}div#\:\$p > svg > foreignObject > section g[data-mml-node="mtable"] > g > svg{overflow:visible}div#\:\$p > svg > foreignObject > section [jax="SVG"] mjx-tool{display:inline-block;position:relative;width:0;height:0}div#\:\$p > svg > foreignObject > section [jax="SVG"] mjx-tool > mjx-tip{position:absolute;top:0;left:0}div#\:\$p > svg > foreignObject > section mjx-tool > mjx-tip{display:inline-block;padding:.2em;border:1px solid #888;font-size:70%;background-color:#F8F8F8;color:black;box-shadow:2px 2px 5px #AAAAAA}div#\:\$p > svg > foreignObject > section g[data-mml-node="maction"][data-toggle]{cursor:pointer}div#\:\$p > svg > foreignObject > section mjx-status{display:block;position:fixed;left:1em;bottom:1em;min-width:25%;padding:.2em .4em;border:1px solid #888;font-size:90%;background-color:#F8F8F8;color:black}div#\:\$p > svg > foreignObject > section foreignObject[data-mjx-xml]{font-family:initial;line-height:normal;overflow:visible}div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"] path[data-c], div#\:\$p > svg > foreignObject > section mjx-container[jax="SVG"] use[data-c]{stroke-width:3}@media print{div#\:\$p > svg > foreignObject > section mjx-container[jax=SVG] path[data-c],div#\:\$p > svg > foreignObject > section mjx-container[jax=SVG] use[data-c]{stroke-width:0}}div#\:\$p > svg > foreignObject > section img[data-marp-twemoji]{background:transparent;height:1em;margin:0 .05em 0 .1em;vertical-align:-.1em;width:1em}div#\:\$p > svg > foreignObject > section{--focus-outlineColor:light-dark(#0969da, #1f6feb);--fgColor-default:light-dark(#1f2328, #f0f6fc);--fgColor-muted:light-dark(#59636e, #9198a1);--fgColor-accent:light-dark(#0969da, #4493f8);--fgColor-success:light-dark(#1a7f37, #3fb950);--fgColor-attention:light-dark(#9a6700, #d29922);--fgColor-danger:light-dark(#d1242f, #f85149);--fgColor-done:light-dark(#8250df, #ab7df8);--bgColor-default:light-dark(#fff, #0d1117);--bgColor-muted:light-dark(#f6f8fa, #151b23);--bgColor-neutral-muted:light-dark(#818b981f, #656c7633);--bgColor-attention-muted:light-dark(#fff8c5, #bb800926);--borderColor-default:light-dark(#d1d9e0, #3d444d);--borderColor-muted:light-dark(#d1d9e0b3, #3d444db3);--borderColor-neutral-muted:light-dark(#d1d9e0b3, #3d444db3);--borderColor-accent-emphasis:light-dark(#0969da, #1f6feb);--borderColor-success-emphasis:light-dark(#1a7f37, #238636);--borderColor-attention-emphasis:light-dark(#9a6700, #9e6a03);--borderColor-danger-emphasis:light-dark(#cf222e, #da3633);--borderColor-done-emphasis:light-dark(#8250df, #8957e5);--color-prettylights-syntax-comment:light-dark(#59636e, #9198a1);--color-prettylights-syntax-constant:light-dark(#0550ae, #79c0ff);--color-prettylights-syntax-constant-other-reference-link:light-dark(#0a3069, #a5d6ff);--color-prettylights-syntax-entity:light-dark(#6639ba, #d2a8ff);--color-prettylights-syntax-storage-modifier-import:light-dark(#1f2328, #f0f6fc);--color-prettylights-syntax-entity-tag:light-dark(#0550ae, #7ee787);--color-prettylights-syntax-keyword:light-dark(#cf222e, #ff7b72);--color-prettylights-syntax-string:light-dark(#0a3069, #a5d6ff);--color-prettylights-syntax-variable:light-dark(#953800, #ffa657);--color-prettylights-syntax-brackethighlighter-unmatched:light-dark(#82071e, #f85149);--color-prettylights-syntax-brackethighlighter-angle:light-dark(#59636e, #9198a1);--color-prettylights-syntax-invalid-illegal-text:light-dark(#f6f8fa, #f0f6fc);--color-prettylights-syntax-invalid-illegal-bg:light-dark(#82071e, #8e1519);--color-prettylights-syntax-carriage-return-text:light-dark(#f6f8fa, #f0f6fc);--color-prettylights-syntax-carriage-return-bg:light-dark(#cf222e, #b62324);--color-prettylights-syntax-string-regexp:light-dark(#116329, #7ee787);--color-prettylights-syntax-markup-list:light-dark(#3b2300, #f2cc60);--color-prettylights-syntax-markup-heading:light-dark(#0550ae, #1f6feb);--color-prettylights-syntax-markup-italic:light-dark(#1f2328, #f0f6fc);--color-prettylights-syntax-markup-bold:light-dark(#1f2328, #f0f6fc);--color-prettylights-syntax-markup-deleted-text:light-dark(#82071e, #ffdcd7);--color-prettylights-syntax-markup-deleted-bg:light-dark(#ffebe9, #67060c);--color-prettylights-syntax-markup-inserted-text:light-dark(#116329, #aff5b4);--color-prettylights-syntax-markup-inserted-bg:light-dark(#dafbe1, #033a16);--color-prettylights-syntax-markup-changed-text:light-dark(#953800, #ffdfb6);--color-prettylights-syntax-markup-changed-bg:light-dark(#ffd8b5, #5a1e02);--color-prettylights-syntax-markup-ignored-text:light-dark(#d1d9e0, #f0f6fc);--color-prettylights-syntax-markup-ignored-bg:light-dark(#0550ae, #1158c7);--color-prettylights-syntax-meta-diff-range:light-dark(#8250df, #d2a8ff);--color-prettylights-syntax-sublimelinter-gutter-mark:light-dark(#818b98, #3d444d);--base-size-4:calc(var(--marpit-root-font-size, 1rem) * 0.25);--base-size-8:calc(var(--marpit-root-font-size, 1rem) * 0.5);--base-size-16:calc(var(--marpit-root-font-size, 1rem) * 1);--base-size-24:calc(var(--marpit-root-font-size, 1rem) * 1.5);--base-size-40:calc(var(--marpit-root-font-size, 1rem) * 2.5);--base-text-weight-normal:400;--base-text-weight-medium:500;--base-text-weight-semibold:600;--fontStack-monospace:ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fgColor-accent:Highlight;}/*!
  * Marp default theme.
  *
  * @theme default
@@ -11,7 +11,7 @@
 </style></head><body><div class="bespoke-marp-osc"><button data-bespoke-marp-osc="prev" tabindex="-1" title="Previous slide">Previous slide</button><span data-bespoke-marp-osc="page"></span><button data-bespoke-marp-osc="next" tabindex="-1" title="Next slide">Next slide</button><button data-bespoke-marp-osc="fullscreen" tabindex="-1" title="Toggle fullscreen (f)">Toggle fullscreen</button><button data-bespoke-marp-osc="presenter" tabindex="-1" title="Open presenter view (p)">Open presenter view</button></div><div id=":$p"><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="1" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" class="lead" data-marpit-pagination="1" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="week-7-building-your-first-ml-models">Week 7: Building Your First ML Models</h1>
 <p><strong>CS 203: Software Tools and Techniques for AI</strong></p>
 <p>Prof. Nipun Batra<br />
@@ -20,14 +20,14 @@ IIT Gandhinagar</p>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="2" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" class="lead" data-marpit-pagination="2" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="part-1-the-big-picture">Part 1: The Big Picture</h1>
 <p><em>What does it mean to &quot;build&quot; an ML model?</em></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="3" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="remember-our-netflix-journey">Remember Our Netflix Journey?</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>Week 1: Collected movie data (APIs, scraping)
 Week 2: Cleaned and organized it (Pandas)
@@ -43,7 +43,7 @@ Week 7: NOW WE BUILD THE MODEL! <img class="emoji" draggable="false" alt="🎉" 
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="4" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="4" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="what-are-we-predicting">What Are We Predicting?</h1>
 <p><strong>Our Netflix Problem</strong>:<br />
 Given movie features → Predict if it will be successful</p>
@@ -61,7 +61,7 @@ Given movie features → Predict if it will be successful</p>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="5" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="5" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="two-types-of-predictions">Two Types of Predictions</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────┐  ┌─────────────────────────────────┐
 │       CLASSIFICATION            │  │         REGRESSION              │
@@ -80,7 +80,7 @@ Given movie features → Predict if it will be successful</p>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="6" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="6" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="the-ml-workflow-simple-version">The ML Workflow (Simple Version)</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>    ┌──────────────┐
     │  Your Data   │
@@ -107,33 +107,25 @@ Given movie features → Predict if it will be successful</p>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="7" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" class="lead" data-marpit-pagination="7" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="part-2-starting-simple---baseline-models">Part 2: Starting Simple - Baseline Models</h1>
 <p><em>Why you should never start with deep learning</em></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="8" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="the-temptation">The Temptation</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│    You: &quot;I want to predict movie success!&quot;                      │
-│                                                                 │
-│    Internet: &quot;Use a 175-billion parameter neural network!&quot;      │
-│                                                                 │
-│    You: &quot;Sounds cool! Let me try...&quot;                           │
-│                                                                 │
-│    3 hours later: <img class="emoji" draggable="false" alt="🔥" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f525.svg" data-marp-twemoji=""/><img class="emoji" draggable="false" alt="💀" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f480.svg" data-marp-twemoji=""/><img class="emoji" draggable="false" alt="😭" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f62d.svg" data-marp-twemoji=""/>                                        │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-<p><strong>DON'T DO THIS!</strong></p>
+<p><strong>You</strong>: &quot;I want to predict movie success!&quot;</p>
+<p><strong>Internet</strong>: &quot;Use a 175-billion parameter neural network!&quot;</p>
+<p><strong>You</strong>: &quot;Sounds cool! Let me try...&quot;</p>
+<p><strong>3 hours later</strong>: Nothing works. GPU out of memory. Confused.</p>
+<p><strong>Lesson</strong>: Don't start with the fanciest tool. Start simple!</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="9" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="9" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="what-is-a-baseline">What is a Baseline?</h1>
 <p>A <strong>baseline</strong> is the simplest possible solution that works.</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌───────────────────────────────────────────────────────────────┐
@@ -159,32 +151,25 @@ Given movie features → Predict if it will be successful</p>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="10" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="why-baselines-matter">Why Baselines Matter</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   Scenario 1: You build a fancy model, get 85% accuracy         │
-│               → &quot;Wow, my model is amazing!&quot;                     │
-│                                                                 │
-│   Reality:    A baseline gets 84% accuracy                      │
-│               → Your fancy model only improved by 1%            │
-│               → All that complexity for nothing <img class="emoji" draggable="false" alt="😅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f605.svg" data-marp-twemoji=""/>               │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│   Scenario 2: You build a fancy model, get 85% accuracy         │
-│               Baseline gets 60% accuracy                        │
-│               → Your model improved by 25%!                     │
-│               → That complexity was worth it! <img class="emoji" draggable="false" alt="🎉" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f389.svg" data-marp-twemoji=""/>                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-<p><strong>Baselines give you a reference point.</strong></p>
+<p><strong>Scenario 1</strong>: You build a fancy model, get 85% accuracy.</p>
+<ul>
+<li>&quot;Wow, my model is amazing!&quot;</li>
+<li>Reality: A baseline gets 84% → you only improved by 1%</li>
+<li>All that complexity for almost nothing</li>
+</ul>
+<p><strong>Scenario 2</strong>: You build a fancy model, get 85% accuracy.</p>
+<ul>
+<li>Baseline gets 60% → you improved by 25%!</li>
+<li>That complexity was worth it!</li>
+</ul>
+<p><strong>Baselines give you a reference point.</strong> Without one, you can't know if your model is actually good.</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="11" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="the-simplest-baseline-just-guess">The Simplest Baseline: &quot;Just Guess&quot;</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># The dumbest model possible</span>
 <span class="hljs-keyword">def</span> <span class="hljs-title function_">dumb_predictor</span>(<span class="hljs-params">movie</span>):
@@ -207,7 +192,7 @@ accuracy = baseline.score(X_test, y_test)
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="12" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="baseline-model-1-logistic-regression">Baseline Model 1: Logistic Regression</h1>
 <p><strong>Think of it as</strong>: A weighing scale for features</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
@@ -231,7 +216,7 @@ accuracy = baseline.score(X_test, y_test)
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="13" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="logistic-regression-in-code">Logistic Regression in Code</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> sklearn.linear_model <span class="hljs-keyword">import</span> LogisticRegression
 <span class="hljs-keyword">from</span> sklearn.model_selection <span class="hljs-keyword">import</span> train_test_split
@@ -254,7 +239,7 @@ accuracy = model.score(X_test, y_test)
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="14" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="baseline-model-2-decision-tree">Baseline Model 2: Decision Tree</h1>
 <p><strong>Think of it as</strong>: A flowchart of yes/no questions</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>                         Is Budget &gt; $100M?
@@ -276,7 +261,7 @@ accuracy = model.score(X_test, y_test)
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="15" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="decision-tree-in-code">Decision Tree in Code</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> sklearn.tree <span class="hljs-keyword">import</span> DecisionTreeClassifier
 
@@ -300,31 +285,39 @@ plt.show()
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="16" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="16" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="which-baseline-to-use">Which Baseline to Use?</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                   BASELINE SELECTION GUIDE                      │
-├───────────────────────────┬─────────────────────────────────────┤
-│  Your Situation           │  Recommended Baseline               │
-├───────────────────────────┼─────────────────────────────────────┤
-│  Just starting            │  Logistic Regression                │
-│                           │  (fast, simple, often works well)   │
-├───────────────────────────┼─────────────────────────────────────┤
-│  Need interpretability    │  Decision Tree                      │
-│  (explain to your boss)   │  (you can see the rules)            │
-├───────────────────────────┼─────────────────────────────────────┤
-│  Mixed data types         │  Random Forest                      │
-│  (numbers + categories)   │  (handles everything)               │
-├───────────────────────────┼─────────────────────────────────────┤
-│  Want best performance    │  AutoML (we'll learn this later!)   │
-│  (don't care how)         │                                     │
-└───────────────────────────┴─────────────────────────────────────┘
-</code></pre>
+<table>
+<thead>
+<tr>
+<th>Your Situation</th>
+<th>Recommended Baseline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Just starting</td>
+<td><strong>Logistic Regression</strong> - fast, simple, often works well</td>
+</tr>
+<tr>
+<td>Need to explain to your boss</td>
+<td><strong>Decision Tree</strong> - you can see the rules</td>
+</tr>
+<tr>
+<td>Mixed data (numbers + categories)</td>
+<td><strong>Random Forest</strong> - handles everything</td>
+</tr>
+<tr>
+<td>Want best performance</td>
+<td><strong>AutoML</strong> - we'll learn this soon!</td>
+</tr>
+</tbody>
+</table>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="17" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="17" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="baseline-model-3-random-forest">Baseline Model 3: Random Forest</h1>
 <p><strong>Think of it as</strong>: Asking 100 decision trees and taking a vote</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
@@ -344,7 +337,7 @@ plt.show()
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="18" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="18" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="random-forest-in-code">Random Forest in Code</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> sklearn.ensemble <span class="hljs-keyword">import</span> RandomForestClassifier
 
@@ -361,37 +354,29 @@ accuracy = forest.score(X_test, y_test)
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="19" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" class="lead" data-marpit-pagination="19" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="part-3-cross-validation">Part 3: Cross-Validation</h1>
 <p><em>How to really know if your model is good</em></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="20" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="20" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="the-problem-with-one-test-set">The Problem with One Test Set</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   Scenario: You split your data ONCE                            │
-│                                                                 │
-│   ┌──────────────────────────────┬──────────────┐               │
-│   │        Training (80%)        │  Test (20%)  │               │
-│   └──────────────────────────────┴──────────────┘               │
-│                                                                 │
-│   Your model gets 85% on the test set. Great?                   │
-│                                                                 │
-│   BUT WAIT... What if you got &quot;lucky&quot; with that split?          │
-│   What if the test set happened to be easy?                     │
-│   What if you accidentally put all the hard movies in training? │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-<p><strong>One test set = One roll of the dice <img class="emoji" draggable="false" alt="🎲" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f3b2.svg" data-marp-twemoji=""/></strong></p>
+<p>You split your data once: <strong>80% training, 20% test</strong></p>
+<p>Your model gets 85% on the test set. Great... right?</p>
+<p><strong>But wait:</strong></p>
+<ul>
+<li>What if you got &quot;lucky&quot; with that split?</li>
+<li>What if the test set happened to be easy?</li>
+<li>What if all the hard examples ended up in training?</li>
+</ul>
+<p><strong>One test set = one roll of the dice.</strong> We need something more reliable.</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="21" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="21" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="the-solution-cross-validation">The Solution: Cross-Validation</h1>
 <p><strong>Idea</strong>: Test on EVERY part of your data (not just 20%)</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
@@ -413,7 +398,7 @@ accuracy = forest.score(X_test, y_test)
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="22" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="22" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="cross-validation-visual-intuition">Cross-Validation: Visual Intuition</h1>
 <p>Think of it like a <strong>rotating exam schedule</strong>:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code>          Split 1        Split 2        Split 3        Split 4        Split 5
@@ -434,7 +419,7 @@ Student │ ░ ░ ░ ░ │    │ █ █ █ █ │    │ ░ ░ ░ �
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="23" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="23" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="cross-validation-in-code">Cross-Validation in Code</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> sklearn.model_selection <span class="hljs-keyword">import</span> cross_val_score
 
@@ -457,131 +442,277 @@ Standard deviation: 1.5%
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="24" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="24" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="why-cross-validation-matters">Why Cross-Validation Matters</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                      MODEL COMPARISON                           │
-├────────────────────┬──────────────┬─────────────────────────────┤
-│  Model             │  Single Test │  5-Fold CV                  │
-├────────────────────┼──────────────┼─────────────────────────────┤
-│  Logistic Reg.     │     78%      │  76% ± 2%                   │
-│  Decision Tree     │     82%      │  75% ± 5%  ← High variance! │
-│  Random Forest     │     84%      │  83% ± 1%  ← Most stable!   │
-└────────────────────┴──────────────┴─────────────────────────────┘
-</code></pre>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Single Test</th>
+<th>5-Fold CV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Logistic Regression</td>
+<td>78%</td>
+<td>76% ± 2%</td>
+</tr>
+<tr>
+<td>Decision Tree</td>
+<td>82%</td>
+<td>75% ± 5% ← High variance!</td>
+</tr>
+<tr>
+<td>Random Forest</td>
+<td>84%</td>
+<td>83% ± 1% ← Most stable!</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Insights</strong>:</p>
 <ul>
-<li>Decision Tree looked good on one test, but it's unstable</li>
+<li>Decision Tree looked good on one test, but it's unstable (±5%!)</li>
 <li>Random Forest is not only accurate but <strong>consistent</strong></li>
+<li>Cross-validation reveals the truth!</li>
 </ul>
-<p><strong>Cross-validation reveals the truth!</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="25" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="25" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="25" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="quick-summary-so-far">Quick Summary So Far</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                     WHAT WE LEARNED                             │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. BASELINES: Always start simple                              │
-│     • Majority classifier (the dumbest possible)                │
-│     • Logistic Regression (weighted sum of features)            │
-│     • Decision Tree (flowchart of rules)                        │
-│     • Random Forest (voting committee of trees)                 │
-│                                                                 │
-│  2. CROSS-VALIDATION: Test on all your data                     │
-│     • Split data into 5 (or 10) folds                           │
-│     • Each fold takes a turn being the test set                 │
-│     • Get average ± standard deviation                          │
-│     • Much more reliable than a single test set                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+" lang="en-IN" class="lead" data-marpit-pagination="25" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="part-4-hyperparameter-tuning">Part 4: Hyperparameter Tuning</h1>
+<p><em>Making your model better with the right settings</em></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="26" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="26" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="what-are-hyperparameters">What Are Hyperparameters?</h1>
+<p><strong>Parameters</strong>: Values the model learns from data (weights, biases)</p>
+<p><strong>Hyperparameters</strong>: Values YOU choose before training</p>
+<p><strong>Example - Random Forest</strong>:</p>
+<ul>
+<li><code>n_estimators</code>: How many trees? (10? 100? 500?)</li>
+<li><code>max_depth</code>: How deep can each tree grow? (3? 10? unlimited?)</li>
+<li><code>min_samples_split</code>: Minimum samples to split a node?</li>
+</ul>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># These are hyperparameters - YOU choose them</span>
+model = RandomForestClassifier(
+    n_estimators=<span class="hljs-number">100</span>,    <span class="hljs-comment"># ← hyperparameter</span>
+    max_depth=<span class="hljs-number">10</span>,        <span class="hljs-comment"># ← hyperparameter</span>
+    min_samples_split=<span class="hljs-number">5</span>  <span class="hljs-comment"># ← hyperparameter</span>
+)
 </code></pre>
-</section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="26" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-@import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="26" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="part-4-automl---let-the-computer-do-it">Part 4: AutoML - Let the Computer Do It</h1>
-<p><em>The lazy (smart) way to build models</em></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="27" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="27" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="the-problem-with-manual-ml">The Problem with Manual ML</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                    BUILDING ML MODELS MANUALLY                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. Try Logistic Regression... okay                             │
-│  2. Try Decision Tree... not great                              │
-│  3. Try Random Forest... better                                 │
-│  4. Try XGBoost... hmm, similar                                 │
-│  5. Try Neural Network... takes forever                         │
-│  6. Tune hyperparameters for each...                            │
-│  7. Try different feature combinations...                       │
-│  8. Repeat steps 1-7 many times...                              │
-│                                                                 │
-│  Time spent: 3 days                                             │
-│  Hair remaining: None                                           │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-<p><strong>There has to be a better way!</strong></p>
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="why-hyperparameters-matter">Why Hyperparameters Matter</h1>
+<p>Same model, different hyperparameters → <strong>very different results</strong></p>
+<table>
+<thead>
+<tr>
+<th>n_estimators</th>
+<th>max_depth</th>
+<th>Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10</td>
+<td>3</td>
+<td>72%</td>
+</tr>
+<tr>
+<td>100</td>
+<td>5</td>
+<td>79%</td>
+</tr>
+<tr>
+<td>100</td>
+<td>10</td>
+<td>82%</td>
+</tr>
+<tr>
+<td>500</td>
+<td>None</td>
+<td>84%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The right hyperparameters can improve your model by 10%+</strong></p>
+<p>But how do you find the right values?</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="28" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="28" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="enter-automl">Enter AutoML</h1>
-<p><strong>AutoML</strong> = Automatic Machine Learning</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   You: &quot;Here's my data. Give me the best model.&quot;                │
-│                                                                 │
-│   AutoML: &quot;On it! Let me try 50 different models,               │
-│            tune their parameters, combine the best ones,        │
-│            and give you a super-ensemble.&quot;                      │
-│                                                                 │
-│   You: *goes to get coffee*                                     │
-│                                                                 │
-│   AutoML: &quot;Done! Here's a model with 87% accuracy.&quot;             │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="strategy-1-grid-search">Strategy 1: Grid Search</h1>
+<p><strong>Idea</strong>: Try every combination and pick the best</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> sklearn.model_selection <span class="hljs-keyword">import</span> GridSearchCV
+
+<span class="hljs-comment"># Define what to try</span>
+param_grid = {
+    <span class="hljs-string">&#x27;n_estimators&#x27;</span>: [<span class="hljs-number">50</span>, <span class="hljs-number">100</span>, <span class="hljs-number">200</span>],
+    <span class="hljs-string">&#x27;max_depth&#x27;</span>: [<span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>, <span class="hljs-literal">None</span>]
+}
+
+<span class="hljs-comment"># Try all combinations with cross-validation</span>
+grid_search = GridSearchCV(
+    RandomForestClassifier(),
+    param_grid,
+    cv=<span class="hljs-number">5</span>  <span class="hljs-comment"># Use 5-fold CV for each combination</span>
+)
+grid_search.fit(X, y)
+
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Best params: <span class="hljs-subst">{grid_search.best_params_}</span>&quot;</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Best score: <span class="hljs-subst">{grid_search.best_score_:<span class="hljs-number">.1</span>%}</span>&quot;</span>)
 </code></pre>
-<p><strong>This is not magic. It just automates what experts do manually.</strong></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="29" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="29" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="autogluon-automl-made-easy">AutoGluon: AutoML Made Easy</h1>
-<p><strong>AutoGluon</strong> (by Amazon) is one of the best AutoML tools.</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                   WHAT AUTOGLUON DOES                           │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. Automatically handles missing values                        │
-│  2. Automatically encodes categorical features                  │
-│  3. Trains multiple model types:                                │
-│     • Random Forest                                             │
-│     • XGBoost, LightGBM, CatBoost (gradient boosting)          │
-│     • Neural Networks                                           │
-│     • And more...                                               │
-│  4. Tunes hyperparameters                                       │
-│  5. Creates an ensemble of the best models                      │
-│  6. Uses cross-validation internally                            │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="grid-search-the-problem">Grid Search: The Problem</h1>
+<p><strong>3 hyperparameters × 4 values each = 64 combinations</strong></p>
+<p>Each combination needs 5-fold CV = <strong>320 model trainings!</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hyperparameters</th>
+<th>Values each</th>
+<th>Combinations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>3</td>
+<td>9</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>64</td>
+</tr>
+<tr>
+<td>4</td>
+<td>5</td>
+<td>625</td>
+</tr>
+<tr>
+<td>5</td>
+<td>5</td>
+<td>3,125</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Grid search doesn't scale well.</strong></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="30" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="30" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="strategy-2-random-search">Strategy 2: Random Search</h1>
+<p><strong>Idea</strong>: Don't try everything - randomly sample combinations</p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> sklearn.model_selection <span class="hljs-keyword">import</span> RandomizedSearchCV
+<span class="hljs-keyword">from</span> scipy.stats <span class="hljs-keyword">import</span> randint
+
+<span class="hljs-comment"># Define ranges to sample from</span>
+param_dist = {
+    <span class="hljs-string">&#x27;n_estimators&#x27;</span>: randint(<span class="hljs-number">50</span>, <span class="hljs-number">500</span>),
+    <span class="hljs-string">&#x27;max_depth&#x27;</span>: randint(<span class="hljs-number">3</span>, <span class="hljs-number">30</span>),
+    <span class="hljs-string">&#x27;min_samples_split&#x27;</span>: randint(<span class="hljs-number">2</span>, <span class="hljs-number">20</span>)
+}
+
+<span class="hljs-comment"># Try 20 random combinations</span>
+random_search = RandomizedSearchCV(
+    RandomForestClassifier(),
+    param_dist,
+    n_iter=<span class="hljs-number">20</span>,  <span class="hljs-comment"># Only try 20 combinations</span>
+    cv=<span class="hljs-number">5</span>
+)
+random_search.fit(X, y)
+</code></pre>
+<p><strong>Surprisingly effective!</strong> Often finds good solutions faster than grid search.</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="31" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="31" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="hyperparameter-tuning-tips">Hyperparameter Tuning Tips</h1>
+<p><strong>Start with defaults</strong> - sklearn's defaults are usually reasonable</p>
+<p><strong>Tune the important ones first</strong>:</p>
+<ul>
+<li>Random Forest: <code>n_estimators</code>, <code>max_depth</code></li>
+<li>Decision Tree: <code>max_depth</code>, <code>min_samples_split</code></li>
+<li>Logistic Regression: <code>C</code> (regularization strength)</li>
+</ul>
+<p><strong>Use cross-validation</strong> - always! Never tune on test set.</p>
+<p><strong>Don't over-tune</strong> - spending days for +0.5% accuracy is usually not worth it</p>
+<p><strong>Or... just use AutoML</strong> (coming up next!)</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="32" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" class="lead" data-marpit-pagination="32" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="part-5-automl---let-the-computer-do-it">Part 5: AutoML - Let the Computer Do It</h1>
+<p><em>The lazy (smart) way to build models</em></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="33" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="33" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="the-problem-with-manual-ml">The Problem with Manual ML</h1>
+<p>The typical manual workflow:</p>
+<ol>
+<li>Try Logistic Regression... okay</li>
+<li>Try Decision Tree... not great</li>
+<li>Try Random Forest... better</li>
+<li>Try XGBoost... hmm, similar</li>
+<li>Try Neural Network... takes forever</li>
+<li>Tune hyperparameters for each one...</li>
+<li>Try different feature combinations...</li>
+<li>Repeat steps 1-7 many times...</li>
+</ol>
+<p><strong>Time spent: 3 days. Hair remaining: None.</strong></p>
+<p>There has to be a better way!</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="34" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="34" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="enter-automl">Enter AutoML</h1>
+<p><strong>AutoML</strong> = Automatic Machine Learning</p>
+<p><strong>You</strong>: &quot;Here's my data. Give me the best model.&quot;</p>
+<p><strong>AutoML</strong>: &quot;On it! Let me try 50 different models, tune their parameters, combine the best ones, and give you a super-ensemble.&quot;</p>
+<p><strong>You</strong>: <em>goes to get coffee</em></p>
+<p><strong>AutoML</strong>: &quot;Done! Here's a model with 87% accuracy.&quot;</p>
+<p><strong>This is not magic.</strong> It just automates what experts do manually.</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="35" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="35" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="autogluon-automl-made-easy">AutoGluon: AutoML Made Easy</h1>
+<p><strong>AutoGluon</strong> (by Amazon) is one of the best AutoML tools.</p>
+<p><strong>What it does automatically:</strong></p>
+<ol>
+<li>Handles missing values</li>
+<li>Encodes categorical features</li>
+<li>Trains multiple model types (Random Forest, XGBoost, LightGBM, Neural Nets...)</li>
+<li>Tunes hyperparameters</li>
+<li>Creates an ensemble of the best models</li>
+<li>Uses cross-validation internally</li>
+</ol>
+<p><strong>All with 3 lines of code!</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="36" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="36" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="autogluon-in-3-lines-of-code">AutoGluon in 3 Lines of Code</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> autogluon.tabular <span class="hljs-keyword">import</span> TabularPredictor
 
@@ -596,36 +727,23 @@ predictions = predictor.predict(test_data)
 </code></pre>
 <p><strong>Seriously. That's the entire code.</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="31" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="37" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="31" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="37" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="what-happens-inside-autogluon">What Happens Inside AutoGluon?</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                  AUTOGLUON TRAINING PROCESS                     │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Input: Your CSV file                                           │
-│          ↓                                                      │
-│  Step 1: Analyze data types (numbers, text, dates)              │
-│          ↓                                                      │
-│  Step 2: Preprocess features automatically                      │
-│          ↓                                                      │
-│  Step 3: Train 10+ different model types                        │
-│          ↓                                                      │
-│  Step 4: Cross-validate each model                              │
-│          ↓                                                      │
-│  Step 5: Stack models together (ensemble)                       │
-│          ↓                                                      │
-│  Output: One super-model that combines the best of all          │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+<p><strong>Input</strong>: Your CSV file</p>
+<p>↓ <strong>Step 1</strong>: Analyze data types (numbers, text, dates)</p>
+<p>↓ <strong>Step 2</strong>: Preprocess features automatically</p>
+<p>↓ <strong>Step 3</strong>: Train 10+ different model types</p>
+<p>↓ <strong>Step 4</strong>: Cross-validate each model</p>
+<p>↓ <strong>Step 5</strong>: Stack models together (ensemble)</p>
+<p><strong>Output</strong>: One super-model that combines the best of all</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="32" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="38" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="32" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="38" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="autogluon-leaderboard">AutoGluon Leaderboard</h1>
 <p>After training, you can see how each model performed:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">predictor.leaderboard(test_data)
@@ -641,34 +759,30 @@ predictions = predictor.predict(test_data)
 </code></pre>
 <p><strong>The ensemble combines the best models!</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="33" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="39" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="33" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="39" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="when-to-use-automl">When to Use AutoML</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│              WHEN TO USE AUTOML                                 │
-├───────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  <img class="emoji" draggable="false" alt="✅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/2705.svg" data-marp-twemoji=""/> Great for:                                                   │
-│     • Quick prototyping (&quot;Is ML even useful for this?&quot;)         │
-│     • Competitions (Kaggle)                                     │
-│     • When you don't have ML expertise                          │
-│     • Setting a strong baseline to beat                         │
-│                                                                 │
-│  <img class="emoji" draggable="false" alt="⚠" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/26a0.svg" data-marp-twemoji=""/> Be careful:                                                  │
-│     • Takes a long time to train (10 mins to hours)             │
-│     • Uses lots of memory                                       │
-│     • Hard to explain (&quot;Why did it predict this?&quot;)              │
-│     • Model might be too big for production                     │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+<p><strong>Great for:</strong></p>
+<ul>
+<li>Quick prototyping (&quot;Is ML even useful for this?&quot;)</li>
+<li>Competitions (Kaggle)</li>
+<li>When you don't have ML expertise</li>
+<li>Setting a strong baseline to beat</li>
+</ul>
+<p><strong>Be careful:</strong></p>
+<ul>
+<li>Takes a long time to train (10 mins to hours)</li>
+<li>Uses lots of memory</li>
+<li>Hard to explain (&quot;Why did it predict this?&quot;)</li>
+<li>Model might be too big for production</li>
+</ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="34" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="40" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="34" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="40" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="autogluon-with-time-limit">AutoGluon with Time Limit</h1>
 <p><strong>Don't have all day?</strong> Set a time limit:</p>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">predictor = TabularPredictor(label=<span class="hljs-string">&#x27;success&#x27;</span>)
@@ -677,239 +791,301 @@ predictions = predictor.predict(test_data)
 predictor.fit(train_data, time_limit=<span class="hljs-number">300</span>)  <span class="hljs-comment"># 300 seconds = 5 mins</span>
 </code></pre>
 <p><strong>More time = Better models</strong> (usually)</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌──────────────┬─────────────────────────────────────────────────┐
-│  Time Limit  │  What AutoGluon Can Do                          │
-├──────────────┼─────────────────────────────────────────────────┤
-│  1 minute    │  Quick baselines (RF, LR)                       │
-│  5 minutes   │  Good models (+ XGBoost, LightGBM)              │
-│  30 minutes  │  Great models (+ Neural Nets, tuning)           │
-│  2+ hours    │  Best possible (full tuning, stacking)          │
-└──────────────┴─────────────────────────────────────────────────┘
-</code></pre>
+<table>
+<thead>
+<tr>
+<th>Time Limit</th>
+<th>What AutoGluon Can Do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 minute</td>
+<td>Quick baselines (RF, LR)</td>
+</tr>
+<tr>
+<td>5 minutes</td>
+<td>Good models (+ XGBoost, LightGBM)</td>
+</tr>
+<tr>
+<td>30 minutes</td>
+<td>Great models (+ Neural Nets, tuning)</td>
+</tr>
+<tr>
+<td>2+ hours</td>
+<td>Best possible (full tuning, stacking)</td>
+</tr>
+</tbody>
+</table>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="35" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="41" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="35" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="part-5-transfer-learning">Part 5: Transfer Learning</h1>
+" lang="en-IN" class="lead" data-marpit-pagination="41" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="part-6-transfer-learning">Part 6: Transfer Learning</h1>
 <p><em>Standing on the shoulders of giants</em></p>
-</section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="36" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-@import 'custom.css';
-" lang="en-IN" data-marpit-pagination="36" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="the-problem-with-training-from-scratch">The Problem with Training from Scratch</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                    TRAINING A NEW MODEL                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Scenario: You want to classify movie posters (images)          │
-│                                                                 │
-│  Option 1: Train from scratch                                   │
-│  • Need: 1 million labeled images                               │
-│  • Need: 10 GPUs for a week                                     │
-│  • Need: ML PhD to get it right                                 │
-│  • Cost: $10,000+                                               │
-│                                                                 │
-│  Option 2: Use someone else's model                             │
-│  • Need: 1,000 labeled images                                   │
-│  • Need: 1 GPU for an hour                                      │
-│  • Need: Basic Python skills                                    │
-│  • Cost: $1                                                     │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-</section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="37" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-@import 'custom.css';
-" lang="en-IN" data-marpit-pagination="37" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="transfer-learning-the-analogy">Transfer Learning: The Analogy</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│              LEARNING TO PLAY A NEW SPORT                       │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Someone who has NEVER played any sport:                        │
-│  • Learning tennis takes 6 months                               │
-│  • Starts from zero                                             │
-│                                                                 │
-│  Someone who plays badminton:                                   │
-│  • Learning tennis takes 2 months                               │
-│  • Already knows: hand-eye coordination, racket grip,           │
-│    court movement, strategy                                     │
-│  • Just needs to learn: different swing, ball bounce            │
-│                                                                 │
-│  The badminton player TRANSFERS their skills!                   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-<p><strong>Transfer Learning</strong>: Use knowledge from one task for another.</p>
-</section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="38" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-@import 'custom.css';
-" lang="en-IN" data-marpit-pagination="38" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="how-transfer-learning-works-for-images">How Transfer Learning Works for Images</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                    PRETRAINED IMAGE MODEL                       │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Google trained a model on 14 MILLION images (ImageNet)         │
-│                                                                 │
-│  What it learned (bottom to top):                               │
-│                                                                 │
-│  Layer 1: Edges         ████  ████  ████                        │
-│                         ───   ╱╲    ◡                           │
-│                                                                 │
-│  Layer 2: Textures      ░░░   ▓▓▓   ╳╳╳                         │
-│                                                                 │
-│  Layer 3: Shapes        ◯     □     △                           │
-│                                                                 │
-│  Layer 4: Objects       <img class="emoji" draggable="false" alt="🐱" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f431.svg" data-marp-twemoji=""/>    <img class="emoji" draggable="false" alt="🚗" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f697.svg" data-marp-twemoji=""/>    <img class="emoji" draggable="false" alt="🌳" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f333.svg" data-marp-twemoji=""/>                           │
-│                                                                 │
-│  Layer 5: Scenes        <img class="emoji" draggable="false" alt="🏠" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f3e0.svg" data-marp-twemoji=""/> <img class="emoji" draggable="false" alt="🌅" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f305.svg" data-marp-twemoji=""/> <img class="emoji" draggable="false" alt="🎬" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f3ac.svg" data-marp-twemoji=""/>                                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-<p><strong>Lower layers = Universal features (edges, textures)</strong><br />
-<strong>Higher layers = Task-specific features (cats, cars)</strong></p>
-</section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="39" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-@import 'custom.css';
-" lang="en-IN" data-marpit-pagination="39" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="transfer-learning-strategy">Transfer Learning Strategy</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                    THE TRANSFER RECIPE                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Step 1: Take a pretrained model (trained on millions of        │
-│          images by Google/Facebook)                             │
-│                                                                 │
-│  Step 2: Remove the last layer (the &quot;head&quot;)                     │
-│          • Original: predicts 1000 ImageNet categories          │
-│          • We don't need &quot;cat&quot;, &quot;dog&quot;, &quot;airplane&quot;               │
-│                                                                 │
-│  Step 3: Add our own head                                       │
-│          • New layer: predicts OUR categories                   │
-│          • Movie poster → &quot;Action&quot;, &quot;Comedy&quot;, &quot;Drama&quot;           │
-│                                                                 │
-│  Step 4: Train only the new head (freeze everything else)       │
-│          • Very fast! (minutes instead of days)                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-</section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="40" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-@import 'custom.css';
-" lang="en-IN" data-marpit-pagination="40" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="transfer-learning-visualized">Transfer Learning Visualized</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   PRETRAINED MODEL              YOUR NEW MODEL                  │
-│   (from Google)                 (for movies)                    │
-│                                                                 │
-│   ┌─────────────┐               ┌─────────────┐                 │
-│   │ Cat/Dog/Car │  ──REMOVE──►  │ Action/     │  ← NEW!         │
-│   │   (1000)    │               │ Comedy/Drama│                 │
-│   └─────────────┘               └─────────────┘                 │
-│         ↑                             ↑                         │
-│   ┌─────────────┐               ┌─────────────┐                 │
-│   │ Shapes      │  ──KEEP────►  │ Shapes      │  ← FROZEN       │
-│   └─────────────┘               └─────────────┘                 │
-│         ↑                             ↑                         │
-│   ┌─────────────┐               ┌─────────────┐                 │
-│   │ Edges       │  ──KEEP────►  │ Edges       │  ← FROZEN       │
-│   └─────────────┘               └─────────────┘                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
-</section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="41" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-@import 'custom.css';
-" lang="en-IN" data-marpit-pagination="41" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="transfer-learning-for-text-llms">Transfer Learning for Text (LLMs)</h1>
-<p>Same idea works for text!</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                   PRETRAINED TEXT MODEL (BERT)                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Google trained BERT on ALL of Wikipedia + Books                │
-│                                                                 │
-│  What it learned:                                               │
-│  • Grammar and syntax                                           │
-│  • Word meanings and relationships                              │
-│  • Common knowledge (&quot;Paris is in France&quot;)                      │
-│  • Context understanding                                        │
-│                                                                 │
-│  Your task: Classify movie reviews as Positive/Negative         │
-│                                                                 │
-│  Transfer: Use BERT's language understanding,                   │
-│            just teach it your specific task                     │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="42" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="42" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="fine-tuning-a-deeper-transfer">Fine-Tuning: A Deeper Transfer</h1>
-<p><strong>Feature Extraction</strong>: Freeze pretrained layers, only train new head<br />
-<strong>Fine-Tuning</strong>: Also slightly update the pretrained layers</p>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│              Feature Extraction        Fine-Tuning              │
-│                                                                 │
-│   Head         [Train 100%]           [Train 100%]              │
-│                                                                 │
-│   Top layers   [Frozen <img class="emoji" draggable="false" alt="❄" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/2744.svg" data-marp-twemoji=""/>]            [Train slowly]            │
-│                                                                 │
-│   Mid layers   [Frozen <img class="emoji" draggable="false" alt="❄" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/2744.svg" data-marp-twemoji=""/>]            [Train slower]            │
-│                                                                 │
-│   Low layers   [Frozen <img class="emoji" draggable="false" alt="❄" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/2744.svg" data-marp-twemoji=""/>]            [Frozen <img class="emoji" draggable="false" alt="❄" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/2744.svg" data-marp-twemoji=""/>]               │
-│                                                                 │
-│   Pros:        Fast, works with       Better accuracy           │
-│                little data                                      │
-│   Cons:        Less accurate          Needs more data,          │
-│                                       can overfit               │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="the-problem-with-training-from-scratch">The Problem with Training from Scratch</h1>
+<p><strong>Scenario</strong>: You want to classify movie posters (images)</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Train from Scratch</th>
+<th>Use Pretrained Model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Data needed</strong></td>
+<td>1 million images</td>
+<td>1,000 images</td>
+</tr>
+<tr>
+<td><strong>Hardware</strong></td>
+<td>10 GPUs for a week</td>
+<td>1 GPU for an hour</td>
+</tr>
+<tr>
+<td><strong>Expertise</strong></td>
+<td>ML PhD</td>
+<td>Basic Python</td>
+</tr>
+<tr>
+<td><strong>Cost</strong></td>
+<td>$10,000+</td>
+<td>~$1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The choice is obvious!</strong></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="43" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="43" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="when-to-use-transfer-learning">When to Use Transfer Learning</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│              TRANSFER LEARNING DECISION GUIDE                   │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  You have IMAGES?                                               │
-│  → Use pretrained ResNet, EfficientNet, or ViT                  │
-│  → Works great even with 100 images!                            │
-│                                                                 │
-│  You have TEXT?                                                 │
-│  → Use pretrained BERT, RoBERTa, or use LLM APIs                │
-│  → Works great for classification, sentiment, etc.              │
-│                                                                 │
-│  You have TABULAR DATA (spreadsheets)?                          │
-│  → Transfer learning is less common                             │
-│  → Use AutoML instead (AutoGluon)                               │
-│                                                                 │
-│  You have AUDIO?                                                │
-│  → Use pretrained Whisper, Wav2Vec                              │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="transfer-learning-the-analogy">Transfer Learning: The Analogy</h1>
+<p><strong>Someone who has never played any sport:</strong></p>
+<ul>
+<li>Learning tennis takes 6 months</li>
+<li>Starts from zero</li>
+</ul>
+<p><strong>Someone who plays badminton:</strong></p>
+<ul>
+<li>Learning tennis takes 2 months</li>
+<li>Already knows: hand-eye coordination, racket grip, court movement</li>
+<li>Just needs to learn: different swing, ball bounce</li>
+</ul>
+<p><strong>The badminton player transfers their skills!</strong></p>
+<p>Same idea in ML: Use knowledge from one task for another.</p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="44" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
 " lang="en-IN" data-marpit-pagination="44" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="how-transfer-learning-works-for-images">How Transfer Learning Works for Images</h1>
+<p>Google trained a model on <strong>14 MILLION images</strong> (ImageNet).</p>
+<p>What it learned (from simple to complex):</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>What it Learned</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 (bottom)</td>
+<td>Edges, lines</td>
+<td>horizontal, vertical, diagonal</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Textures</td>
+<td>fur, metal, wood</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Shapes</td>
+<td>circles, squares, curves</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Parts</td>
+<td>eyes, wheels, leaves</td>
+</tr>
+<tr>
+<td>5 (top)</td>
+<td>Objects</td>
+<td>cats, cars, trees</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lower layers = Universal</strong> (useful for any image task)<br />
+<strong>Higher layers = Task-specific</strong> (cats vs dogs vs cars)</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="45" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="45" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="transfer-learning-strategy">Transfer Learning Strategy</h1>
+<p><strong>Step 1</strong>: Take a pretrained model (trained on millions of images)</p>
+<p><strong>Step 2</strong>: Remove the last layer (the &quot;head&quot;)</p>
+<ul>
+<li>Original: predicts 1000 ImageNet categories</li>
+<li>We don't need &quot;cat&quot;, &quot;dog&quot;, &quot;airplane&quot;</li>
+</ul>
+<p><strong>Step 3</strong>: Add our own head</p>
+<ul>
+<li>New layer: predicts OUR categories</li>
+<li>Movie poster → &quot;Action&quot;, &quot;Comedy&quot;, &quot;Drama&quot;</li>
+</ul>
+<p><strong>Step 4</strong>: Train only the new head (freeze everything else)</p>
+<ul>
+<li>Very fast! (minutes instead of days)</li>
+</ul>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="46" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="46" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="transfer-learning-visualized">Transfer Learning Visualized</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>PRETRAINED MODEL               YOUR NEW MODEL
+(from Google)                  (for movies)
+
+┌─────────────┐                ┌──────────────┐
+│ Cat/Dog/Car │  ──REMOVE──►   │ Action/Comedy│  ← NEW (train this)
+│   (1000)    │                │    /Drama    │
+└─────────────┘                └──────────────┘
+      ↑                              ↑
+┌─────────────┐                ┌──────────────┐
+│   Shapes    │  ───KEEP────►  │    Shapes    │  ← FROZEN
+└─────────────┘                └──────────────┘
+      ↑                              ↑
+┌─────────────┐                ┌──────────────┐
+│    Edges    │  ───KEEP────►  │    Edges     │  ← FROZEN
+└─────────────┘                └──────────────┘
+</code></pre>
+<p>Only train the top layer. Keep everything else frozen.</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="47" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="47" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="transfer-learning-for-text-llms">Transfer Learning for Text (LLMs)</h1>
+<p>Same idea works for text!</p>
+<p><strong>BERT</strong> (by Google) was trained on ALL of Wikipedia + Books.</p>
+<p><strong>What it learned:</strong></p>
+<ul>
+<li>Grammar and syntax</li>
+<li>Word meanings and relationships</li>
+<li>Common knowledge (&quot;Paris is in France&quot;)</li>
+<li>Context understanding</li>
+</ul>
+<p><strong>Your task</strong>: Classify movie reviews as Positive/Negative</p>
+<p><strong>Transfer</strong>: Use BERT's language understanding, just teach it your specific task.</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="48" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="48" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="fine-tuning-a-deeper-transfer">Fine-Tuning: A Deeper Transfer</h1>
+<p><strong>Feature Extraction</strong>: Freeze pretrained layers, only train new head</p>
+<p><strong>Fine-Tuning</strong>: Also slightly update the pretrained layers</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Feature Extraction</th>
+<th>Fine-Tuning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Head</strong></td>
+<td>Train</td>
+<td>Train</td>
+</tr>
+<tr>
+<td><strong>Top layers</strong></td>
+<td>Frozen</td>
+<td>Train slowly</td>
+</tr>
+<tr>
+<td><strong>Bottom layers</strong></td>
+<td>Frozen</td>
+<td>Frozen</td>
+</tr>
+<tr>
+<td><strong>Speed</strong></td>
+<td>Fast</td>
+<td>Slower</td>
+</tr>
+<tr>
+<td><strong>Data needed</strong></td>
+<td>Less</td>
+<td>More</td>
+</tr>
+<tr>
+<td><strong>Accuracy</strong></td>
+<td>Good</td>
+<td>Better</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Start with feature extraction.</strong> Fine-tune only if you need more accuracy and have enough data.</p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="49" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="49" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="when-to-use-transfer-learning">When to Use Transfer Learning</h1>
+<table>
+<thead>
+<tr>
+<th>Data Type</th>
+<th>Use Transfer Learning?</th>
+<th>Recommended Models</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Images</strong></td>
+<td>Yes!</td>
+<td>ResNet, EfficientNet, ViT</td>
+</tr>
+<tr>
+<td><strong>Text</strong></td>
+<td>Yes!</td>
+<td>BERT, RoBERTa, or LLM APIs</td>
+</tr>
+<tr>
+<td><strong>Audio</strong></td>
+<td>Yes!</td>
+<td>Whisper, Wav2Vec</td>
+</tr>
+<tr>
+<td><strong>Tabular</strong></td>
+<td>Rarely</td>
+<td>Use AutoML instead</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule of thumb:</strong></p>
+<ul>
+<li>Images, text, audio → <strong>Transfer learning</strong></li>
+<li>Tabular data (spreadsheets) → <strong>AutoML (AutoGluon)</strong></li>
+</ul>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="50" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+@import 'custom.css';
+" lang="en-IN" data-marpit-pagination="50" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="transfer-learning-example-code">Transfer Learning Example Code</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> transformers <span class="hljs-keyword">import</span> pipeline
 
@@ -933,47 +1109,44 @@ Worst film I've ever seen.... → NEGATIVE
 It was okay, nothing special.... → NEGATIVE
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="45" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="51" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="45" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
-<h1 id="part-6-putting-it-all-together">Part 6: Putting It All Together</h1>
+" lang="en-IN" class="lead" data-marpit-pagination="51" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
+<h1 id="part-7-putting-it-all-together">Part 7: Putting It All Together</h1>
 <p><em>A complete workflow</em></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="46" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="52" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="46" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="52" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="the-complete-workflow">The Complete Workflow</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                   ML MODEL DEVELOPMENT WORKFLOW                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Step 1: Understand your data                                   │
-│          • What type? (tabular, images, text)                   │
-│          • How much? (100 samples vs 1 million)                 │
-│                                                                 │
-│  Step 2: Create a baseline                                      │
-│          • Tabular: Logistic Regression or Random Forest        │
-│          • Images/Text: Pretrained model (transfer learning)    │
-│                                                                 │
-│  Step 3: Evaluate with cross-validation                         │
-│          • Get reliable accuracy estimates                      │
-│          • Understand variance in performance                   │
-│                                                                 │
-│  Step 4: Try AutoML (if tabular)                                │
-│          • Let AutoGluon find the best model                    │
-│          • Compare to your baseline                             │
-│                                                                 │
-│  Step 5: Iterate and improve                                    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+<p><strong>Step 1: Understand your data</strong></p>
+<ul>
+<li>What type? (tabular, images, text)</li>
+<li>How much? (100 samples vs 1 million)</li>
+</ul>
+<p><strong>Step 2: Create a baseline</strong></p>
+<ul>
+<li>Tabular → Logistic Regression or Random Forest</li>
+<li>Images/Text → Pretrained model (transfer learning)</li>
+</ul>
+<p><strong>Step 3: Evaluate with cross-validation</strong></p>
+<ul>
+<li>Get reliable accuracy estimates</li>
+<li>Understand variance in performance</li>
+</ul>
+<p><strong>Step 4: Improve</strong></p>
+<ul>
+<li>Tune hyperparameters</li>
+<li>Try AutoML (AutoGluon)</li>
+<li>Compare to your baseline</li>
+</ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="47" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="53" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="47" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="53" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="netflix-movie-prediction-full-example">Netflix Movie Prediction: Full Example</h1>
 <pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd
 <span class="hljs-keyword">from</span> sklearn.model_selection <span class="hljs-keyword">import</span> cross_val_score
@@ -994,133 +1167,144 @@ predictor.fit(movies, time_limit=<span class="hljs-number">300</span>)
 <span class="hljs-built_in">print</span>(predictor.leaderboard())
 </code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="48" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="54" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="48" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="54" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="what-good-accuracy-looks-like">What Good Accuracy Looks Like</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│              INTERPRETING YOUR RESULTS                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Random guessing:              50%                              │
-│  Majority class baseline:      60%                              │
-│  Simple model (Logistic Reg):  72%                              │
-│  Better model (Random Forest): 78%                              │
-│  AutoML (AutoGluon):           82%                              │
-│  State-of-the-art:             85%                              │
-│                                                                 │
-│  Key questions:                                                 │
-│  • Did you beat random guessing? ✓                              │
-│  • Did you beat majority class? ✓                               │
-│  • Is the improvement worth the complexity?                     │
-│                                                                 │
-│  82% might be amazing for some problems,                        │
-│  and terrible for others. Context matters!                      │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random guessing</td>
+<td>50%</td>
+</tr>
+<tr>
+<td>Majority class baseline</td>
+<td>60%</td>
+</tr>
+<tr>
+<td>Simple model (Logistic Reg)</td>
+<td>72%</td>
+</tr>
+<tr>
+<td>Better model (Random Forest)</td>
+<td>78%</td>
+</tr>
+<tr>
+<td>AutoML (AutoGluon)</td>
+<td>82%</td>
+</tr>
+<tr>
+<td>State-of-the-art</td>
+<td>85%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key questions to ask:</strong></p>
+<ul>
+<li>Did you beat random guessing?</li>
+<li>Did you beat majority class?</li>
+<li>Is the improvement worth the complexity?</li>
+</ul>
+<p><strong>Note</strong>: 82% might be amazing for some problems and terrible for others. Context matters!</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="49" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="55" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="49" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="55" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="key-takeaways">Key Takeaways</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                     TODAY'S KEY LESSONS                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. ALWAYS START WITH A BASELINE                                │
-│     → Simple models are your reference point                    │
-│     → You can't know if fancy is better without simple first    │
-│                                                                 │
-│  2. USE CROSS-VALIDATION                                        │
-│     → One test set can be misleading                            │
-│     → 5-fold CV gives reliable estimates                        │
-│                                                                 │
-│  3. TRY AUTOML FOR TABULAR DATA                                 │
-│     → AutoGluon does the hard work for you                      │
-│     → Great for prototyping and competitions                    │
-│                                                                 │
-│  4. USE TRANSFER LEARNING FOR IMAGES/TEXT                       │
-│     → Don't train from scratch                                  │
-│     → Pretrained models save time and work better               │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+<ol>
+<li>
+<p><strong>Always start with a baseline</strong></p>
+<ul>
+<li>Simple models are your reference point</li>
+<li>You can't know if fancy is better without simple first</li>
+</ul>
+</li>
+<li>
+<p><strong>Use cross-validation</strong></p>
+<ul>
+<li>One test set can be misleading</li>
+<li>5-fold CV gives reliable estimates</li>
+</ul>
+</li>
+<li>
+<p><strong>Tune hyperparameters</strong> (or use AutoML)</p>
+<ul>
+<li>Grid search, random search, or AutoGluon</li>
+<li>Can improve accuracy by 10%+</li>
+</ul>
+</li>
+<li>
+<p><strong>Use transfer learning for images/text</strong></p>
+<ul>
+<li>Don't train from scratch</li>
+<li>Pretrained models save time and work better</li>
+</ul>
+</li>
+</ol>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="50" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="56" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="50" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="56" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="common-mistakes-to-avoid">Common Mistakes to Avoid</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                    DON'T DO THIS!                               │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  <img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/274c.svg" data-marp-twemoji=""/> Starting with deep learning before trying simple models     │
-│                                                                 │
-│  <img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/274c.svg" data-marp-twemoji=""/> Evaluating on only one train/test split                     │
-│                                                                 │
-│  <img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/274c.svg" data-marp-twemoji=""/> Tuning hyperparameters on the test set                      │
-│     (This is cheating! Use a validation set)                    │
-│                                                                 │
-│  <img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/274c.svg" data-marp-twemoji=""/> Training image/text models from scratch with small data     │
-│                                                                 │
-│  <img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/274c.svg" data-marp-twemoji=""/> Ignoring the baseline (&quot;My model gets 80%!&quot; vs what?)       │
-│                                                                 │
-│  <img class="emoji" draggable="false" alt="❌" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/274c.svg" data-marp-twemoji=""/> Over-engineering for tiny improvements                      │
-│     (+0.5% accuracy isn't worth 10x complexity)                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+<ul>
+<li>Starting with deep learning before trying simple models</li>
+<li>Evaluating on only one train/test split</li>
+<li>Tuning hyperparameters on the test set (this is cheating!)</li>
+<li>Training image/text models from scratch with small data</li>
+<li>Ignoring the baseline (&quot;My model gets 80%!&quot; ...vs what?)</li>
+<li>Over-engineering for tiny improvements (+0.5% isn't worth 10x complexity)</li>
+</ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="51" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="57" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="51" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="57" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="next-week-preview">Next Week Preview</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code>┌─────────────────────────────────────────────────────────────────┐
-│                      COMING UP: WEEK 8                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Model Evaluation &amp; Deployment                                  │
-│                                                                 │
-│  • Confusion matrices (understanding errors)                    │
-│  • Precision, Recall, F1 (beyond accuracy)                      │
-│  • When accuracy is misleading                                  │
-│  • Deploying your model to production                           │
-│                                                                 │
-│  You've built the model. Now how do you know it's REALLY good?  │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre>
+<p><strong>Week 8: Model Evaluation &amp; Deployment</strong></p>
+<ul>
+<li>Confusion matrices (understanding errors)</li>
+<li>Precision, Recall, F1 (beyond accuracy)</li>
+<li>When accuracy is misleading</li>
+<li>Deploying your model to production</li>
+</ul>
+<p>You've built the model. Now how do you know it's REALLY good?</p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="52" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="58" data-paginate="true" data-background-color="#fff" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" data-marpit-pagination="52" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" data-marpit-pagination="58" style="--paginate:true;--background-color:#fff;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="lab-preview">Lab Preview</h1>
 <p><strong>This week's hands-on exercises:</strong></p>
 <ol>
 <li><strong>Build baselines</strong>: Compare Logistic Regression, Decision Tree, Random Forest</li>
 <li><strong>Cross-validate</strong>: Use 5-fold CV to get reliable estimates</li>
+<li><strong>Tune hyperparameters</strong>: Use GridSearchCV and RandomizedSearchCV</li>
 <li><strong>Try AutoGluon</strong>: Let it find the best model for Netflix data</li>
 <li><strong>Transfer learning demo</strong>: Use a pretrained model for text classification</li>
 </ol>
 <p><strong>All code will be provided. Focus on understanding!</strong></p>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="53" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="59" data-paginate="true" data-background-color="#fff" data-class="lead" data-theme="default" data-style="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
 @import 'custom.css';
-" lang="en-IN" class="lead" data-marpit-pagination="53" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
-;background-color:#fff;background-image:none;" data-marpit-pagination-total="53">
+" lang="en-IN" class="lead" data-marpit-pagination="59" style="--paginate:true;--background-color:#fff;--class:lead;--theme:default;--style:@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Code&amp;display=swap');
+;background-color:#fff;background-image:none;" data-marpit-pagination-total="59">
 <h1 id="questions">Questions?</h1>
-<p><strong>Key concepts:</strong></p>
+<p><strong>Today's key concepts:</strong></p>
 <ul>
-<li>Baseline models</li>
-<li>Cross-validation</li>
+<li>Baseline models (start simple!)</li>
+<li>Cross-validation (reliable evaluation)</li>
+<li>Hyperparameter tuning (GridSearch, RandomSearch)</li>
 <li>AutoML (AutoGluon)</li>
-<li>Transfer learning</li>
+<li>Transfer learning (for images/text)</li>
 </ul>
 <p><strong>Remember</strong>: Simple first, complex only if needed!</p>
 </section>

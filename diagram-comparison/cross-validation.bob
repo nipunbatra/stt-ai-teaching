@@ -1,0 +1,9 @@
+         5-Fold Cross-Validation
+
+  Fold 1: [TEST][Train][Train][Train][Train]  -> 82%
+  Fold 2: [Train][TEST][Train][Train][Train]  -> 85%
+  Fold 3: [Train][Train][TEST][Train][Train]  -> 84%
+  Fold 4: [Train][Train][Train][TEST][Train]  -> 81%
+  Fold 5: [Train][Train][Train][Train][TEST]  -> 83%
+
+         Average: 83% +/- 1.5%

@@ -1,0 +1,79 @@
+# 5-Fold Cross-Validation Diagram
+
+title: 5-Fold Cross-Validation {
+  shape: text
+  style.font-size: 24
+  near: top-center
+}
+
+# Fold 1
+fold1: {
+  label: "Fold 1"
+  grid-columns: 5
+  t1: Test {style.fill: "#ef5350"}
+  tr1: Train {style.fill: "#66bb6a"}
+  tr2: Train {style.fill: "#66bb6a"}
+  tr3: Train {style.fill: "#66bb6a"}
+  tr4: Train {style.fill: "#66bb6a"}
+}
+result1: "82%" {shape: text}
+fold1 -> result1
+
+# Fold 2
+fold2: {
+  label: "Fold 2"
+  grid-columns: 5
+  tr1: Train {style.fill: "#66bb6a"}
+  t1: Test {style.fill: "#ef5350"}
+  tr2: Train {style.fill: "#66bb6a"}
+  tr3: Train {style.fill: "#66bb6a"}
+  tr4: Train {style.fill: "#66bb6a"}
+}
+result2: "85%" {shape: text}
+fold2 -> result2
+
+# Fold 3
+fold3: {
+  label: "Fold 3"
+  grid-columns: 5
+  tr1: Train {style.fill: "#66bb6a"}
+  tr2: Train {style.fill: "#66bb6a"}
+  t1: Test {style.fill: "#ef5350"}
+  tr3: Train {style.fill: "#66bb6a"}
+  tr4: Train {style.fill: "#66bb6a"}
+}
+result3: "84%" {shape: text}
+fold3 -> result3
+
+# Fold 4
+fold4: {
+  label: "Fold 4"
+  grid-columns: 5
+  tr1: Train {style.fill: "#66bb6a"}
+  tr2: Train {style.fill: "#66bb6a"}
+  tr3: Train {style.fill: "#66bb6a"}
+  t1: Test {style.fill: "#ef5350"}
+  tr4: Train {style.fill: "#66bb6a"}
+}
+result4: "81%" {shape: text}
+fold4 -> result4
+
+# Fold 5
+fold5: {
+  label: "Fold 5"
+  grid-columns: 5
+  tr1: Train {style.fill: "#66bb6a"}
+  tr2: Train {style.fill: "#66bb6a"}
+  tr3: Train {style.fill: "#66bb6a"}
+  tr4: Train {style.fill: "#66bb6a"}
+  t1: Test {style.fill: "#ef5350"}
+}
+result5: "83%" {shape: text}
+fold5 -> result5
+
+# Average
+average: "Average: 83% ± 1.5%" {
+  shape: text
+  style.font-size: 20
+  style.bold: true
+}
