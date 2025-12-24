@@ -3,22 +3,96 @@ section {
     background: white;
     font-family: 'Inter', sans-serif;
     font-size: 28px;
-    
-    /* Flexbox layout for alignment */
-    display: flex;
-    flex-direction: column;
-
-    /* Vertical alignment: Top */
-    justify-content: flex-start;
-
-    /* Horizontal alignment: Left (prevents centering of flex items) */
-    align-items: flex-start;
-
-    /* Text alignment: Left */
     text-align: left;
+    padding: 30px 50px 30px 50px;
     
-    /* Consistent padding ensures titles stay at the same height */
-    padding: 60px 70px; 
+    /* Use flexbox with fixed gap */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    
+    /* Ensure full height */
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* Regular slides (not title slides) */
+section:not(.lead) {
+    padding-top: 30px !important;
+}
+
+/* Title Styling */
+section h1 {
+    color: #1e293b;
+    border-bottom: 3px solid #f59e0b;
+    font-size: 1.6em;
+    margin: 0 0 15px 0;
+    padding: 0;
+    padding-bottom: 0.3em;
+    flex-shrink: 0;
+}
+
+/* Ensure consistent spacing after h1 for regular slides */
+section:not(.lead) h1 {
+    margin-bottom: 15px !important;
+}
+
+/* Remove any top margins from first content after h1 */
+section:not(.lead) > h1 + * {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Title slides use flexbox for centering */
+section.lead {
+    padding: 30px 50px;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center;
+}
+
+section.lead h1 {
+    position: static !important;
+    margin: 0 auto !important;
+    border-bottom: 3px solid #f59e0b;
+}
+
+/* Heading 2 */
+section h2 {
+    color: #334155;
+    font-size: 1.3em;
+    margin-top: 0;
+    margin-bottom: 0.4em;
+}
+
+/* Paragraphs */
+section p {
+    margin-top: 0;
+    margin-bottom: 0.4em;
+}
+
+/* Lists */
+section ul, section ol {
+    margin-top: 0;
+    margin-bottom: 0.4em;
+    padding-top: 0;
+    margin-left: 0;
+    padding-left: 1.5em;
+}
+
+/* Code blocks */
+section pre {
+    margin-top: 0;
+    margin-bottom: 0.4em;
+}
+
+/* Tables */
+section table {
+    margin-top: 0;
+    margin-bottom: 0.4em;
 }
 
 /* Pagination (Slide Numbers) */
@@ -44,42 +118,6 @@ section.lead::after {
     display: block;
 }
 
-/* Title Slide Specifics (Class: lead) */
-section.lead {
-    justify-content: center; /* Vertically center */
-    align-items: center;     /* Horizontally center */
-    text-align: center;      /* Center text */
-}
-
-/* Title Styling */
-h1 {
-    color: #1e293b;
-    border-bottom: 3px solid #f59e0b;
-    font-size: 1.6em;
-
-    /* Positioning */
-    margin-top: 0;
-    margin-bottom: 0.6em;
-
-    /* Force full width despite align-items: flex-start */
-    width: 100%;
-    align-self: stretch;
-}
-
-/* Heading 2 */
-h2 {
-    color: #334155;
-    font-size: 1.3em;
-    margin-top: 0.5em;
-    margin-bottom: 0.3em;
-}
-
-/* Lists */
-ul, ol {
-    margin-left: 0;
-    padding-left: 1.5em;
-}
-
 li {
     margin-bottom: 0.3em;
 }
@@ -100,7 +138,6 @@ pre {
     border-radius: 8px;
     width: 100%; /* Full width */
     overflow-x: auto;
-    margin: 0.5em 0;
     
     /* Ensure code text is left aligned even if parent is weird */
     text-align: left;
@@ -126,7 +163,6 @@ img {
 table {
     border-collapse: collapse;
     width: 100%;
-    margin: 1em 0;
 }
 
 th, td {
