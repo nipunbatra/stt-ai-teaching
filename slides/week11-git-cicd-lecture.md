@@ -2,211 +2,181 @@
 marp: true
 theme: default
 paginate: true
-style: "@import "custom.css";"
+backgroundColor: #fff
 ---
 
 <!-- _class: lead -->
-<!-- _paginate: false -->
 
-# Git, GitHub Actions & CI/CD
+# Week 11: Git and CI/CD
 
 **CS 203: Software Tools and Techniques for AI**
-Prof. Nipun Batra, IIT Gandhinagar
+
+Prof. Nipun Batra
+IIT Gandhinagar
 
 ---
 
-# Why Automate?
+# The Problem: Manual Deployment
 
-**Manual Process**:
+**Without automation:**
+
 1. Write code
-2. Run tests locally (maybe?)
-3. Commit
+2. Run tests (maybe?)
+3. Commit changes
 4. SSH into server
-5. `git pull`
-6. Restart service
+5. Pull latest code
+6. Restart the app
+7. Hope nothing breaks
 
-**Automated (CI/CD)**:
+**With automation (CI/CD):**
+
 1. `git push`
-2. **CI**: Tests run, linters check code.
-3. **CD**: If tests pass, auto-deploy to server.
-
-**Benefits**: Speed, Reliability, Consistency.
+2. Tests run automatically
+3. Code deploys if tests pass
 
 ---
 
-# The DevOps Culture
+# What is CI/CD?
 
-**Traditional**: Development throws code over the wall to Operations
-**DevOps**: Developers own deployment and monitoring
+**CI = Continuous Integration**
+- Merge code frequently (daily)
+- Run tests on every push
+- Catch bugs early
 
-**Key principles**:
-1. **Automation**: Manual work is error-prone
-2. **Version everything**: Code, config, infrastructure
-3. **Continuous feedback**: Fast iteration cycles
-4. **Collaboration**: Break down silos
-5. **Monitoring**: Know when things break
+**CD = Continuous Deployment**
+- Automatically deploy when tests pass
+- No manual intervention needed
+- Faster releases
 
-**MLOps = DevOps + Data + Models**
-
----
-
-# CI vs CD vs CD
-
-**Continuous Integration (CI)**:
-- Automatically merge code frequently (daily)
-- Run automated tests on every commit
-- **Goal**: Catch bugs early
-
-**Continuous Delivery**:
-- Code is always deployable
-- Manual approval needed for production
-- **Goal**: Reduce deployment risk
-
-**Continuous Deployment**:
-- Every change automatically goes to production
-- Zero human intervention
-- **Goal**: Maximum speed
+**Together:** Push code → Tests run → App deploys
 
 ---
 
-# Git Fundamentals Review
+# Git Review: The Basics
 
-**Three areas**:
-1. **Working Directory**: Your local files
-2. **Staging Area**: Changes ready to commit
-3. **Repository**: Committed history
+**Git tracks changes to your code:**
 
-**Basic workflow**:
 ```bash
-git add file.py        # Working → Staging
-git commit -m "msg"    # Staging → Repository
-git push origin main   # Repository → Remote
-```
+# Initialize a repository
+git init
 
-**Why it matters for CI/CD**: Git is the trigger for automation.
+# Check status
+git status
+
+# Stage changes
+git add file.py
+
+# Commit changes
+git commit -m "Add feature X"
+
+# Push to GitHub
+git push origin main
+```
 
 ---
 
-# Branching Strategies
+# Git: Three Areas
 
-**Feature Branch Workflow**:
+| Area | Description |
+|------|-------------|
+| **Working Directory** | Your files on disk |
+| **Staging Area** | Changes ready to commit |
+| **Repository** | Committed history |
+
 ```bash
-git checkout -b feature/add-auth
-# Make changes
-git commit -m "Add authentication"
-git push origin feature/add-auth
-# Create PR → Review → Merge
-```
+# Working → Staging
+git add file.py
 
-**Benefits**:
-- Isolate features
-- Easy code review
-- Revert if needed
+# Staging → Repository
+git commit -m "message"
 
-**Branch protection**: Require PR reviews, passing tests before merge.
-
----
-
-# Gitflow vs Trunk-Based
-
-| Aspect | Gitflow | Trunk-Based |
-| :--- | :--- | :--- |
-| **Branches** | main, develop, feature/* | main only |
-| **Release** | release/* branches | Tags on main |
-| **Complexity** | High | Low |
-| **Best for** | Scheduled releases | Continuous deployment |
-
-**Modern trend**: Trunk-based with feature flags.
-
----
-
-# Pull Request Best Practices
-
-**Good PR**:
-1. **Small**: < 400 lines changed
-2. **Focused**: One feature/bug fix
-3. **Tested**: All tests pass
-4. **Documented**: Clear description
-
-**Review checklist**:
-- Code style consistent?
-- Tests added/updated?
-- No hardcoded secrets?
-- Performance implications?
-
-**Automate**: Use bots for formatting, test coverage checks.
-
----
-
-# GitHub Automation Ecosystem
-
-1.  **Git**: Version control (branches, merges).
-2.  **GitHub API**: Programmatic access to repos (Issues, PRs).
-3.  **GitHub Actions**: Serverless compute to run workflows.
-4.  **Webhooks**: Event-driven triggers.
-5.  **GitHub Apps**: Reusable automation packages
-6.  **GitHub Copilot**: AI pair programming
-
----
-
-# Part 1: GitHub API & PyGithub
-
-**Automating the "boring" stuff.**
-
-**Authentication**:
-- Use **Personal Access Tokens (PATs)** (Fine-grained).
-- Store in `.env` (Never commit!).
-
-```python
-from github import Github
-import os
-
-g = Github(os.getenv("GITHUB_TOKEN"))
-repo = g.get_repo("nipunbatra/stt-ai-teaching")
-
-# List open issues
-for issue in repo.get_issues(state='open'):
-    print(issue.title)
+# Repository → Remote (GitHub)
+git push origin main
 ```
 
 ---
 
-# Use Case: AI Code Reviewer
+# Branching: Work in Isolation
 
-**Idea**: When a PR is opened, fetch the diff, send to LLM, post comment.
+**Create a branch for new features:**
 
-```python
-pr = repo.get_pull(123)
-files = pr.get_files()
+```bash
+# Create and switch to new branch
+git checkout -b feature/add-validation
 
-for file in files:
-    # Get the changes
-    patch = file.patch 
-    
-    # Analyze with LLM
-    review = llm.review_code(patch)
-    
-    # Post comment
-    pr.create_issue_comment(f"## AI Review for {file.filename}\n\n{review}")
+# Make changes and commit
+git add .
+git commit -m "Add input validation"
+
+# Push branch
+git push origin feature/add-validation
 ```
 
----
-
-# Part 2: GitHub Actions (CI)
-
-**Workflows**: YAML files in `.github/workflows/`.
-
-**Structure**:
-- **Triggers**: `on: push`, `on: pull_request`
-- **Jobs**: Parallel tasks (`test`, `lint`, `deploy`)
-- **Steps**: Sequential commands within a job.
+**Why branches?**
+- Don't break `main` while experimenting
+- Multiple people can work simultaneously
+- Easy to undo if something goes wrong
 
 ---
 
-# Example: CI Pipeline for Python
+# Pull Requests (PRs)
+
+**A PR asks to merge your branch into main:**
+
+1. Push your branch to GitHub
+2. Click "Create Pull Request"
+3. Describe your changes
+4. Request a review
+5. Address feedback
+6. Merge when approved
+
+**Why PRs?**
+- Code review catches bugs
+- Discussion before merging
+- History of why changes were made
+
+---
+
+# A Simple Workflow
+
+```
+main
+  │
+  ├── Create branch: feature/new-model
+  │   │
+  │   ├── Write code
+  │   ├── Test locally
+  │   ├── Push branch
+  │   └── Create PR
+  │
+  ├── Review and discuss
+  │
+  └── Merge to main
+```
+
+**This is called "Feature Branch Workflow"**
+
+---
+
+# GitHub Actions: Automate Everything
+
+**GitHub Actions runs code when events happen:**
+
+- On `push` → Run tests
+- On `pull_request` → Check code quality
+- On `schedule` → Run nightly jobs
+- On `release` → Deploy to production
+
+**Where?** In `.github/workflows/` folder
+
+---
+
+# Your First GitHub Action
+
+**Create `.github/workflows/test.yml`:**
 
 ```yaml
-name: CI
+name: Run Tests
 
 on: [push, pull_request]
 
@@ -215,54 +185,213 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          
+
       - name: Install dependencies
-        run: |
-          pip install pytest ruff
-          
-      - name: Lint with Ruff
-        run: ruff check .
-        
-      - name: Run Tests
+        run: pip install pytest
+
+      - name: Run tests
         run: pytest tests/
 ```
 
 ---
 
-# GitHub Actions: Triggers
+# Understanding the Workflow
 
-**Event types**:
 ```yaml
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: '0 0 * * *'  # Daily at midnight
-  workflow_dispatch:     # Manual trigger
-  release:
-    types: [published]
+name: Run Tests                    # Name of the workflow
+
+on: [push, pull_request]           # When to run
+
+jobs:
+  test:                            # Job name
+    runs-on: ubuntu-latest         # Use Ubuntu VM
+
+    steps:
+      - uses: actions/checkout@v4  # Get your code
+
+      - name: Set up Python        # Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - run: pip install pytest    # Install dependencies
+
+      - run: pytest tests/         # Run tests
 ```
 
-**Conditional execution**:
+---
+
+# Writing Tests with pytest
+
+**Create `tests/test_model.py`:**
+
+```python
+import pytest
+from src.model import predict
+
+def test_predict_returns_valid_output():
+    result = predict({"budget": 100, "runtime": 120})
+    assert "prediction" in result
+    assert result["prediction"] in ["Success", "Risky"]
+
+def test_predict_invalid_input():
+    with pytest.raises(ValueError):
+        predict({"budget": -100})
+
+def test_predict_confidence_range():
+    result = predict({"budget": 100, "runtime": 120})
+    assert 0 <= result["confidence"] <= 1
+```
+
+---
+
+# Running Tests Locally
+
+**Install pytest:**
+```bash
+pip install pytest
+```
+
+**Run all tests:**
+```bash
+pytest tests/ -v
+```
+
+**Output:**
+```
+tests/test_model.py::test_predict_returns_valid_output PASSED
+tests/test_model.py::test_predict_invalid_input PASSED
+tests/test_model.py::test_confidence_range PASSED
+
+3 passed in 0.05s
+```
+
+---
+
+# CI Workflow for ML Projects
+
+```yaml
+name: ML CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run linter (code quality)
+        run: ruff check .
+
+      - name: Run tests
+        run: pytest tests/ -v
+```
+
+---
+
+# Adding Code Quality Checks
+
+**Ruff: Fast Python linter**
+
+```bash
+pip install ruff
+```
+
+**Check your code:**
+```bash
+ruff check .
+```
+
+**Fix automatically:**
+```bash
+ruff check --fix .
+```
+
+**Add to CI workflow:**
+```yaml
+- name: Lint with Ruff
+  run: ruff check .
+```
+
+---
+
+# Viewing Results on GitHub
+
+**After pushing:**
+
+1. Go to your repository
+2. Click the **Actions** tab
+3. See workflow runs
+
+**Status indicators:**
+- ✅ Green check = Tests passed
+- ❌ Red X = Tests failed
+- 🟡 Yellow = Running
+
+**On PRs:** GitHub shows status before merging
+
+---
+
+# Secrets: Keeping API Keys Safe
+
+**Never commit secrets to Git!**
+
+**Add secrets in GitHub:**
+1. Go to Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Add name and value
+
+**Use in workflow:**
+```yaml
+- name: Deploy
+  env:
+    API_KEY: ${{ secrets.API_KEY }}
+  run: python deploy.py
+```
+
+---
+
+# Environment Variables
+
+**For configuration that varies:**
+
 ```yaml
 jobs:
-  deploy:
-    if: github.ref == 'refs/heads/main'
-    # Only runs on main branch
+  test:
+    runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: testing
+      LOG_LEVEL: debug
+
+    steps:
+      - name: Run tests
+        run: pytest tests/
+```
+
+**Access in Python:**
+```python
+import os
+env = os.getenv("ENVIRONMENT", "development")
 ```
 
 ---
 
 # Caching Dependencies
 
-**Speed up builds by caching**:
+**Speed up builds by caching pip packages:**
 
 ```yaml
 - name: Cache pip packages
@@ -270,564 +399,269 @@ jobs:
   with:
     path: ~/.cache/pip
     key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-    restore-keys: |
-      ${{ runner.os }}-pip-
 
 - name: Install dependencies
   run: pip install -r requirements.txt
 ```
 
-**Typical speedup**: 2-5 minutes → 30 seconds.
+**Result:** First run takes 2 minutes, subsequent runs take 10 seconds
 
 ---
 
-# Artifacts and Outputs
+# Matrix Testing
 
-**Save build artifacts**:
-```yaml
-- name: Upload test results
-  uses: actions/upload-artifact@v3
-  with:
-    name: pytest-results
-    path: test-results/
-
-- name: Upload model
-  uses: actions/upload-artifact@v3
-  with:
-    name: trained-model
-    path: model.pkl
-```
-
-**Download in later jobs** or from GitHub UI.
-
----
-
-# CI/CD for ML
-
-**ML is harder than standard software.**
-- **Data Tests**: Validate schema (Pydantic/Great Expectations).
-- **Model Tests**: Check performance threshold.
-- **Hardware**: Need GPU runners? (Self-hosted runners).
-
-**Matrix Testing**:
-Test across python versions / OSs.
-
-```yaml
-strategy:
-  matrix:
-    python-version: ["3.9", "3.10", "3.11"]
-    os: [ubuntu-latest, windows-latest]
-```
-
----
-
-# ML-Specific CI Checks
-
-**Data validation**:
-```yaml
-- name: Validate data schema
-  run: |
-    python -m pytest tests/test_data_schema.py
-
-- name: Check for data drift
-  run: |
-    python scripts/detect_drift.py
-```
-
-**Model performance gates**:
-```yaml
-- name: Train and evaluate
-  run: |
-    python train.py
-    python evaluate.py
-
-- name: Check accuracy threshold
-  run: |
-    accuracy=$(cat metrics.json | jq '.accuracy')
-    if (( $(echo "$accuracy < 0.85" | bc -l) )); then
-      echo "Model accuracy too low!"
-      exit 1
-    fi
-```
-
----
-
-# Docker Integration
-
-**Build and push Docker images**:
-```yaml
-- name: Build Docker image
-  run: docker build -t myapp:${{ github.sha }} .
-
-- name: Push to registry
-  run: |
-    echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-    docker push myapp:${{ github.sha }}
-```
-
-**Benefits**:
-- Consistent environment
-- Easy deployment
-- Reproducible builds
-
----
-
-# Deployment Strategies
-
-**Blue-Green Deployment**:
-- Two identical environments (blue, green)
-- Deploy to inactive, then switch traffic
-- **Rollback**: Just switch back
-
-**Canary Deployment**:
-- Deploy to small % of users first
-- Monitor metrics
-- Gradually increase if healthy
-
-**Rolling Deployment**:
-- Update instances one by one
-- Always some instances serving traffic
-
----
-
-# GitHub Environments
-
-**Separate configs for dev/staging/prod**:
+**Test across multiple Python versions:**
 
 ```yaml
 jobs:
-  deploy:
-    environment:
-      name: production
-      url: https://myapp.com
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+
     steps:
-      - name: Deploy
-        run: ./deploy.sh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - run: pytest tests/
 ```
 
-**Environment protection rules**:
-- Require reviewers
-- Wait timer before deployment
-- Deployment branches (only main)
+**Creates 3 parallel jobs**, one for each Python version
 
 ---
 
-# Monitoring CI/CD Pipelines
+# Saving Artifacts
 
-**Key metrics**:
-1. **Build time**: How long does CI take?
-2. **Success rate**: % of builds passing
-3. **Mean time to recovery**: How fast do you fix broken builds?
-4. **Deployment frequency**: How often do you deploy?
-
-**Tools**:
-- GitHub Actions insights
-- Custom metrics (Prometheus + Grafana)
-- Alerts (Slack, email)
-
----
-
-# Secrets Management
-
-**Never hardcode API keys.**
-
-1.  Add secret in GitHub Repo Settings -> Secrets.
-2.  Access in Action:
+**Save files from your workflow:**
 
 ```yaml
-env:
-    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+- name: Run tests with coverage
+  run: pytest tests/ --cov=src --cov-report=html
+
+- name: Upload coverage report
+  uses: actions/upload-artifact@v3
+  with:
+    name: coverage-report
+    path: htmlcov/
+```
+
+**Download from Actions tab** after workflow completes
+
+---
+
+# Example: Complete ML CI/CD
+
+```yaml
+name: ML Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: pytest tests/ -v
 ```
 
 ---
 
-# Part 3: Testing Strategy
+# Example: Deploy on Main Branch
 
-**The Testing Pyramid for AI**:
+```yaml
+  deploy:
+    needs: test  # Only run if tests pass
+    if: github.ref == 'refs/heads/main'  # Only on main branch
+    runs-on: ubuntu-latest
 
-1.  **Unit Tests (Most)**: Test individual functions (`preprocess_text()`).
-2.  **Integration Tests**: Test model loading + inference flow.
-3.  **System Tests**: API endpoints (FastAPI `TestClient`).
-4.  **Data Tests**: Validate input distributions.
+    steps:
+      - uses: actions/checkout@v4
 
----
-
-# Writing Tests with Pytest
-
-```python
-# test_model.py
-from my_model import predict
-
-def test_prediction_shape():
-    output = predict([1.0, 2.0])
-    assert "class" in output
-    assert output["confidence"] >= 0.0
-
-def test_model_invariance():
-    # Adding noise shouldn't flip prediction
-    out1 = predict(x)
-    out2 = predict(x + epsilon)
-    assert out1["class"] == out2["class"]
+      - name: Deploy to server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          echo "Deploying to production..."
+          # Your deployment script here
 ```
 
 ---
 
 # Pre-commit Hooks
 
-**Run checks *before* you push.**
-Prevents bad code from even reaching the repo.
+**Run checks before you commit:**
 
-`.pre-commit-config.yaml`:
+```bash
+pip install pre-commit
+```
+
+**Create `.pre-commit-config.yaml`:**
 ```yaml
 repos:
--   repo: https://github.com/psf/black
-    rev: 23.3.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.0
     hooks:
-    -   id: black
+      - id: ruff
+        args: [--fix]
 ```
 
-**Workflow**: `git commit` -> Black runs -> Formatting fixed -> Commit succeeds.
-
----
-
-# Git Branching Strategies
-
-**Trunk-Based Development**: Everyone commits to main frequently.
-- **Pros**: Simple, fast feedback
-- **Cons**: Requires discipline, good tests
-- **Used by**: Google, Facebook
-
-**GitFlow**: Feature branches → develop → release → main.
-```
-main (production)
-  ↑
-release/1.2
-  ↑
-develop
-  ↑
-feature/new-model
-```
-
-**GitHub Flow** (simpler):
-```
-main
-  ↑
-feature/fix-bug → PR → Review → Merge
-```
-
-**For ML projects**: GitHub Flow + experiment branches.
-
----
-
-# Advanced Git: Rebasing vs Merging
-
-**Merge**: Creates merge commit.
+**Install hooks:**
 ```bash
-git checkout main
-git merge feature-branch
-# Creates merge commit with two parents
+pre-commit install
 ```
 
-**Rebase**: Replay commits on top of main.
+**Now:** Ruff runs automatically on every commit!
+
+---
+
+# Git Best Practices
+
+**1. Commit often with clear messages**
 ```bash
-git checkout feature-branch
-git rebase main
-# Re-writes history, linear timeline
+git commit -m "Add input validation for budget field"
 ```
 
-**When to use**:
-- **Merge**: Public branches, preserves history
-- **Rebase**: Local branches, clean history
-
-**Golden rule**: Never rebase public branches!
-
-**Interactive rebase**:
+**2. Use branches for features**
 ```bash
-git rebase -i HEAD~3  # Edit last 3 commits
-# Pick, squash, reword, edit
+git checkout -b feature/add-auth
 ```
 
----
-
-# Infrastructure as Code (IaC)
-
-**Problem**: Manual server setup is error-prone.
-
-**Solution**: Define infrastructure in code.
-
-**Terraform example**:
-```hcl
-resource "aws_instance" "ml_server" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "p3.2xlarge"  # GPU instance
-
-  tags = {
-    Name = "ML-Training-Server"
-  }
-}
-
-resource "aws_s3_bucket" "model_artifacts" {
-  bucket = "my-ml-models"
-  versioning {
-    enabled = true
-  }
-}
-```
-
-**Benefits**:
-- Version controlled
-- Reproducible
-- Self-documenting
-- Can be reviewed/tested
-
----
-
-# Blue-Green Deployment
-
-**Strategy**: Run two identical environments.
-
-```
-Blue (current production) ← 100% traffic
-Green (new version)       ← 0% traffic
-
-# After testing:
-Blue  ← 0% traffic
-Green ← 100% traffic  # Switch!
-
-# If issues, instant rollback:
-Blue  ← 100% traffic  # Switch back!
-```
-
-**Implementation** (with load balancer):
-```yaml
-# GitHub Actions
-- name: Deploy to Green
-  run: |
-    kubectl set image deployment/app app=myapp:${{ github.sha }} -n green
-
-- name: Wait for health
-  run: kubectl rollout status deployment/app -n green
-
-- name: Switch traffic
-  run: kubectl patch service app -p '{"spec":{"selector":{"env":"green"}}}'
-```
-
-**Benefit**: Zero-downtime deployment, instant rollback.
-
----
-
-# Canary Releases
-
-**Strategy**: Gradually shift traffic to new version.
-
-```
-v1.0 ← 100% traffic
-v2.0 ← 0% traffic
-
-# Step 1:
-v1.0 ← 95% traffic
-v2.0 ← 5% traffic  # Test on small subset
-
-# Step 2:
-v1.0 ← 50% traffic
-v2.0 ← 50% traffic
-
-# Step 3 (if metrics good):
-v1.0 ← 0% traffic
-v2.0 ← 100% traffic
-```
-
-**Monitoring**: Watch for errors, latency spikes.
-
-**Rollback** if metrics degrade:
-```yaml
-if: ${{ steps.canary.outputs.error_rate > 0.01 }}
-run: kubectl rollout undo deployment/app
-```
-
----
-
-# Feature Flags and Gradual Rollouts
-
-**Feature flags**: Toggle features without deploying.
-
-```python
-import flagsmith
-
-flags = flagsmith.get_environment_flags()
-
-if flags.is_feature_enabled("new_model_v2"):
-    model = load_model("v2")
-else:
-    model = load_model("v1")
-```
-
-**Gradual rollout**:
-```python
-# Enable for 10% of users
-user_id_hash = hash(user_id) % 100
-if user_id_hash < 10:
-    use_new_feature = True
-```
-
-**Benefits**:
-- Test in production safely
-- Easy rollback (toggle off)
-- A/B testing
-
-**Tools**: LaunchDarkly, Flagsmith, ConfigCat.
-
----
-
-# Rollback Strategies
-
-**1. Git revert**:
+**3. Pull before push**
 ```bash
-git revert HEAD      # Create new commit that undoes last
-git push
-# CI/CD deploys the revert
+git pull origin main
+git push origin main
 ```
 
-**2. Kubernetes rollout**:
-```bash
-kubectl rollout undo deployment/app
-# Instantly roll back to previous version
-```
+**4. Never commit secrets**
+- Use `.gitignore` for `.env` files
+- Use GitHub Secrets for API keys
 
-**3. Database rollbacks** (harder):
-- Forward-compatible migrations
-- Blue-green for schema changes
-- Keep old code compatible with new schema
+---
 
-**Best practice**: Make rollbacks automated and tested.
+# .gitignore for ML Projects
 
-```yaml
-# GitHub Actions: Auto-rollback on failure
-- name: Deploy
-  run: kubectl apply -f deployment.yaml
+```gitignore
+# Python
+__pycache__/
+*.pyc
+.venv/
 
-- name: Health check
-  run: ./health_check.sh
+# Data (too large for Git)
+data/*.csv
+data/*.parquet
+*.pkl
 
-- name: Rollback on failure
-  if: failure()
-  run: kubectl rollout undo deployment/app
+# Secrets
+.env
+secrets.yaml
+
+# IDE
+.vscode/
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
 ```
 
 ---
 
-# CI/CD Security Best Practices
+# CI/CD Benefits for ML
 
-**Secrets management**:
-```yaml
-# GitHub Secrets (encrypted)
-steps:
-  - name: Deploy
-    env:
-      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-```
-
-**Never commit secrets!**
-
-**SAST (Static Application Security Testing)**:
-```yaml
-- name: Run Bandit (Python security linter)
-  run: bandit -r src/
-
-- name: Check for secrets
-  uses: trufflesecurity/trufflehog@main
-```
-
-**DAST (Dynamic Application Security Testing)**: Test running app for vulnerabilities.
-
-**Dependency scanning**:
-```yaml
-- name: Check dependencies for vulnerabilities
-  run: safety check
-```
+| Without CI/CD | With CI/CD |
+|--------------|------------|
+| "Works on my machine" | Works everywhere |
+| Manual testing (or none) | Automated tests |
+| Deploy takes 30 min | Deploy takes 2 min |
+| Break production by accident | Catch bugs before deploy |
+| "Did anyone test this?" | Tests run automatically |
 
 ---
 
-# Matrix Builds for Multi-Environment Testing
+# Common CI/CD Patterns
 
-**Test across multiple configurations**:
+**1. Test on every push**
+- Catch bugs immediately
+- Fast feedback loop
 
-```yaml
-strategy:
-  matrix:
-    python-version: [3.8, 3.9, 3.10, 3.11]
-    os: [ubuntu-latest, macos-latest, windows-latest]
+**2. Deploy on merge to main**
+- Only tested code reaches production
+- Automatic deployment
 
-steps:
-  - uses: actions/setup-python@v4
-    with:
-      python-version: ${{ matrix.python-version }}
+**3. Schedule nightly tests**
+- Check for dependency updates
+- Run longer integration tests
 
-  - name: Run tests
-    run: pytest tests/
-```
-
-**Result**: 4 Python versions × 3 OS = 12 test jobs (parallel).
-
-**ML-specific matrix**:
-```yaml
-matrix:
-  framework: [pytorch, tensorflow, jax]
-  backend: [cpu, gpu]
-```
+**4. Manual approval for production**
+- Review before deploying
+- Controlled releases
 
 ---
 
-# Caching Strategies in CI/CD
+# Debugging Failed Workflows
 
-**Problem**: Installing dependencies is slow (2-5 minutes).
+**When CI fails:**
 
-**Solution**: Cache dependencies.
+1. Click on the failed workflow in Actions tab
+2. Expand the failed step
+3. Read the error message
+4. Fix locally and push again
 
-```yaml
-- name: Cache pip dependencies
-  uses: actions/cache@v3
-  with:
-    path: ~/.cache/pip
-    key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-
-- name: Install dependencies
-  run: pip install -r requirements.txt
-# Cached, takes 10 seconds instead of 2 minutes
-```
-
-**Docker layer caching**:
-```yaml
-- name: Build Docker image
-  uses: docker/build-push-action@v4
-  with:
-    cache-from: type=gha
-    cache-to: type=gha,mode=max
-```
-
-**ML-specific**: Cache datasets, pre-trained models.
+**Common issues:**
+- Missing dependencies in `requirements.txt`
+- Tests pass locally but fail in CI (environment differences)
+- Secrets not configured
 
 ---
 
 # Summary
 
-1.  **GitHub API**: Automate repo management and reviews.
-2.  **GitHub Actions**: The engine for CI/CD.
-3.  **Testing**: Essential for robust ML systems (Unit, Data, Model tests).
-4.  **Pre-commit**: The first line of defense.
+| Concept | Purpose |
+|---------|---------|
+| **Git** | Track code changes |
+| **Branches** | Work in isolation |
+| **PRs** | Review before merging |
+| **GitHub Actions** | Automate workflows |
+| **pytest** | Write and run tests |
+| **Secrets** | Store sensitive data |
+| **Caching** | Speed up CI |
 
-**Advanced Topics**:
-- Git branching strategies (trunk-based, GitFlow)
-- Advanced Git (rebase, interactive rebase)
-- Infrastructure as Code (Terraform)
-- Deployment strategies (blue-green, canary)
-- Feature flags and gradual rollouts
-- Rollback strategies
-- CI/CD security (secrets, SAST/DAST)
-- Matrix builds for multi-environment testing
-- Caching strategies
+---
 
-**Lab**: You will build a full CI pipeline that runs tests and uses a custom Action to auto-grade/review PRs.
+# Lab Preview
 
-```
+**This week you'll:**
+
+1. Set up a Git repository with proper structure
+2. Write tests for your ML code
+3. Create a GitHub Actions workflow
+4. Add code quality checks (Ruff)
+5. Configure caching for faster builds
+6. Set up pre-commit hooks
+
+**Result:** Automated testing on every push!
+
+---
+
+<!-- _class: lead -->
+
+# Questions?
+
+**Key takeaways:**
+- CI/CD automates testing and deployment
+- GitHub Actions is free for public repos
+- Always test before deploying
+- Secrets should never be in code
+
+**Next week:** Edge Deployment

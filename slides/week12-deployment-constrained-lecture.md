@@ -2,391 +2,303 @@
 marp: true
 theme: default
 paginate: true
-style: @import "custom.css";
+backgroundColor: #fff
 ---
 
 <!-- _class: lead -->
-<!-- _paginate: false -->
 
-# Deployment on Constrained Devices
+# Week 12: Edge Deployment & Model Optimization
 
 **CS 203: Software Tools and Techniques for AI**
-Prof. Nipun Batra, IIT Gandhinagar
+
+Prof. Nipun Batra
+IIT Gandhinagar
 
 ---
 
-# The "Edge" Challenge
+# The Problem: Models Are Too Big
 
-**Scenario**: You trained a ResNet-50. It's 100MB.
-You want to run it on a Raspberry Pi or a Mobile Phone.
+**Your trained model:**
+- ResNet-50: 100 MB
+- BERT: 440 MB
+- GPT-2: 1.5 GB
 
-**Constraints:**
-1.  **Memory**: Device has 2GB RAM, model needs 4GB.
-2.  **Latency**: Inference takes 5s, user needs <100ms.
-3.  **Power**: GPU drains battery in 20 mins.
-4.  **Storage**: App limit is 50MB.
+**Target devices:**
+- Smartphone: Limited memory, battery
+- Raspberry Pi: 2-4 GB RAM
+- Web browser: Size limits
 
-**Solution**: Model Optimization.
+**Challenge:** How do we run models on constrained devices?
 
 ---
 
 # Edge vs Cloud Deployment
 
 | Aspect | Cloud | Edge |
-| :--- | :--- | :--- |
-| **Compute** | Unlimited (scalable) | Limited (fixed hardware) |
+|--------|-------|------|
+| **Compute** | Unlimited | Limited |
 | **Latency** | Network + Processing | Processing only |
 | **Privacy** | Data leaves device | Data stays local |
 | **Cost** | Per-request pricing | One-time hardware |
 | **Connectivity** | Requires internet | Works offline |
 
-**Use cases for Edge**:
-- Real-time (AR/VR, autonomous vehicles)
-- Privacy-sensitive (medical, personal data)
-- Offline scenarios (rural areas, airplanes)
-- Cost at scale (millions of devices)
+**Edge examples:** Phone apps, IoT sensors, in-car systems
 
 ---
 
-# Hardware Constraints
+# Why Deploy on Edge?
 
-**Mobile devices** (phones, tablets):
-- CPU: ARM-based (different instruction set)
-- RAM: 2-8GB
-- Storage: Limited app size
-- Power: Battery-constrained
+**1. Speed**
+- No network latency
+- Real-time predictions
 
-**IoT devices** (Raspberry Pi, Arduino):
-- CPU: Very limited (1-4 cores, < 2GHz)
-- RAM: 512MB - 4GB
-- No GPU or NPU in many cases
+**2. Privacy**
+- Data never leaves the device
+- GDPR/HIPAA compliance
 
-**Edge servers** (NVIDIA Jetson):
-- Dedicated ML accelerators
-- 4-32GB RAM
-- Power-efficient GPUs
+**3. Reliability**
+- Works without internet
+- No server downtime issues
 
----
-
-# Model Optimization Taxonomy
-
-**Size reduction**:
-1. **Quantization**: Lower precision (FP32 → INT8)
-2. **Pruning**: Remove weights
-3. **Knowledge Distillation**: Train smaller model
-4. **Low-rank factorization**: Decompose weight matrices
-
-**Speed optimization**:
-5. **Operator fusion**: Merge operations
-6. **Graph optimization**: Simplify computation graph
-7. **Hardware acceleration**: Use specialized chips
-
-**Architecture design**:
-8. **Neural Architecture Search (NAS)**: Find efficient architectures
-9. **Efficient architectures**: MobileNet, EfficientNet
+**4. Cost**
+- No cloud compute costs
+- Scales with devices, not users
 
 ---
 
-# Techniques Overview
+# Model Optimization Techniques
 
-![Model Optimization Techniques](../figures/week12_optimization_techniques.png)
+| Technique | Size Reduction | Speed Up | Accuracy Loss |
+|-----------|----------------|----------|---------------|
+| **Quantization** | 4x smaller | 2-4x faster | < 1% |
+| **Pruning** | 2x smaller | 1.5-2x faster | 1-2% |
+| **Distillation** | Varies | Varies | Can match original |
 
-**Today's Focus**:
-1.  **Quantization**: Lower precision math
-2.  **Pruning**: Removing useless connections
-3.  **Knowledge Distillation**: Train smaller student model
-4.  **ONNX**: Efficient cross-platform runtime
-
----
-
-# Optimization Techniques: Comparison
-
-| Technique | Size Reduction | Speed Improvement | Accuracy Impact | Implementation Complexity | When to Use |
-|-----------|----------------|-------------------|-----------------|--------------------------|-------------|
-| **Quantization (INT8)** | 4x (FP32→INT8) | 2-4x faster | Minimal (<1%) | Low | Always (first step) |
-| **Pruning (50%)** | 2x (half weights) | 1.5-2x faster | Small (1-2%) | Medium | After quantization |
-| **Knowledge Distillation** | Depends on student size | Significant | Can match teacher | High | When you can retrain |
-| **NAS** | Variable | Variable | Can improve | Very High | Research/new domains |
-
-**Typical pipeline**: Train → Prune → Quantize → Export (ONNX) → Deploy
-
-**Best bang for buck**: Quantization (easy + effective)
+**The good news:** You can often get 4x smaller AND faster with minimal accuracy loss!
 
 ---
 
-# Quantization: Theory
+# Quantization: The Big Idea
 
-**Standard Training**: Float32 (32-bit floating point).
-**Quantization**: Convert to Int8 (8-bit integer).
+**Normal models use 32-bit floats:**
+- Each weight: 32 bits
+- High precision, but large
 
-**Formula**:
-$$ Q(x) = \text{round}\left(\frac{x}{S} + Z\right) $$
-- $S$: Scale (range / 255)
-- $Z$: Zero-point (offset)
+**Quantized models use 8-bit integers:**
+- Each weight: 8 bits
+- 4x smaller, faster on CPUs
 
-**Impact**:
-- **Size**: 32 bits → 8 bits = **4x reduction**
-- **Speed**: Integer math faster on CPUs (2-4x speedup)
-- **Accuracy**: Minimal drop (<1%) for robust models
-
----
-
-# Quantization: Detailed Example
-
-**Float32 weights**: `[-2.5, -1.0, 0.0, 1.5, 3.0]`
-
-**Quantization process**:
-```python
-# 1. Find min/max
-min_val, max_val = -2.5, 3.0
-
-# 2. Calculate scale
-scale = (max_val - min_val) / 255  # 0.0216
-
-# 3. Calculate zero-point
-zero_point = -int(min_val / scale)  # 116
-
-# 4. Quantize
-quantized = round(weights / scale + zero_point)
-# Result: [0, 70, 116, 185, 255]
+```
+Float32: 32 bits per weight
+Int8:     8 bits per weight  → 4x compression!
 ```
 
-**Dequantize**: `(quantized - zero_point) * scale`
+---
+
+# Quantization Example
+
+**Before (Float32):**
+```python
+weights = [0.234, -0.567, 0.891, ...]  # 32 bits each
+model_size = 100 MB
+```
+
+**After (Int8):**
+```python
+weights = [45, -127, 95, ...]  # 8 bits each
+model_size = 25 MB  # 4x smaller!
+```
+
+**The math:**
+- Find min/max of weights
+- Scale to 0-255 range
+- Store as integers
 
 ---
 
 # Types of Quantization
 
-**1. Post-Training Quantization (PTQ)**:
-- Train normal FP32 model
-- Calibrate with small dataset (~1000 samples)
-- Convert to INT8
-- **Pros**: Easy, no retraining
-- **Cons**: Slight accuracy drop
+**1. Post-Training Quantization (PTQ)**
+- Train model normally (Float32)
+- Convert to Int8 after training
+- Quick and easy
 
-**2. Quantization-Aware Training (QAT)**:
+**2. Quantization-Aware Training (QAT)**
 - Simulate quantization during training
-- Model learns to adapt to lower precision
-- **Pros**: Best accuracy
-- **Cons**: Slower training
+- Model learns to handle lower precision
+- Better accuracy, more effort
 
-**3. Dynamic Quantization**:
-- Weights INT8, activations FP32
-- No calibration needed
-- Good for RNNs/Transformers
+**For most cases:** PTQ is good enough!
 
 ---
 
-# Quantization Granularity
+# Quantization in PyTorch
 
-**Per-tensor quantization**:
-- Single scale for entire tensor
-- Faster but less accurate
+**Dynamic quantization (easiest):**
 
-**Per-channel quantization**:
-- Separate scale per conv channel
-- Better accuracy
-
-**Example**:
 ```python
 import torch
 
-# Per-tensor
-model_int8 = torch.quantization.quantize_dynamic(
-    model, {torch.nn.Linear}, dtype=torch.qint8
+# Original model
+model = MyModel()
+model.load_state_dict(torch.load("model.pth"))
+model.eval()
+
+# Quantize
+quantized_model = torch.quantization.quantize_dynamic(
+    model,
+    {torch.nn.Linear},  # Layers to quantize
+    dtype=torch.qint8
 )
 
-# Per-channel (after QAT)
-model.qconfig = torch.quantization.get_default_qconfig('fbgemm')
-torch.quantization.prepare_qat(model)
-# Train...
-torch.quantization.convert(model)
+# Save
+torch.save(quantized_model.state_dict(), "model_quantized.pth")
 ```
 
 ---
 
-# Pruning Theory
+# Checking Model Size
 
-**Observation**: Neural networks are over-parameterized.
-- Many weights near zero
-- Removing them barely affects accuracy
+```python
+import os
 
-**Magnitude-based pruning**:
-1. Rank weights by absolute value
-2. Remove smallest X% (e.g., 50%)
-3. Fine-tune to recover accuracy
+def get_model_size(path):
+    """Get model size in MB."""
+    size = os.path.getsize(path) / (1024 * 1024)
+    return f"{size:.1f} MB"
 
-**Structured vs Unstructured**:
-- **Unstructured**: Remove individual weights → sparse matrices
-- **Structured**: Remove entire channels/neurons → smaller dense matrices
+print(f"Original: {get_model_size('model.pth')}")
+print(f"Quantized: {get_model_size('model_quantized.pth')}")
+
+# Output:
+# Original: 100.0 MB
+# Quantized: 25.2 MB
+```
 
 ---
 
-# Pruning Strategies
+# Pruning: Remove Useless Weights
 
-**One-shot pruning**:
+**Observation:** Many weights in neural networks are close to zero.
+
+**Idea:** Remove them!
+
+```
+Before pruning:    [0.9, 0.01, -0.8, 0.001, 0.7]
+After 40% pruning: [0.9,  0,   -0.8,   0,   0.7]
+```
+
+**Benefits:**
+- Smaller model
+- Faster inference (fewer multiplications)
+
+---
+
+# Pruning in PyTorch
+
 ```python
 import torch.nn.utils.prune as prune
 
-# Prune 30% of weights in layer
-prune.l1_unstructured(module.conv1, name='weight', amount=0.3)
-```
-
-**Iterative pruning** (better accuracy):
-1. Train to convergence
-2. Prune small %
-3. Fine-tune
-4. Repeat
-
-**Lottery Ticket Hypothesis**:
-- Subnetwork exists that can train to same accuracy
-- Find it by pruning + reset + retrain
-
----
-
-# Structured Pruning Example
-
-**Remove entire filters**:
-```python
-# Prune 40% of filters in conv layer
-prune.ln_structured(
-    module.conv1,
-    name="weight",
-    amount=0.4,
-    n=2,      # L2 norm
-    dim=0     # Filter dimension
+# Prune 30% of weights (smallest magnitudes)
+prune.l1_unstructured(
+    model.fc1,       # Layer to prune
+    name='weight',
+    amount=0.3       # Remove 30%
 )
+
+# Make pruning permanent
+prune.remove(model.fc1, 'weight')
+
+# Check sparsity
+zeros = (model.fc1.weight == 0).sum()
+total = model.fc1.weight.numel()
+print(f"Sparsity: {zeros/total:.1%}")
 ```
-
-**Benefits**:
-- Actually reduces computation (not just params)
-- No special hardware support needed
-- Works well with quantization
-
-**Challenge**: Harder to maintain accuracy than unstructured.
 
 ---
 
 # Knowledge Distillation
 
-**Idea**: Compress knowledge from large "teacher" to small "student".
+**Idea:** Train a small "student" model to mimic a large "teacher" model.
 
-**Process**:
-1. Train large teacher model (high accuracy)
-2. Use teacher's soft outputs as targets
-3. Train small student to mimic teacher
+```
+Teacher (Large):  100 MB, 95% accuracy
+     ↓ Knowledge Transfer
+Student (Small):  10 MB, 93% accuracy
+```
 
-**Loss function**:
-$$L = \alpha \cdot L_{CE}(y, \hat{y}) + (1-\alpha) \cdot L_{KD}(T_{teacher}, T_{student})$$
-
-**Why it works**:
-- Soft targets contain more information than hard labels
-- Student learns nuances from teacher
+**Why it works:**
+- Student learns from teacher's "soft" outputs
+- More information than hard labels
+- Can get near-teacher accuracy with smaller model
 
 ---
 
-# Knowledge Distillation Code
+# Distillation: Simple Example
 
 ```python
 import torch.nn.functional as F
 
 def distillation_loss(student_logits, teacher_logits, labels, T=3, alpha=0.5):
-    # Hard loss (student vs true labels)
+    # Hard loss: student vs true labels
     hard_loss = F.cross_entropy(student_logits, labels)
 
-    # Soft loss (student vs teacher)
+    # Soft loss: student vs teacher (with temperature)
     soft_student = F.log_softmax(student_logits / T, dim=1)
     soft_teacher = F.softmax(teacher_logits / T, dim=1)
-    soft_loss = F.kl_div(soft_student, soft_teacher, reduction='batchmean') * T*T
+    soft_loss = F.kl_div(soft_student, soft_teacher)
 
-    # Combined loss
-    return alpha * hard_loss + (1 - alpha) * soft_loss
+    # Combine
+    return alpha * hard_loss + (1 - alpha) * soft_loss * T * T
 ```
 
-**Temperature (T)**: Higher = softer probabilities.
+---
+
+# ONNX: Universal Model Format
+
+**Problem:** You trained in PyTorch, but want to deploy on mobile/web.
+
+**Solution:** ONNX (Open Neural Network Exchange)
+
+- Standard format for neural networks
+- Export from PyTorch, TensorFlow, etc.
+- Run on any platform
+
+```
+PyTorch Model → ONNX → ONNX Runtime → Any Device
+```
 
 ---
 
-# Neural Architecture Search (NAS)
-
-**Goal**: Automatically find efficient architectures.
-
-**Search space**:
-- Number of layers
-- Layer types (conv, pooling, skip)
-- Kernel sizes, channels
-
-**Search strategy**:
-1. **Random search**: Try random architectures
-2. **Reinforcement learning**: RL agent proposes architectures
-3. **Gradient-based**: DARTS (differentiable)
-
-**Hardware-aware NAS**: Optimize for specific device constraints.
-
----
-
-# Efficient Architecture Families
-
-**MobileNet** (Google):
-- Depthwise separable convolutions
-- 9x fewer parameters than VGG
-
-**EfficientNet** (Google):
-- Compound scaling (depth + width + resolution)
-- State-of-art accuracy/efficiency trade-off
-
-**SqueezeNet**:
-- Fire modules (squeeze + expand)
-- 50x smaller than AlexNet
-
-**TinyML architectures**:
-- < 1MB models for microcontrollers
-- MobileNet-v3, MicroNet
-
----
-
-# ONNX: Open Neural Network Exchange
-
-**The Universal Bridge**
-
-![ONNX Ecosystem](../figures/week12_onnx_ecosystem.png)
-
-**Why use it?**
-- **Interoperability**: Train in PyTorch, deploy in C++
-- **Optimization**: Graph-level optimizations (fusion, constant folding)
-- **Hardware support**: CPU, GPU, mobile accelerators
-
----
-
-# ONNX Export Example
+# Exporting to ONNX
 
 ```python
 import torch
-import torch.onnx
 
-# Load PyTorch model
-model = torch.load("model.pth")
+# Load model
+model = MyModel()
+model.load_state_dict(torch.load("model.pth"))
 model.eval()
 
-# Create dummy input
+# Dummy input (same shape as real input)
 dummy_input = torch.randn(1, 3, 224, 224)
 
-# Export to ONNX
+# Export
 torch.onnx.export(
     model,
     dummy_input,
     "model.onnx",
-    export_params=True,
-    opset_version=14,
-    input_names=['input'],
-    output_names=['output'],
-    dynamic_axes={'input': {0: 'batch_size'}}  # Variable batch size
+    input_names=['image'],
+    output_names=['prediction'],
+    dynamic_axes={'image': {0: 'batch_size'}}  # Variable batch
 )
+
+print("Exported to model.onnx")
 ```
 
 ---
 
-# ONNX Runtime Inference
+# Running with ONNX Runtime
 
 ```python
 import onnxruntime as ort
@@ -400,244 +312,236 @@ input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
 
 # Run inference
 outputs = session.run(
-    None,  # Output names (None = all outputs)
-    {'input': input_data}
+    None,  # Get all outputs
+    {'image': input_data}
 )
 
-print(outputs[0])  # Prediction
+print(f"Prediction: {outputs[0]}")
 ```
 
-**Benefits**: 2-3x faster than PyTorch on CPU.
+**Benefits:** 2-3x faster than PyTorch on CPU!
 
 ---
 
-# ONNX Graph Optimizations
+# ONNX Optimizations
 
-**Operator fusion**:
-- Conv + BatchNorm + ReLU → Single fused op
-- Reduces memory bandwidth
+**ONNX Runtime automatically applies:**
 
-**Constant folding**:
-- Pre-compute constants at export time
+1. **Operator fusion**: Combine Conv + BatchNorm + ReLU into one
+2. **Constant folding**: Pre-compute constants
+3. **Memory optimization**: Reuse buffers
 
-**Dead code elimination**:
-- Remove unused branches
-
-**Quantization**:
-- ONNX Runtime supports INT8 quantization
-
-**Graph example**:
 ```
-# Before: 3 ops
-Conv → BatchNorm → ReLU
-
-# After: 1 fused op
-ConvBNReLU
+Before: Conv → BatchNorm → ReLU  (3 operations)
+After:  ConvBNReLU                (1 operation)
 ```
 
 ---
 
-# Hardware Acceleration Options
+# TensorFlow Lite (TFLite)
 
-**Mobile** (iOS/Android):
-- **CoreML** (Apple): Optimized for iPhone/iPad
-- **TensorFlow Lite**: Cross-platform mobile
-- **ONNX Mobile**: ONNX Runtime for mobile
-
-**Edge TPU** (Google Coral):
-- Hardware accelerator for INT8 models
-- 4 TOPS (trillion operations/sec)
-
-**NVIDIA Jetson**:
-- TensorRT for GPU optimization
-- Mixed precision (FP16)
-
-**Intel Neural Compute Stick**:
-- USB accelerator for edge inference
-
----
-
-# TensorFlow Lite Conversion
+**For mobile deployment (Android/iOS):**
 
 ```python
 import tensorflow as tf
 
-# Convert Keras model to TFLite
-converter = tf.lite.TFLiteConverter.from_keras_model(model)
-
-# Enable optimizations
-converter.optimizations = [tf.lite.Optimize.DEFAULT]
-
-# Quantize to INT8
-converter.representative_dataset = representative_data_gen
-converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-
-# Convert
+# Convert to TFLite
+converter = tf.lite.TFLiteConverter.from_saved_model('model')
+converter.optimizations = [tf.lite.Optimize.DEFAULT]  # Quantize
 tflite_model = converter.convert()
 
 # Save
-with open("model.tflite", "wb") as f:
+with open('model.tflite', 'wb') as f:
     f.write(tflite_model)
 ```
 
----
-
-# TensorRT (NVIDIA): Overview
-
-**High-performance inference engine for NVIDIA GPUs**
-
-**Key optimizations**:
-- **Layer fusion**: Combine operations (Conv+BN+ReLU → single kernel)
-- **Precision calibration**: Automatic FP32 → FP16 → INT8 conversion
-- **Kernel auto-tuning**: Select fastest GPU kernels for your model
-- **Memory optimization**: Reduce memory footprint
-
-**Performance gains**:
-- Typical speedup: 2-5x over PyTorch
-- Latency reduction: 50-80% for large models
-- Best for production deployment on NVIDIA GPUs
-
-**Use cases**: Real-time inference, video processing, autonomous vehicles
+**TFLite is optimized for:**
+- ARM processors (phones)
+- Edge TPU accelerators
+- Microcontrollers
 
 ---
 
-# TensorRT: Implementation
+# Choosing the Right Approach
 
-```python
-import tensorrt as trt
+| Scenario | Recommended Approach |
+|----------|---------------------|
+| Quick optimization | Quantization (PTQ) |
+| Maximum compression | Quantization + Pruning |
+| Best accuracy | Knowledge distillation |
+| Mobile app | TensorFlow Lite |
+| Cross-platform | ONNX Runtime |
+| Web browser | ONNX + WebAssembly |
 
-# 1. Create builder and network
-builder = trt.Builder(TRT_LOGGER)
-network = builder.create_network()
-
-# 2. Parse ONNX model
-parser = trt.OnnxParser(network, TRT_LOGGER)
-parser.parse_from_file("model.onnx")
-
-# 3. Configure optimization
-config = builder.create_builder_config()
-config.set_flag(trt.BuilderFlag.FP16)  # Enable FP16
-
-# 4. Build optimized engine
-engine = builder.build_engine(network, config)
-```
-
-**Next step**: Save engine and load for inference
+**Start with quantization** - it's the easiest and most effective!
 
 ---
 
-# Benchmarking Models
-
-**Metrics to measure**:
-1. **Latency**: Time per inference (ms)
-2. **Throughput**: Inferences per second
-3. **Memory usage**: Peak RAM (MB)
-4. **Model size**: Disk space (MB)
-5. **Energy consumption**: Battery drain (mAh)
-
-**Tools**:
-- `torch.utils.benchmark` (PyTorch)
-- `time` module (simple timing)
-- `memory_profiler` (RAM usage)
-- Device-specific profilers (Android Profiler, Xcode Instruments)
-
----
-
-# Latency Benchmarking Code
+# Benchmarking Your Model
 
 ```python
 import time
-import torch
+import numpy as np
 
-model.eval()
-input_data = torch.randn(1, 3, 224, 224)
-
-# Warmup (JIT compilation, cache warming)
-for _ in range(10):
-    _ = model(input_data)
-
-# Benchmark
-times = []
-for _ in range(100):
-    start = time.time()
-    with torch.no_grad():
+def benchmark(model, input_data, n_runs=100):
+    """Measure average inference time."""
+    # Warmup
+    for _ in range(10):
         _ = model(input_data)
-    times.append(time.time() - start)
 
-print(f"Mean latency: {np.mean(times)*1000:.2f} ms")
-print(f"Std latency: {np.std(times)*1000:.2f} ms")
-print(f"P95 latency: {np.percentile(times, 95)*1000:.2f} ms")
+    # Benchmark
+    times = []
+    for _ in range(n_runs):
+        start = time.perf_counter()
+        _ = model(input_data)
+        times.append(time.perf_counter() - start)
+
+    avg_time = np.mean(times) * 1000  # ms
+    print(f"Average: {avg_time:.2f} ms")
+    print(f"Throughput: {1000/avg_time:.1f} samples/sec")
 ```
 
 ---
 
-# Accuracy vs Efficiency Trade-off
+# Before vs After Optimization
 
-**Pareto frontier**: No single "best" model.
+| Metric | Original | Optimized |
+|--------|----------|-----------|
+| **Size** | 100 MB | 25 MB |
+| **Latency** | 50 ms | 12 ms |
+| **Memory** | 400 MB | 100 MB |
+| **Accuracy** | 95.0% | 94.5% |
 
-| Model | Size | Latency | Accuracy |
-| :--- | :---: | :---: | :---: |
-| ResNet-50 | 98MB | 50ms | 76% |
-| + Pruning 50% | 49MB | 40ms | 75% |
-| + Quantization INT8 | 12MB | 15ms | 74% |
-| MobileNet-v2 | 14MB | 10ms | 72% |
-| + Quantization | 3.5MB | 5ms | 71% |
-
-**Choose based on constraints**:
-- Strict latency → MobileNet quantized
-- High accuracy needed → ResNet pruned
-- Smallest size → MobileNet quantized
+**Trade-off:** 0.5% accuracy for 4x smaller and 4x faster!
 
 ---
 
-# Deployment Checklist
+# Deployment Pipeline
 
-**Pre-deployment**:
-- [ ] Model optimized (quantized/pruned)
-- [ ] Benchmarked on target device
-- [ ] Accuracy validated
-- [ ] Error handling implemented
+```
+Train Model (Float32)
+       ↓
+Prune (optional)
+       ↓
+Quantize (Int8)
+       ↓
+Export (ONNX/TFLite)
+       ↓
+Benchmark on target device
+       ↓
+Deploy
+```
 
-**Deployment**:
-- [ ] Model packaged (ONNX, TFLite, etc.)
-- [ ] Inference code tested
-- [ ] Fallback strategy (cloud API)
+---
 
-**Post-deployment**:
-- [ ] Monitor latency in production
-- [ ] Track accuracy degradation
-- [ ] A/B test optimizations
+# Common Deployment Targets
+
+**1. Mobile Apps**
+- Use TensorFlow Lite or Core ML (iOS)
+- Optimize for ARM processors
+- Consider battery usage
+
+**2. Web Browser**
+- Use ONNX.js or TensorFlow.js
+- Models must be small (< 10 MB)
+- Use WebGL for acceleration
+
+**3. Embedded/IoT**
+- Use TensorFlow Lite Micro
+- Very limited memory (KB, not MB)
+- May need specialized models
+
+---
+
+# Real-World Example: Mobile App
+
+**Original model:** ResNet-50
+- Size: 98 MB
+- Latency: 200 ms
+
+**Optimization steps:**
+1. Replace with MobileNet-v2 (smaller architecture)
+2. Quantize to Int8
+3. Export to TFLite
+
+**Optimized model:**
+- Size: 3.4 MB
+- Latency: 30 ms
+- Accuracy: 71% (vs 76% for ResNet)
+
+---
+
+# Efficient Model Architectures
+
+**Designed for mobile/edge:**
+
+| Model | Size | Top-1 Accuracy | Latency |
+|-------|------|----------------|---------|
+| MobileNet-v2 | 3.4 MB | 71.8% | 30 ms |
+| EfficientNet-B0 | 5.3 MB | 77.1% | 45 ms |
+| SqueezeNet | 1.2 MB | 57.5% | 25 ms |
+
+**vs. Desktop models:**
+| ResNet-50 | 98 MB | 76.1% | 200 ms |
+| VGG-16 | 528 MB | 71.5% | 400 ms |
+
+---
+
+# Tips for Edge Deployment
+
+**1. Start with a smaller model**
+- MobileNet instead of ResNet
+- DistilBERT instead of BERT
+
+**2. Always quantize**
+- Easy 4x size reduction
+- Often 2-4x speed improvement
+
+**3. Profile on target device**
+- Desktop performance ≠ Mobile performance
+- Test on actual hardware
+
+**4. Consider accuracy trade-offs**
+- 1-2% accuracy loss is usually acceptable
+- Test with your specific use case
 
 ---
 
 # Summary
 
-**Key techniques**:
-1. **Quantization**: 4x smaller, 2-4x faster
-2. **Pruning**: Remove redundant weights
-3. **Knowledge Distillation**: Train small student model
-4. **ONNX**: Universal deployment format
-5. **Hardware acceleration**: TensorRT, CoreML, TFLite
-
-**Typical pipeline**:
-Train (FP32) → Prune → Quantize (INT8) → Export (ONNX) → Deploy
-
-**Lab**: Hands-on optimization and benchmarking!
+| Technique | What it does | When to use |
+|-----------|--------------|-------------|
+| **Quantization** | 32-bit → 8-bit | Always (first step) |
+| **Pruning** | Remove small weights | Need more compression |
+| **Distillation** | Train smaller model | Can afford retraining |
+| **ONNX** | Cross-platform format | Non-Python deployment |
+| **TFLite** | Mobile format | Android/iOS apps |
 
 ---
 
-# Additional Resources
+# Lab Preview
 
-**Libraries**:
-- PyTorch quantization: https://pytorch.org/docs/stable/quantization.html
-- ONNX: https://onnx.ai/
-- TensorFlow Lite: https://www.tensorflow.org/lite
+**This week you'll:**
 
-**Papers**:
-- "Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference" (Google)
-- "The Lottery Ticket Hypothesis" (MIT)
-- "Distilling the Knowledge in a Neural Network" (Hinton et al.)
+1. Benchmark your model's size and speed
+2. Apply quantization and measure improvement
+3. Try pruning and compare results
+4. Export to ONNX format
+5. Run with ONNX Runtime
+6. Compare all approaches
 
-**Hardware**:
-- NVIDIA Jetson: https://www.nvidia.com/en-us/autonomous-machines/jetson-store/
-- Google Coral: https://coral.ai/
+**Result:** An optimized model ready for edge deployment!
+
+---
+
+<!-- _class: lead -->
+
+# Questions?
+
+**Key takeaways:**
+- Quantization is the easiest win (4x smaller, 2-4x faster)
+- ONNX enables cross-platform deployment
+- Start with efficient architectures when possible
+- Always benchmark on target hardware
+
+**Next week:** Profiling & Performance
