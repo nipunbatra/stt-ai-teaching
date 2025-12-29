@@ -3,7 +3,7 @@ marp: true
 theme: default
 paginate: true
 style: |
-  @import 'stt-modern.css';
+  @import 'iitgn-modern.css';
 ---
 
 <!-- _class: lead -->

@@ -2,10 +2,11 @@
 marp: true
 theme: default
 paginate: true
-backgroundColor: #fff
+style: |
+  @import 'iitgn-modern.css';
 ---
 
-style: @import "custom.css";
+<!-- _class: lead -->
 
 # Model Development & Training
 ## Lab Session

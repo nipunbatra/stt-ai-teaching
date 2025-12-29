@@ -2,10 +2,8 @@
 marp: true
 theme: default
 paginate: true
-backgroundColor: #fff
 style: |
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
-  @import 'custom.css';
+  @import 'iitgn-modern.css';
 ---
 
 <!-- _class: lead -->

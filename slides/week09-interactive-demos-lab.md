@@ -2,8 +2,8 @@
 marp: true
 theme: default
 paginate: true
-backgroundColor: #fff
-style: @import "custom.css";
+style: |
+  @import 'iitgn-modern.css';
 ---
 
 <!-- _class: lead -->

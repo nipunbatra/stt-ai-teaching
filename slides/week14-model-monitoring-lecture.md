@@ -2,8 +2,9 @@
 marp: true
 theme: default
 paginate: true
-style: @import "custom.css";
-  section { justify-content: flex-start; }
+math: mathjax
+style: |
+  @import 'iitgn-modern.css';
 ---
 
 <!-- _class: lead -->
