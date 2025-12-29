@@ -2,28 +2,26 @@
 marp: true
 theme: default
 paginate: true
-backgroundColor: #fff
 style: |
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
-  @import 'custom.css';
+  @import 'stt-modern.css';
 ---
 
 <!-- _class: lead -->
 
 # Week 1: Data Collection for Machine Learning
 
-**CS 203: Software Tools and Techniques for AI**
+## CS 203: Software Tools and Techniques for AI
 
-Prof. Nipun Batra
+**Prof. Nipun Batra**
 IIT Gandhinagar
 
 ---
 
-<!-- _class: lead -->
+<!-- _class: section-divider -->
 
 # Part 1: The Motivation
 
-*Why do we need to collect data?*
+Why do we need to collect data?
 
 ---
 
