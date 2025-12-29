@@ -1,4 +1,5 @@
 /* @theme iitgn-modern */
+/* ===== IITGN Modern Slide Theme ===== */
 
 @import 'default';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -18,7 +19,7 @@
 
 section {
   font-family: 'Inter', 'Segoe UI', sans-serif;
-  font-size: 20px;
+  font-size: 22px;
   padding: 0;
   color: var(--text);
   display: flex;
@@ -95,15 +96,16 @@ code {
   font-size: 0.9em;
 }
 
+/* VS Code Dark+ code blocks */
 pre {
   background: #1e1e1e;
   color: #d4d4d4;
   border-radius: 12px;
-  padding: 18px;
-  font-size: 0.75em;
+  padding: 20px;
+  font-size: 0.8em;
   line-height: 1.5;
   overflow: hidden;
-  margin: 12px 45px;
+  margin: 15px 45px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
@@ -113,7 +115,7 @@ pre code {
   padding: 0;
 }
 
-/* VS Code Dark+ inspired syntax highlighting - high contrast */
+/* VS Code Dark+ syntax highlighting */
 pre .hljs-string { color: #ce9178; }
 pre .hljs-number { color: #b5cea8; }
 pre .hljs-keyword { color: #569cd6; }
@@ -126,57 +128,58 @@ pre .hljs-function { color: #dcdcaa; }
 pre .hljs-class { color: #4ec9b0; }
 pre .hljs-variable { color: #9cdcfe; }
 pre .hljs-punctuation { color: #d4d4d4; }
+pre .hljs-title { color: #dcdcaa; }
+pre .hljs-params { color: #9cdcfe; }
+pre .hljs-meta { color: #c586c0; }
+pre .hljs-type { color: #4ec9b0; }
+pre .hljs-name { color: #569cd6; }
 
 /* Modern callout boxes */
-section .example {
-  background: #f0fdf4;
+.example {
+  background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
   border-left: 5px solid var(--success);
   padding: 16px 20px;
   margin: 15px 45px;
   border-radius: 0 12px 12px 0;
   box-shadow: 0 2px 4px rgba(42,157,143,0.1);
-  color: #14532d;
 }
 
-section .insight {
-  background: #fefce8;
-  border-left: 5px solid #ca8a04;
+.insight {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-left: 5px solid var(--warning);
   padding: 16px 20px;
   margin: 15px 45px;
   border-radius: 0 12px 12px 0;
   box-shadow: 0 2px 4px rgba(233,196,106,0.15);
-  color: #713f12;
 }
 
-section .warning {
-  background: #fef2f2;
-  border-left: 5px solid #dc2626;
+.warning {
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  border-left: 5px solid #ef4444;
   padding: 16px 20px;
   margin: 15px 45px;
   border-radius: 0 12px 12px 0;
   box-shadow: 0 2px 4px rgba(239,68,68,0.1);
-  color: #7f1d1d;
 }
 
-section .realworld {
-  background: #eff6ff;
-  border-left: 5px solid #2563eb;
+.realworld {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-left: 5px solid #3b82f6;
   padding: 16px 20px;
   margin: 15px 45px;
   border-radius: 0 12px 12px 0;
   box-shadow: 0 2px 4px rgba(59,130,246,0.1);
-  color: #1e3a8a;
 }
 
 /* Layout helpers */
-section .columns {
+.columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
   margin: 0 45px;
 }
 
-section .columns3 {
+.columns3 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 20px;
@@ -184,48 +187,58 @@ section .columns3 {
 }
 
 /* Modern tables */
-section table {
-  font-size: 0.8em;
+table {
+  font-size: 0.85em;
   width: calc(100% - 90px);
-  margin: 12px 45px;
-  border-collapse: collapse;
-  border: none;
+  margin: 15px 45px;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-section th {
-  background: var(--primary);
+th {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: white;
-  padding: 10px 8px;
+  padding: 12px 10px;
   font-weight: 600;
   text-align: left;
-  border: 1px solid var(--primary);
 }
 
-section td {
-  padding: 8px;
-  border: 1px solid #e2e8f0;
+td {
+  padding: 10px;
+  border-bottom: 1px solid #e2e8f0;
   background: white;
 }
 
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background: #f7fafc;
+}
+
 /* Images */
-section img {
+img {
   margin: 15px auto;
   display: block;
   border-radius: 8px;
 }
 
 /* Lists */
-section ul, section ol {
-  margin: 10px 0;
+ul, ol {
+  margin: 12px 0;
   padding-left: 25px;
 }
 
-section li {
-  margin: 8px 0;
-  line-height: 1.4;
+li {
+  margin: 10px 0;
+  line-height: 1.5;
 }
 
-section li::marker {
+li::marker {
   color: var(--accent);
 }
 
