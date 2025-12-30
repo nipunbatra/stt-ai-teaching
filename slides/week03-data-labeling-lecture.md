@@ -1976,6 +1976,25 @@ Solution:
 
 ---
 
+# Interview Questions
+
+**Common interview questions on data labeling:**
+
+1. **"How would you ensure label quality in a large annotation project?"**
+   - Use multiple annotators (redundancy)
+   - Calculate inter-annotator agreement (Cohen's Kappa)
+   - Include gold standard questions for monitoring
+   - Write clear guidelines with edge cases
+   - Run calibration sessions before production
+
+2. **"What is Cohen's Kappa and why use it instead of percent agreement?"**
+   - Kappa accounts for chance agreement
+   - Two random guessers on binary task agree 50% by chance
+   - Kappa measures how much better than chance your agreement is
+   - Target: Kappa >= 0.8 for production-ready labels
+
+---
+
 # Key Takeaways
 
 1. **Labels are the bottleneck** - 80% of AI project time

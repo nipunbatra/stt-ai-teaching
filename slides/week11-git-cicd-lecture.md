@@ -715,6 +715,25 @@ secrets.yaml
 
 ---
 
+# Interview Questions
+
+**Common interview questions on Git and CI/CD:**
+
+1. **"What is CI/CD and why is it important?"**
+   - CI: Continuous Integration - automatically test every commit
+   - CD: Continuous Deployment - automatically deploy passing builds
+   - Catches bugs early, before they reach production
+   - Ensures code quality without manual intervention
+
+2. **"How do you handle secrets in CI/CD pipelines?"**
+   - Never commit secrets to Git
+   - Use GitHub Secrets or environment variables
+   - Access via `secrets.MY_SECRET` in workflows
+   - Rotate secrets regularly
+   - Use separate secrets for dev/staging/prod
+
+---
+
 <!-- _class: lead -->
 
 # Questions?

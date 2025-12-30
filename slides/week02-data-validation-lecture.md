@@ -2703,15 +2703,31 @@ model.fit(X, y)  # Works!
 
 # Next Week Preview
 
-## Week 3: Data Storage & Databases
+## Week 3: Data Labeling
 
-- Relational databases (SQLite, PostgreSQL)
-- SQL fundamentals
-- Data modeling
-- When to use what storage format
-- Database tools and ORMs
+- Why labeling is the bottleneck
+- Labeling tools and platforms
+- Quality control for labels
+- Inter-annotator agreement
+- Managing labeling projects
 
-**The data we cleaned needs a home!**
+**The data we cleaned now needs labels for ML!**
+
+---
+
+# Interview Questions
+
+**Common interview questions on data validation:**
+
+1. **"How would you handle missing values in a dataset?"**
+   - Identify types of missingness (MCAR, MAR, MNAR)
+   - Strategies: deletion, imputation, flagging
+   - Context matters: dropping vs filling depends on data and use case
+
+2. **"What's the difference between validation and cleaning?"**
+   - Validation: checking if data meets rules (returns true/false)
+   - Cleaning: transforming data to meet rules (modifies data)
+   - Validation should come first to understand the problems
 
 ---
 

@@ -2151,6 +2151,24 @@ pip install google-genai pillow requests matplotlib pandas numpy
 
 ---
 
+# Interview Questions
+
+**Common interview questions on LLM APIs:**
+
+1. **"How would you handle rate limiting when using LLM APIs in production?"**
+   - Implement exponential backoff with jitter
+   - Use a request queue with rate limiting
+   - Cache responses for repeated queries
+   - Consider batch APIs for high volume
+
+2. **"What's the difference between zero-shot, few-shot, and fine-tuning?"**
+   - Zero-shot: No examples, just instructions (fastest to deploy)
+   - Few-shot: 2-5 examples in prompt (better accuracy, uses context)
+   - Fine-tuning: Train on your data (best accuracy, most effort)
+   - Trade-off: Development time vs accuracy vs cost
+
+---
+
 <!-- _class: lead -->
 <!-- _paginate: false -->
 

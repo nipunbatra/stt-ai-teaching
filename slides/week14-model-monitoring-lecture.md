@@ -1250,6 +1250,26 @@ if np.linalg.norm(mean_shap - baseline_mean_shap) > threshold:
 
 ---
 
+# Interview Questions
+
+**Common interview questions on model monitoring:**
+
+1. **"How do you detect when a deployed model needs retraining?"**
+   - Monitor prediction distribution shifts (data drift)
+   - Track accuracy on labeled samples (performance drift)
+   - Statistical tests: KS test, PSI score
+   - Business metrics: conversion rate, user feedback
+   - Combine: performance drop + drift = retrain trigger
+
+2. **"What is data drift and how would you detect it?"**
+   - Data drift: Input distribution changes over time
+   - Causes: Seasonality, user behavior changes, upstream data changes
+   - Detection: Compare feature distributions (reference vs current)
+   - Tools: Evidently AI, Alibi Detect, custom KS tests
+   - Act on it: Alert → investigate → retrain if needed
+
+---
+
 # Additional Resources
 
 **Libraries and Tools:**

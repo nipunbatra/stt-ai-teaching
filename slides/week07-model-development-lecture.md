@@ -1093,6 +1093,24 @@ You've built the model. Now how do you know it's REALLY good?
 
 ---
 
+# Interview Questions
+
+**Common interview questions on model development:**
+
+1. **"Why is cross-validation important?"**
+   - Single train/test split can be lucky or unlucky
+   - CV gives average performance over multiple splits
+   - Tells you both mean AND variance of your model
+   - Standard: 5-fold or 10-fold for most problems
+
+2. **"When would you use Random Forest vs Gradient Boosting?"**
+   - Random Forest: Faster training, parallelizable, good baseline
+   - Gradient Boosting: Often more accurate, but slower and easier to overfit
+   - RF for quick prototypes; GB when squeezing last % of accuracy
+   - Both: Handle missing values poorly without preprocessing
+
+---
+
 <!-- _class: lead -->
 
 # Questions?

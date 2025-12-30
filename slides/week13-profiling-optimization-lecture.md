@@ -984,6 +984,24 @@ result = tensor * 2  # Much faster!
 
 ---
 
+# Interview Questions
+
+**Common interview questions on profiling and optimization:**
+
+1. **"How would you speed up a slow training pipeline?"**
+   - Profile first (PyTorch Profiler, nvidia-smi)
+   - Common fixes: increase num_workers, enable AMP, use torch.compile
+   - Check GPU utilization - low % means CPU bottleneck
+   - Increase batch size if memory allows
+
+2. **"What is mixed precision training and why use it?"**
+   - Use FP16 for forward/backward, FP32 for gradient updates
+   - Benefits: 1.5-2x speedup, half memory usage
+   - PyTorch: `torch.cuda.amp.autocast()` + GradScaler
+   - Safe for most models; watch for loss scaling issues
+
+---
+
 # Additional Resources
 
 **Documentation:**

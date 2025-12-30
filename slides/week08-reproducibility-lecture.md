@@ -797,6 +797,27 @@ netflix-predictor/
 
 <!-- _class: lead -->
 
+# Interview Questions
+
+**Common interview questions on reproducibility:**
+
+1. **"How would you ensure your ML experiments are reproducible?"**
+   - Pin all dependency versions in requirements.txt
+   - Set random seeds (Python, NumPy, PyTorch/TensorFlow)
+   - Version control data with DVC or similar
+   - Use config files instead of hardcoded values
+   - Document environment (Python version, OS)
+
+2. **"What is Docker and why use it for ML?"**
+   - Container packages code + dependencies + environment
+   - "Works on my machine" → "Works everywhere"
+   - Consistent dev/prod environments
+   - Easy deployment and scaling
+
+---
+
+<!-- _class: lead -->
+
 # Questions?
 
 **Today's key concepts:**

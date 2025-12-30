@@ -236,11 +236,15 @@ When APIs don't exist or don't have what you need:
 
 # API: A Restaurant Analogy
 
-![width:380px](../figures/restaurant_analogy.png)
+```
+You (Client)  ──order──▶  Waiter (API)  ──request──▶  Kitchen (Server)
+                                                            │
+You (Client)  ◀──food───  Waiter (API)  ◀──response──       │
+```
 
 | Restaurant | API |
 |------------|-----|
-| Menu | API documentation |
+| Menu | Documentation |
 | Order | Request |
 | Kitchen | Server |
 | Food | Response |

@@ -1509,6 +1509,24 @@ model.fit(data, clean_labels)
 
 ---
 
+# Interview Questions
+
+**Common interview questions on labeling optimization:**
+
+1. **"What is active learning and when would you use it?"**
+   - Model selects which examples to label next based on uncertainty
+   - Focuses human effort on hard/ambiguous examples
+   - Use when: limited labeling budget, model can provide predictions
+   - Typical savings: 2-10x fewer labels needed for same accuracy
+
+2. **"How does weak supervision differ from traditional labeling?"**
+   - Write labeling functions (code/heuristics) instead of manual labels
+   - Labels are noisy but you get many more of them
+   - Label model combines multiple noisy sources
+   - Trade-off: quantity over quality, but often wins with enough data
+
+---
+
 # Key Takeaways
 
 1. **Active Learning** - Let model pick what to label (2-10x savings)

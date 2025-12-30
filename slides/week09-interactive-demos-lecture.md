@@ -791,6 +791,24 @@ if st.button("🎯 Predict"):
 
 ---
 
+# Interview Questions
+
+**Common interview questions on demos:**
+
+1. **"How would you quickly demo an ML model to stakeholders?"**
+   - Streamlit or Gradio for rapid prototyping
+   - Deploy to Hugging Face Spaces (free, easy)
+   - Focus on clear inputs, informative outputs
+   - Add examples and good defaults
+
+2. **"What's the difference between a demo and a production system?"**
+   - Demo: Single user, simple UI, acceptable latency
+   - Production: Multi-user, authentication, monitoring, SLAs
+   - Demo validates the idea; production serves real users
+   - Often start with demo, then graduate to FastAPI + frontend
+
+---
+
 # Lab Preview
 
 **This week's hands-on:**

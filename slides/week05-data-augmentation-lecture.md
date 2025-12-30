@@ -2288,6 +2288,44 @@ transform = auto_augment_transform('original-mstd0.5', {})  # Weaker
 
 ---
 
+# Interview Questions
+
+**Common interview questions on data augmentation:**
+
+1. **"When does data augmentation help and when can it hurt?"**
+   - Helps: Limited training data, need invariance to transformations
+   - Hurts: Unrealistic transformations (upside-down text), excessive augmentation creating distribution shift
+   - Key: Augmentations should preserve label meaning
+
+2. **"What is Mixup and why does it work?"**
+   - Mixup: Blend two images and their labels (e.g., 70% cat + 30% dog)
+   - Works because: Vicinal risk minimization - smooth decision boundaries
+   - Forces model to be less confident, reduces overfitting
+   - Especially effective for calibration and adversarial robustness
+
+---
+
+# Key Takeaways
+
+1. **Augmentation expands effective training data**
+   - Same images, different views → better generalization
+
+2. **Choose augmentations that preserve semantics**
+   - Flip a cat? Still a cat. Flip text? Unreadable
+
+3. **Domain-specific strategies matter**
+   - Images: geometric + color transforms
+   - Text: synonyms, back-translation
+   - Audio: time stretch, pitch shift
+
+4. **Start simple, measure impact**
+   - Basic transforms often work well
+   - Always validate on held-out data
+
+**Next week:** Using LLMs for feature extraction
+
+---
+
 <!-- _class: lead -->
 <!-- _paginate: false -->
 

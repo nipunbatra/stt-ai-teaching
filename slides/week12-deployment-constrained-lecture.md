@@ -592,6 +592,24 @@ Deploy
 
 ---
 
+# Interview Questions
+
+**Common interview questions on edge deployment:**
+
+1. **"How would you deploy an ML model to a mobile device?"**
+   - Quantize: Reduce precision (FP32 → INT8) for 4x smaller size
+   - Export to TFLite (Android/iOS) or Core ML (iOS)
+   - Consider smaller architectures (MobileNet, DistilBERT)
+   - Benchmark on actual device (not emulator)
+
+2. **"What is quantization and what are its trade-offs?"**
+   - Converting weights from 32-bit floats to 8-bit integers
+   - Benefits: 4x smaller model, 2-4x faster inference
+   - Trade-off: 1-2% accuracy loss (usually acceptable)
+   - Types: post-training (easy) vs quantization-aware training (better)
+
+---
+
 <!-- _class: lead -->
 
 # Questions?

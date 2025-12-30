@@ -720,6 +720,24 @@ except Exception as e:
 
 ---
 
+# Interview Questions
+
+**Common interview questions on HTTP APIs:**
+
+1. **"What HTTP status code would you return for invalid input?"**
+   - 400 Bad Request for malformed/invalid data
+   - 422 Unprocessable Entity for validation failures (FastAPI default)
+   - 401/403 for auth issues, 404 for not found, 500 for server errors
+
+2. **"How would you design an API for ML predictions?"**
+   - POST endpoint (sending data for processing)
+   - Validate input with Pydantic models
+   - Return prediction + confidence + metadata
+   - Add health check endpoint for monitoring
+   - Handle errors gracefully with informative messages
+
+---
+
 <!-- _class: lead -->
 
 # Questions?
