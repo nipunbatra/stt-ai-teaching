@@ -469,7 +469,7 @@ Request 2: "Now show me Avatar." → "Who are you?"
 
 # The Client-Server Model
 
-![width:250px](../figures/server_diagram.svg)
+![width:700px](../figures/server_diagram.svg)
 
 ---
 
@@ -1017,7 +1017,7 @@ Every row = one HTTP request/response
 │  Headers   Preview   Response   Timing   Cookies                  │
 ├───────────────────────────────────────────────────────────────────┤
 │  General:                                                         │
-│    Request URL: https://api.example.com/movies?id=123             │
+│    Request URL: https://www.omdbapi.com/?i=tt3896198&apikey=[KEY] │
 │    Request Method: GET                                            │
 │    Status Code: 200 OK                                            │
 ├───────────────────────────────────────────────────────────────────┤
@@ -1062,7 +1062,7 @@ Every row = one HTTP request/response
 3. Paste into terminal
 
 ```bash
-curl "https://www.omdbapi.com/?i=tt3896198&apikey=API_KEY" \
+curl "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]" \
   -H "accept: application/json" \
   --compressed
 ```
@@ -1116,7 +1116,7 @@ curl "https://www.omdbapi.com/?i=tt3896198&apikey=API_KEY" \
 
 ```bash
 # Your first curl command
-curl "https://api.omdbapi.com/?apikey=demo&t=Inception"
+curl "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]"
 ```
 
 **Why learn curl?**
@@ -1151,7 +1151,7 @@ curl [options] [URL]
 
 ```bash
 # Simple GET request
-curl "https://api.omdbapi.com/?apikey=demo&t=Inception"
+curl "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]"
 ```
 
 **Output:**
@@ -1167,7 +1167,7 @@ curl "https://api.omdbapi.com/?apikey=demo&t=Inception"
 # curl: Adding Headers
 
 ```bash
-curl "https://api.example.com/movies" \
+curl "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]" \
      -H "Accept: application/json" \
      -H "Authorization: Bearer YOUR_TOKEN" \
      -H "User-Agent: MyApp/1.0"
@@ -1184,7 +1184,7 @@ curl "https://api.example.com/movies" \
 
 ```bash
 # Show only response headers (no body)
-curl -I "https://api.omdbapi.com/?apikey=demo&t=Inception"
+curl -I "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]"
 ```
 
 **Output:**
@@ -1201,7 +1201,7 @@ X-RateLimit-Remaining: 999
 # curl: Verbose Mode
 
 ```bash
-curl -v "https://api.omdbapi.com/?apikey=demo&t=Inception"
+curl -v "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]"
 ```
 
 **Shows everything (request AND response):**
@@ -1211,8 +1211,6 @@ curl -v "https://api.omdbapi.com/?apikey=demo&t=Inception"
 > User-Agent: curl/7.79.1
 > Accept: */*
 >
-< HTTP/2 200
-< content-type: application/json
 < content-length: 1024
 <
 {"Title":"Inception"...}
@@ -1228,7 +1226,7 @@ curl -v "https://api.omdbapi.com/?apikey=demo&t=Inception"
 **Raw JSON is hard to read. Pipe to `jq` for formatting:**
 
 ```bash
-curl -s "https://api.omdbapi.com/?apikey=demo&t=Inception" | jq .
+curl -s "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]" | jq .
 ```
 
 **Output (formatted):**
@@ -1268,12 +1266,11 @@ curl -s ... | jq '.Search[].Title'
 
 ```bash
 # Save response to file
-curl "https://api.omdbapi.com/?apikey=demo&t=Inception" \
+curl "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]" \
      -o inception.json
 
 # Silent mode (no progress bar)
-curl -s "https://api.example.com/data" -o output.json
-
+curl -s "https://www.omdbapi.com/?t=Inception&apikey=[API_KEY]" -o output.json
 # Save with pretty formatting
 curl -s ... | jq . > formatted.json
 ```
@@ -1283,10 +1280,16 @@ curl -s ... | jq . > formatted.json
 # curl: POST Request
 
 ```bash
-curl -X POST "https://api.example.com/reviews" \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer YOUR_TOKEN" \
-     -d '{"movie_id": 123, "rating": 5, "review": "Amazing!"}'
+curl -X 'POST' \
+  'https://nipun-api-testing.hf.space/items' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Laptop",
+  "price": 999.99,
+  "quantity": 1,
+  "description": "A powerful laptop"
+}'
 ```
 
 **Components:**
@@ -1299,15 +1302,12 @@ curl -X POST "https://api.example.com/reviews" \
 # curl: POST with Form Data
 
 ```bash
-# Form-encoded data (like HTML forms)
-curl -X POST "https://example.com/login" \
-     -d "username=john" \
-     -d "password=secret"
-
-# Equivalent to:
-curl -X POST "https://example.com/login" \
-     -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "username=john&password=secret"
+curl -X POST "https://nipun-api-testing.hf.space/form/contact" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "name=Alice" \
+  -d "email=alice@example.com" \
+  -d "subject=Hello" \
+  -d "message=Nice API!"
 ```
 
 ---
@@ -1316,9 +1316,8 @@ curl -X POST "https://example.com/login" \
 
 ```bash
 # Upload a file
-curl -X POST "https://api.example.com/upload" \
-     -F "file=@/path/to/image.jpg" \
-     -F "description=My photo"
+curl -X POST "https://nipun-api-testing.hf.space/upload/file" -F "file=@dummy.txt"
+
 ```
 
 **`-F` = multipart form data** (for file uploads)
@@ -1330,16 +1329,16 @@ curl -X POST "https://api.example.com/upload" \
 
 ```bash
 # Retry on failure
-curl --retry 3 "https://api.example.com/data"
+curl --retry 3 "https://www.omdbapi.com/data"
 
 # Set timeout (seconds)
-curl --max-time 10 "https://api.example.com/slow"
+curl --max-time 10 "https://www.omdbapi.com/slow"
 
 # Follow redirects
 curl -L "https://short.url/abc"
 
 # Fail silently on HTTP errors
-curl -f "https://api.example.com/notfound"
+curl -f "https://www.omdbapi.com/notfound"
 # (exits with error code instead of showing error page)
 ```
 
@@ -1376,19 +1375,25 @@ pip install requests
 ```python
 import requests
 
-# Make the request
+# Make a GET request to OMDb API
 response = requests.get(
-    "https://api.omdbapi.com/",
-    params={"apikey": "demo", "t": "Inception"}
+    "https://www.omdbapi.com/",
+    params={
+        "apikey": "demo",   # replace with your real API key
+        "t": "Inception"
+    }
 )
 
-# Check status
-print(response.status_code)  # 200
+# Check HTTP status code
+print(response.status_code)  # 200 means OK
 
-# Get JSON data
+# Parse JSON response
 data = response.json()
-print(data["Title"])  # "Inception"
-print(data["Year"])   # "2010"
+
+# Access fields from JSON
+print(data["Title"])  # Inception
+print(data["Year"])   # 2010
+
 ```
 
 ---
@@ -1399,11 +1404,11 @@ print(data["Year"])   # "2010"
 
 ```python
 # Bad (manual string building)
-url = "https://api.omdbapi.com/?apikey=demo&t=Inception&y=2010"
+url = "https://www.omdbapi.com/?apikey=demo&t=Inception&y=2010"
 
 # Good (use params dict)
 response = requests.get(
-    "https://api.omdbapi.com/",
+    "https://www.omdbapi.com/",
     params={
         "apikey": "demo",
         "t": "Inception",
@@ -1419,14 +1424,20 @@ response = requests.get(
 # requests: Adding Headers
 
 ```python
+import requests
+
 response = requests.get(
-    "https://api.example.com/movies",
+    "https://httpbin.org/headers",
     headers={
-        "Authorization": "Bearer YOUR_TOKEN",
+        "Authorization": "Bearer test-token-123",
         "Accept": "application/json",
         "User-Agent": "MyApp/1.0"
     }
 )
+
+print(response.status_code)
+print(response.json())
+
 ```
 
 ---
@@ -1434,22 +1445,24 @@ response = requests.get(
 # requests: Response Object
 
 ```python
-response = requests.get("https://api.omdbapi.com/...")
+import requests
+response = requests.get(
+    "https://www.omdbapi.com/",
+    params={
+        "apikey": "demo",      # replace with real key for reliability
+        "t": "Inception"
+    }
+)
+print(response.status_code)        # 200
 
-# Status code
-response.status_code        # 200
+print(response.headers["Content-Type"])  
 
-# Headers (dict-like)
-response.headers["Content-Type"]  # "application/json"
 
-# Body as text
-response.text               # '{"Title": "Inception"...}'
+print(response.text) # Body as raw text (string)              
 
-# Body as JSON (parsed dict)
-response.json()             # {"Title": "Inception", ...}
-
-# Was it successful?
-response.ok                 # True (for 2xx status codes)
+# Body parsed as JSON (Python dict)
+print(response.json())            
+print(response.ok) # True for 2xx status codes                 
 ```
 
 ---
@@ -1460,20 +1473,18 @@ response.ok                 # True (for 2xx status codes)
 import requests
 
 response = requests.post(
-    "https://api.example.com/reviews",
-    headers={
-        "Authorization": "Bearer YOUR_TOKEN"
-    },
-    json={  # Use json= for automatic JSON encoding
-        "movie_id": 123,
-        "rating": 5,
-        "review": "Great movie!"
+    "https://nipun-api-testing.hf.space/items",
+    json={
+        "name": "Laptop",
+        "price": 999.99,
+        "quantity": 1,
+        "description": "A powerful laptop"
     }
 )
 
-if response.status_code == 201:
-    print("Review submitted!")
-    print(response.json())
+print(response.status_code)
+print(response.json())
+
 ```
 
 ---
@@ -1481,14 +1492,22 @@ if response.status_code == 201:
 # requests: POST with Form Data
 
 ```python
-# Form-encoded POST (like HTML forms)
-response = requests.post(
-    "https://example.com/login",
-    data={  # Use data= for form encoding
-        "username": "john",
-        "password": "secret"
-    }
-)
+import requests
+
+url = "https://nipun-api-testing.hf.space/form/contact"
+
+data = {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "subject": "Hello",
+    "message": "Nice API!"
+}
+
+response = requests.post(url, data=data)
+
+print(response.status_code)
+print(response.json())
+
 ```
 
 **Remember:**
@@ -1500,16 +1519,27 @@ response = requests.post(
 # requests: Error Handling
 
 ```python
+url = "https://www.omdbapi.com/"
+params = {
+    "apikey": "demo",   # replace with real key if needed
+    "t": "Inception"
+}
 try:
     response = requests.get(url, params=params, timeout=10)
-    response.raise_for_status()  # Raise for 4xx/5xx
+    response.raise_for_status() # Raise exception for 4xx / 5xx responses
+
     data = response.json()
+    print(data["Title"], data["Year"])
+
 except requests.exceptions.Timeout:
     print("Request timed out")
+
 except requests.exceptions.HTTPError as e:
     print(f"HTTP error: {e}")
+
 except requests.exceptions.RequestException as e:
     print(f"Request failed: {e}")
+
 ```
 
 **Key points:**
@@ -1521,25 +1551,32 @@ except requests.exceptions.RequestException as e:
 # requests: Looping Over Multiple Items
 
 ```python
-import requests
-import time
-
 movies = ["Inception", "Avatar", "The Matrix", "Interstellar"]
 results = []
 
+url = "https://www.omdbapi.com/"
+params_base = {
+    "apikey": "demo"   # replace with your real key for reliability
+}
+
 for title in movies:
     response = requests.get(
-        "https://api.omdbapi.com/",
-        params={"apikey": "YOUR_KEY", "t": title}
+        url,
+        params={**params_base, "t": title},
+        timeout=10
     )
 
     if response.ok:
-        results.append(response.json())
-        print(f"Got: {title}")
-
-    time.sleep(0.5)  # Be nice to the server!
-
+        data = response.json()
+        if data.get("Response") == "True": # Application-level success check
+            results.append(data)
+            print(f"Got: {title}")
+        else:
+            print(f"Not found: {title} ({data.get('Error')})")
+    else:
+        print(f"HTTP error for {title}: {response.status_code}")
 print(f"Collected {len(results)} movies")
+
 ```
 
 ---
@@ -1549,19 +1586,24 @@ print(f"Collected {len(results)} movies")
 ```python
 import requests
 
-# Session persists settings across requests
+# Create a session (persists headers, cookies, connections)
 session = requests.Session()
+
+# Set default headers once
 session.headers.update({
-    "Authorization": "Bearer YOUR_TOKEN",
+    "Authorization": "Bearer test-token-123",
     "User-Agent": "MyApp/1.0"
 })
 
-# Now all requests use these headers
-r1 = session.get("https://api.example.com/movies")
-r2 = session.get("https://api.example.com/reviews")
-r3 = session.get("https://api.example.com/users")
+# All requests now reuse headers + connection
+r1 = session.get("https://httpbin.org/headers")
+r2 = session.get("https://httpbin.org/headers")
+r3 = session.get("https://httpbin.org/headers")
 
-# Also maintains cookies automatically!
+print(r1.status_code)
+print(r1.json()["headers"]["User-Agent"])
+print(r1.json()["headers"]["Authorization"])
+
 ```
 
 ---
@@ -1570,19 +1612,28 @@ r3 = session.get("https://api.example.com/users")
 
 ```python
 def fetch_movie_data(titles, api_key):
-    """Fetch movie data for a list of titles."""
     movies = []
+
     for title in titles:
         response = requests.get(
-            "https://api.omdbapi.com/",
-            params={"apikey": api_key, "t": title},
-            timeout=10
+            "https://www.omdbapi.com/",
+            params={"apikey": api_key, "t": title}, timeout=10
         )
-        if response.ok and response.json().get("Response") == "True":
-            movies.append(response.json())
-    return pd.DataFrame(movies)
+        
+        if response.ok: # Check HTTP + API-level success
+            data = response.json()
+            if data.get("Response") == "True":
+                movies.append(data)
+            else:
+                print(f"Movie not found: {title}")
+        else:
+            print(f"HTTP error for {title}: {response.status_code}")
 
-df = fetch_movie_data(["Inception", "Avatar"], "YOUR_KEY")
+    return pd.DataFrame(movies) # Convert to pandas DataFrame
+
+df = fetch_movie_data(["Inception", "Avatar"], "demo")  # demo API key
+print(df[["Title", "Year", "Genre"]])
+
 ```
 
 ---
@@ -1723,17 +1774,17 @@ pip install beautifulsoup4 requests
 ```
 
 ```python
-from bs4 import BeautifulSoup
-import requests
-
-# Fetch the page
-response = requests.get("https://example.com/movies")
+# Fetch the hosted sample movie page
+url = "https://nipunbatra.github.io/stt-ai-teaching/html/sample-movie-website.html"
+response = requests.get(url)
 html = response.text
 
 # Parse it
 soup = BeautifulSoup(html, 'html.parser')
 
-# Now we can search!
+# Now we can search and extract elements
+print(soup.title.string)  # "My Movie Library"
+
 ```
 
 ---
@@ -1741,13 +1792,12 @@ soup = BeautifulSoup(html, 'html.parser')
 # BeautifulSoup: Finding Elements
 
 ```python
-from bs4 import BeautifulSoup
 
 html = """
 <div class="movie">
-  <h2 class="title">Inception</h2>
-  <span class="year">2010</span>
-  <span class="rating">8.8</span>
+    <h2 class="title">Inception</h2>
+    <span class="year">2010</span>
+    <span class="rating">8.8</span>
 </div>
 """
 
@@ -1757,8 +1807,9 @@ soup = BeautifulSoup(html, 'html.parser')
 title = soup.find('h2', class_='title')
 print(title.text)  # "Inception"
 
-# Find all elements
-all_movies = soup.find_all('div', class_='movie')
+all_movies = soup.find_all('div', class_='movie') # Find all elements (if multiple movies)
+print(f"Found {len(all_movies)} movie(s)")
+
 ```
 
 ---
@@ -1777,8 +1828,11 @@ all_titles = soup.select('.movie .title')
 for t in all_titles:
     print(t.text)
 
-# Complex selectors
-links = soup.select('a[href^="/movies/"]')  # href starts with
+# Example: all links starting with "/movies/"
+links = soup.select('a[href^="/movies/"]')
+for link in links:
+    print(link.get('href'))
+
 ```
 
 ---
@@ -1787,17 +1841,17 @@ links = soup.select('a[href^="/movies/"]')  # href starts with
 
 ```python
 # Get text content
-element.text           # "Inception"
-element.get_text()     # Same, with options
-element.get_text(strip=True)  # Remove whitespace
+element = soup.select_one('.title')
+print(element.text)            # "Inception"
+print(element.get_text())      # "Inception"
+print(element.get_text(strip=True))  # Remove extra whitespace
 
-# Get attribute
+# Get attributes
 link = soup.select_one('a')
-link.get('href')       # "/movies/123"
-link['href']           # Same thing
+print(link.get('href'))        # "/movies/123"
+print(link['href'])            # "/movies/123"
+print(link.attrs)              # {'href': '/movies/123', 'class': ['btn']}
 
-# Get all attributes
-link.attrs             # {'href': '/movies/123', 'class': ['btn']}
 ```
 
 ---
@@ -1805,20 +1859,26 @@ link.attrs             # {'href': '/movies/123', 'class': ['btn']}
 # Scraping Example: Movie List
 
 ```python
-from bs4 import BeautifulSoup
-import requests
+# Scraping Example: Movie List
 
-response = requests.get("https://example.com/top-movies")
+url = "https://nipunbatra.github.io/stt-ai-teaching/html/sample-movie-website.html"
+response = requests.get(url)
 soup = BeautifulSoup(response.text, 'html.parser')
-
 movies = []
+
 for card in soup.select('.movie-card'):
     movie = {
         'title': card.select_one('.title').text.strip(),
         'year': card.select_one('.year').text.strip(),
+        'genre': card.select_one('.genre').text.strip(),
         'rating': card.select_one('.rating').text.strip(),
+        'plot': card.select_one('.plot').text.strip()
     }
     movies.append(movie)
+
+for m in movies:
+    print(f"{m['title']} ({m['year']}) - {m['genre']} - Rating: {m['rating']}") # Print results
+
 ```
 
 ---
@@ -1948,27 +2008,31 @@ Crawl-delay: 1
 # Step 1: Collect from API
 
 ```python
-import requests
-import time
-
-API_KEY = "your_omdb_key"
+API_KEY = "your_omdb_key"  # Replace with your actual OMDb API key
 movies_to_fetch = ["Inception", "Avatar", "The Matrix"]
 results = []
 
 for title in movies_to_fetch:
     response = requests.get(
-        "https://api.omdbapi.com/",
-        params={"apikey": API_KEY, "t": title}
+        "https://www.omdbapi.com/",
+        params={"apikey": API_KEY, "t": title},
+        timeout=10  # Prevent hanging requests
     )
 
-    if response.ok:
+    if response.ok: # Check HTTP-level success
         data = response.json()
+
+        # Check API-level success
         if data.get("Response") == "True":
             results.append(data)
+            print(f"Fetched: {title}")
+        else:
+            print(f"Movie not found: {title} ({data.get('Error')})")
+    else:
+        print(f"HTTP error for {title}: {response.status_code}")
 
-    time.sleep(0.5)  # Rate limiting
+print(f"\nCollected {len(results)} movies")
 
-print(f"Collected {len(results)} movies")
 ```
 
 ---
