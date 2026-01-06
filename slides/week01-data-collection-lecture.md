@@ -1881,7 +1881,7 @@ for m in movies:
 
 ```
 
----
+<!-- ---
 
 # Handling Pagination
 
@@ -1901,7 +1901,7 @@ for page in range(1, 11):  # Pages 1-10
         all_movies.append(m.select_one('.title').text)
 
     time.sleep(1)  # Be polite!
-```
+``` -->
 
 ---
 
