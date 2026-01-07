@@ -174,7 +174,7 @@ model.fit(df[['Year', 'Rating']].dropna(), y.dropna())
                 ┌──┴─────────────────────────┴──┐
                 │       VALIDATED DATA          │  <- Schema-compliant
                 ├───────────────────────────────┤
-             ┌──┴───────────────────────────────┴──┐
+             ┌──┴───────────────────────────────┴───┐
              │          RAW DATA                    │  <- What we collected
              └──────────────────────────────────────┘
 ```
@@ -554,7 +554,6 @@ $ head -500000 huge.csv | tail -10
 # The `sort` Command
 
 **Sort lines alphabetically or numerically.**
-
 ```bash
 # Sort alphabetically
 $ sort movies.csv
@@ -567,14 +566,18 @@ $ sort -t',' -k3 -nr movies.csv
 
 # Sort and remove duplicates
 $ sort -u movies.csv
+
 ```
+
+
+---
+# The `sort` Command
 
 **Flags:**
 - `-t','` = field delimiter is comma
 - `-k3` = sort by 3rd field
 - `-n` = numeric sort
 - `-r` = reverse
-
 ---
 
 # The `uniq` Command
@@ -690,7 +693,10 @@ tail -5 "$FILE"
 echo -e "\n=== Potential Issues ==="
 echo "N/A values: $(grep -c 'N/A' "$FILE")"
 echo "Empty fields: $(grep -c ',,' "$FILE")"
-echo "Duplicate lines: $(sort "$FILE" | uniq -d | wc -l)"
+echo "Duplicate lines: \
+$(sort "$FILE" | uniq -d | wc -l)"
+
+
 ```
 
 ---
@@ -1401,13 +1407,14 @@ $ csvstat movies.csv 2>&1 | grep "Type of data"
 ```bash
 # Count nulls per column
 $ csvstat movies.csv 2>&1 | grep -A1 "Contains null"
-        Contains null values:  False
---
-        Contains null values:  True (13 nulls)
---
-        Contains null values:  True (108 nulls)
---
-        Contains null values:  True (366 nulls)
+              
+-- Contains null values:  False
+        
+-- Contains null values:  True (13 nulls)
+        
+-- Contains null values:  True (108 nulls)
+
+-- Contains null values:  True (366 nulls)
 ```
 
 **Results:**
@@ -1530,6 +1537,10 @@ $ csvcut -c rating movies.csv | sort | uniq -c | sort -rn | head
 
 </div>
 
+---
+
+# Schema: The Blueprint Analogy
+
 **Without blueprint (schema):**
 - Builder guesses what's needed
 - Inspector can't verify if it's correct
@@ -1562,6 +1573,9 @@ schema = {
     "rating": {"type": "number", "minimum": 0, "maximum": 10}
 }
 ```
+
+---
+# Why Schemas Matter
 
 **Schemas enable:**
 - Automatic validation
@@ -2371,6 +2385,10 @@ def validate_movies(movies):
     logging.info(f"Validated {len(valid)}/{len(movies)} movies")
     return valid
 ```
+
+---
+
+# Principle 5: Log Validation Failures
 
 **Why?**
 - Understand data quality trends
