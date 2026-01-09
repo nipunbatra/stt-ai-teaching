@@ -49,17 +49,17 @@ print(f"Collected {len(df)} movies!")
 
 ```python
 import pandas as pd
-df = pd.read_csv("netflix_movies.csv")
+df = pd.read_csv("lecture-demos/week02/data/movies.csv")
 print(df.head())
 ```
 
 ```
-   Title          Year    Runtime   imdbRating  BoxOffice
-0  Inception      2010    148 min   8.8         $292,576,195
-1  Avatar         2009    162 min   7.9         $760,507,625
-2  The Room       2003    99 min    3.9         N/A
-3  Inception      2010    148 min   8.8         $292,576,195
-4  Tenet          N/A     150 min   7.3         N/A
+   title          year    runtime    rating  boxoffice      genre                     rated
+0  Inception      2010    148 min    8.8     $292576195  Action, Adventure, Sci-Fi   PG-13
+1  Avatar         2009    162 min    7.9     $2923706026 Action, Adventure, Fantasy  PG-13
+2  The Room       2003    99 min     3.9     N/A         Drama                       R
+3  Inception      2010    148 min    8.8     $292576195  Action, Adventure, Sci-Fi   PG-13
+4  Tenet          N/A     150 min    7.3     N/A         Action, Sci-Fi, Thriller    PG-13
 ```
 
 **Wait... something's wrong here.**
@@ -68,17 +68,13 @@ print(df.head())
 
 # The Problems Emerge
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                      DATA QUALITY ISSUES                          │
-├───────────────────────────────────────────────────────────────────┤
-│  1. DUPLICATES:    Inception appears twice (rows 0 and 3)         │
-│  2. MISSING:       Year is "N/A" for Tenet (row 4)                │
-│  3. WRONG TYPES:   Runtime is "148 min" not integer 148           │
-│  4. INCONSISTENT:  BoxOffice has "$" and commas                   │
-│  5. N/A VALUES:    Some BoxOffice entries are literally "N/A"     │
-└───────────────────────────────────────────────────────────────────┘
-```
+| # | Issue | Example |
+|---|-------|---------|
+| 1 | **DUPLICATES** | Inception appears twice (rows 0 and 3) |
+| 2 | **MISSING** | Year is "N/A" for Tenet (row 4) |
+| 3 | **WRONG TYPES** | Runtime is "148 min" not integer 148 |
+| 4 | **INCONSISTENT** | BoxOffice has "$" and commas |
+| 5 | **N/A VALUES** | Some BoxOffice entries are literally "N/A" |
 
 ---
 
@@ -150,34 +146,24 @@ model.fit(df[['Year', 'Rating']].dropna(), y.dropna())
 
 | Company | What Happened | Cost |
 |---------|--------------|------|
-| **NASA Mars Orbiter** | Metric vs Imperial units | $125 million |
-| **Knight Capital** | Bad data in trading algorithm | $440 million in 45 min |
-| **UK COVID Stats** | Excel row limit (65,536) | 16,000 missing cases |
-| **Zillow** | Bad data in home value model | $500 million loss |
+| **[NASA Mars Orbiter](https://science.nasa.gov/mission/mars-climate-orbiter/)** | Lockheed used pound-seconds, NASA expected newton-seconds | **$327 million** spacecraft lost |
+| **[Knight Capital](https://en.wikipedia.org/wiki/Knight_Capital_Group)** | Old code reactivated on 1 of 8 servers during deployment | **$440 million** in 45 minutes |
+| **[UK COVID Stats](https://www.theregister.com/2020/10/05/excel_england_coronavirus_contact_error/)** | Excel .xls format limited to 65,536 rows | **16,000 cases** unreported |
+| **[Zillow iBuying](https://www.gsb.stanford.edu/insights/flip-flop-why-zillows-algorithmic-home-buying-venture-imploded)** | Home price algorithm couldn't handle market volatility | **$500 million** loss, program shut down |
 
 **Data quality is not optional. It's survival.**
+
+<!--
+YouTube videos for reference:
+- NASA: "Metric vs Imperial" by Everyday Astronaut
+- Knight Capital: youtube.com/watch?v=7BKNnpJfWII
+-->
 
 ---
 
 # The Data Quality Pyramid
 
-```
-                         ┌─────────────┐
-                         │   MODELS    │  <- What we want to build
-                         ├─────────────┤
-                      ┌──┴─────────────┴──┐
-                      │    ANALYTICS      │  <- Insights & reports
-                      ├───────────────────┤
-                   ┌──┴───────────────────┴──┐
-                   │      CLEAN DATA         │  <- Validated, typed
-                   ├─────────────────────────┤
-                ┌──┴─────────────────────────┴──┐
-                │       VALIDATED DATA          │  <- Schema-compliant
-                ├───────────────────────────────┤
-             ┌──┴───────────────────────────────┴───┐
-             │          RAW DATA                    │  <- What we collected
-             └──────────────────────────────────────┘
-```
+![Data Quality Pyramid](images/data_quality_pyramid_20260109_181425.png)
 
 **You can't skip layers. Each depends on the one below.**
 
@@ -196,10 +182,12 @@ model.fit(df[['Year', 'Rating']].dropna(), y.dropna())
 | Stage | Discovery Cost | Example |
 |-------|---------------|---------|
 | **Data Entry** | $1 | Validation rejects bad input |
-| **Processing** | $10 | ETL pipeline fails |
+| **Processing** | $10 | ETL* pipeline fails |
 | **Analysis** | $50 | Analyst spots anomaly in report |
 | **Production** | $100+ | Model makes bad predictions |
 | **Business Impact** | $1000+ | Wrong decisions based on flawed data |
+
+*ETL = **E**xtract, **T**ransform, **L**oad - the process of moving data from sources to a destination (e.g., database or data warehouse)
 
 **Earlier is always cheaper.**
 
@@ -230,18 +218,16 @@ Tools we'll learn:
 
 # A Taxonomy of Data Problems
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                     DATA QUALITY DIMENSIONS                       │
-├───────────────────────────────────────────────────────────────────┤
-│   COMPLETENESS  - Is all expected data present?                   │
-│   ACCURACY      - Is the data correct?                            │
-│   CONSISTENCY   - Does data agree across sources?                 │
-│   VALIDITY      - Does data conform to rules?                     │
-│   UNIQUENESS    - Are there duplicates?                           │
-│   TIMELINESS    - Is data up-to-date?                             │
-└───────────────────────────────────────────────────────────────────┘
-```
+## The Six Data Quality Dimensions
+
+| Dimension | Question | Example Problem |
+|-----------|----------|-----------------|
+| **Completeness** | Is all expected data present? | Missing ratings, null values |
+| **Accuracy** | Is the data correct? | Year 2099 for a 1999 movie |
+| **Consistency** | Does data agree across sources? | "USA" vs "United States" |
+| **Validity** | Does data conform to rules? | Rating of 15.0 (max is 10) |
+| **Uniqueness** | Are there duplicates? | Same movie appears 3 times |
+| **Timeliness** | Is data up-to-date? | Using 2019 prices in 2024 |
 
 Let's see examples of each...
 
@@ -418,6 +404,32 @@ Got:      "Zo\xeb"        <- Raw bytes shown
 
 *Unix tools for initial inspection*
 
+<!-- DEMO: lecture-demos/week02/01_unix_inspection.sh -->
+
+---
+
+# Demo Files Location
+
+**All demos use data from:**
+
+```
+lecture-demos/week02/
+├── data/
+│   ├── movies.csv        # 96 movies with quality issues
+│   ├── movies.json       # 25 movies with issues (JSON)
+│   ├── movie.json        # Single movie (OMDB format)
+│   └── movie_schema.json # JSON Schema definition
+├── 01_unix_inspection.sh # Unix CLI demos
+├── 02_jq_basics.sh       # jq JSON processing
+├── 03_csvkit_demo.sh     # CSVkit tools
+├── 04_json_schema_validation.py
+├── 05_pydantic_basics.py
+├── 06_data_profiling.py
+└── 07_validation_pipeline.py
+```
+
+**Run demos from:** `cd lecture-demos/week02/data`
+
 ---
 
 # Before You Do Anything: Look at the Data
@@ -446,23 +458,22 @@ tail movies.csv
 **Tells you what type of file you're dealing with.**
 
 ```bash
+# 01_unix_inspection.sh → PART 1
 $ file movies.csv
-movies.csv: UTF-8 Unicode text, with CRLF line terminators
+movies.csv: UTF-8 Unicode text
 
 $ file movies.json
-movies.json: JSON data
+movies.json: JSON text data
 
-$ file data.xlsx
-data.xlsx: Microsoft Excel 2007+
+$ file movie.json
+movie.json: JSON text data
 
-$ file mystery_file
-mystery_file: gzip compressed data
+# Check encoding specifically
+$ file -i movies.csv
+movies.csv: text/plain; charset=utf-8
 ```
 
-**Reveals:**
-- Text encoding (UTF-8, ASCII, ISO-8859-1)
-- Line endings (LF vs CRLF)
-- File format (CSV, JSON, binary)
+**Reveals:** Text encoding, line endings, file format
 
 ---
 
@@ -471,21 +482,24 @@ mystery_file: gzip compressed data
 **Word count - but more useful for lines and characters.**
 
 ```bash
+# 01_unix_inspection.sh → PART 2
 $ wc movies.csv
-  1001   5823  142567 movies.csv
-  |      |     |
-  |      |     +-- bytes
-  |      +-------- words
-  +--------------- lines
+    97    496  6847 movies.csv
+    |     |    |
+    |     |    +-- bytes
+    |     +------- words
+    +------------- lines
 
 # Just line count (most common)
 $ wc -l movies.csv
-1001 movies.csv
+97 movies.csv
+# 97 lines = 1 header + 96 data rows
 
-# 1001 lines = 1 header + 1000 data rows
+$ wc -l movies.json
+27 movies.json
 ```
 
-**Quick sanity check**: Expected 1000 movies? Check line count!
+**Quick sanity check**: Does line count match expectations?
 
 ---
 
@@ -494,18 +508,18 @@ $ wc -l movies.csv
 **See the first N lines of a file.**
 
 ```bash
-# First 10 lines (default)
-$ head movies.csv
-title,year,rating,revenue
-Inception,2010,8.8,292576195
-Avatar,2009,7.9,2923706026
-...
+# 01_unix_inspection.sh → PART 3
+$ head -5 movies.csv
+title,year,runtime,rating,boxoffice,genre,rated
+Inception,2010,148 min,8.8,$292576195,"Action, Adventure, Sci-Fi",PG-13
+Avatar,2009,162 min,7.9,$2923706026,"Action, Adventure, Fantasy",PG-13
+The Room,2003,99 min,3.9,N/A,Drama,R
+Inception,2010,148 min,8.8,$292576195,"Action, Adventure, Sci-Fi",PG-13
 
-# First 5 lines
-$ head -n 5 movies.csv
-
-# First 20 lines
-$ head -20 movies.csv
+$ head -3 movies.json
+[
+  {"Title": "Inception", "Year": "2010", ...},
+  {"Title": "Avatar", "Year": "2009", ...},
 ```
 
 **Use case**: Quickly see headers and sample data.
@@ -517,14 +531,16 @@ $ head -20 movies.csv
 **See the last N lines of a file.**
 
 ```bash
-# Last 10 lines
-$ tail movies.csv
+# 01_unix_inspection.sh → PART 4
+$ tail -5 movies.csv
+Blackfish,2013,83 min,8.1,$2073582,"Documentary, Drama",PG-13
+The Cove,2009,92 min,8.4,$864000,Documentary,PG-13
+An Inconvenient Truth,2006,96 min,7.4,$50000000,Documentary,PG
+March of the Penguins,2005,80 min,7.5,$127400000,"Documentary, Family",G
+...
 
-# Last 5 lines
-$ tail -n 5 movies.csv
-
-# Everything EXCEPT first line (skip header!)
-$ tail -n +2 movies.csv
+# Skip header (everything except first line)
+$ tail -n +2 movies.csv | head -3
 ```
 
 **Use case**: Check if file ends properly, skip headers.
@@ -555,29 +571,35 @@ $ head -500000 huge.csv | tail -10
 
 **Sort lines alphabetically or numerically.**
 ```bash
-# Sort alphabetically
-$ sort movies.csv
+# 01_unix_inspection.sh → PART 5
 
-# Sort numerically on column 3 (rating)
-$ sort -t',' -k3 -n movies.csv
+# Sort by title (first 5)
+$ tail -n +2 movies.csv | sort -t',' -k1 | head -5
 
-# Sort in reverse (descending)
-$ sort -t',' -k3 -nr movies.csv
-
-# Sort and remove duplicates
-$ sort -u movies.csv
-
+# Sort by year descending (first 5)
+$ tail -n +2 movies.csv | sort -t',' -k2 -nr | head -5
+Tenet,N/A,150 min,7.3,N/A,...
+Future Movie,2030,120 min,...
+Unknown Movie,2025,90 min,...
 ```
 
-
 ---
-# The `sort` Command
 
-**Flags:**
-- `-t','` = field delimiter is comma
-- `-k3` = sort by 3rd field
-- `-n` = numeric sort
-- `-r` = reverse
+# `sort` Flags
+
+| Flag | Meaning |
+|------|---------|
+| `-t','` | Field delimiter is comma |
+| `-k3` | Sort by 3rd field |
+| `-n` | Numeric sort |
+| `-r` | Reverse (descending) |
+| `-u` | Remove duplicates |
+
+```bash
+# Combine flags: sort by rating, descending, unique
+$ sort -t',' -k3 -nr -u movies.csv
+```
+
 ---
 
 # The `uniq` Command
@@ -585,42 +607,64 @@ $ sort -u movies.csv
 **Find or remove duplicate lines.**
 
 ```bash
+# 01_unix_inspection.sh → PART 6
+
 # Remove adjacent duplicates (MUST sort first!)
 $ sort movies.csv | uniq
 
 # Count occurrences of each line
 $ sort movies.csv | uniq -c
-
-# Show only duplicates
-$ sort movies.csv | uniq -d
-
-# Show only unique lines (appear once)
-$ sort movies.csv | uniq -u
 ```
 
 **Important**: `uniq` only detects *adjacent* duplicates. Always `sort` first!
 
 ---
 
+# `uniq` Options
+
+| Option | What it shows |
+|--------|---------------|
+| (none) | Deduplicated lines |
+| `-c` | Count of each line |
+| `-d` | Only duplicated lines |
+| `-u` | Only unique lines (appear once) |
+
+```bash
+# Show only duplicates
+$ sort movies.csv | uniq -d
+```
+
+---
+
 # Finding Duplicates: Practical Example
 
 ```bash
-# How many duplicate titles?
+# 01_unix_inspection.sh → PART 6
+
+# Find duplicate titles
 $ cut -d',' -f1 movies.csv | sort | uniq -d
 Inception
-The Matrix
 Spider-Man
+The Matrix
+```
 
-# How many times does each duplicate appear?
-$ cut -d',' -f1 movies.csv | sort | uniq -c | sort -rn | head
+---
+
+# Counting Duplicates
+
+```bash
+# 01_unix_inspection.sh → PART 6
+
+# How many times does each title appear?
+$ cut -d',' -f1 movies.csv | sort | uniq -c | sort -rn | head -5
    3 Spider-Man
    2 The Matrix
    2 Inception
-   1 Zodiac
-   1 Zoolander
+   1 Your Name
+   1 WALL-E
 ```
 
-**Found 3 duplicate titles!**
+**Found 3 duplicate titles! (Spider-Man appears 3x, others 2x)**
 
 ---
 
@@ -629,21 +673,24 @@ $ cut -d',' -f1 movies.csv | sort | uniq -c | sort -rn | head
 **Extract columns from delimited data.**
 
 ```bash
-# Get first column (titles)
-$ cut -d',' -f1 movies.csv
+# 01_unix_inspection.sh → PART 7
 
-# Get columns 1 and 3 (title and rating)
-$ cut -d',' -f1,3 movies.csv
+# Get titles (first 5)
+$ cut -d',' -f1 movies.csv | head -5
+title
+Inception
+Avatar
+The Room
+Inception
 
-# Get columns 2 through 4
-$ cut -d',' -f2-4 movies.csv
+# Get title and rating (columns 1 and 4)
+$ cut -d',' -f1,4 movies.csv | head -5
+title,rating
+Inception,8.8
+Avatar,7.9
+The Room,3.9
+Inception,8.8
 ```
-
-**Flags:**
-- `-d','` = delimiter is comma
-- `-f1` = first field
-- `-f1,3` = fields 1 and 3
-- `-f2-4` = fields 2 through 4
 
 ---
 
@@ -652,21 +699,39 @@ $ cut -d',' -f2-4 movies.csv
 **Search for patterns in text.**
 
 ```bash
+# 01_unix_inspection.sh → PART 8
+
 # Find rows containing "Inception"
 $ grep "Inception" movies.csv
+Inception,2010,148 min,8.8,$292576195,"Action, Adventure, Sci-Fi",PG-13
+Inception,2010,148 min,8.8,$292576195,"Action, Adventure, Sci-Fi",PG-13
 
-# Count matches
+# Count N/A values
 $ grep -c "N/A" movies.csv
-47
+15
+```
 
-# Show line numbers
-$ grep -n "N/A" movies.csv
+---
 
-# Invert match (lines NOT containing)
-$ grep -v "N/A" movies.csv
+# `grep` Options
 
-# Case insensitive
+| Option | Effect |
+|--------|--------|
+| `-c` | Count matches |
+| `-n` | Show line numbers |
+| `-v` | Invert (lines NOT matching) |
+| `-i` | Case insensitive |
+
+```bash
+# 01_unix_inspection.sh → PART 8
+
+# N/A with line numbers (first 5)
+$ grep -n "N/A" movies.csv | head -5
+
+# Case insensitive search for "matrix"
 $ grep -i "matrix" movies.csv
+The Matrix,1999,136 min,8.7,$463517383,"Action, Sci-Fi",R
+The Matrix,1999,136 min,8.7,$463517383,"Action, Sci-Fi",R
 ```
 
 ---
@@ -706,6 +771,8 @@ $(sort "$FILE" | uniq -d | wc -l)"
 # Part 4: jq - JSON Processing
 
 *The Swiss Army knife for JSON*
+
+<!-- DEMO: lecture-demos/week02/02_jq_basics.sh -->
 
 ---
 
@@ -756,14 +823,18 @@ Input JSON  -->  Filter 1  -->  Filter 2  -->  Filter 3  -->  Output
 # jq Basics: Pretty Printing
 
 ```bash
-# The identity filter: just pretty print
+# 02_jq_basics.sh → PART 1
+
 $ cat movie.json | jq .
 {
   "Title": "Inception",
   "Year": "2010",
   "Rated": "PG-13",
   "Runtime": "148 min",
-  "Genre": "Action, Adventure, Sci-Fi"
+  "Genre": "Action, Adventure, Sci-Fi",
+  "Director": "Christopher Nolan",
+  "imdbRating": "8.8",
+  "BoxOffice": "$292,576,195"
 }
 ```
 
@@ -774,18 +845,20 @@ $ cat movie.json | jq .
 # jq: Extracting Fields
 
 ```bash
+# 02_jq_basics.sh → PART 2
+
 # Get a single field
 $ cat movie.json | jq '.Title'
 "Inception"
-
-# Get nested field
-$ cat movie.json | jq '.Director.Name'
-"Christopher Nolan"
 
 # Get multiple fields
 $ cat movie.json | jq '.Title, .Year'
 "Inception"
 "2010"
+
+# Get first Rating (nested array)
+$ cat movie.json | jq '.Ratings[0]'
+{"Source": "Internet Movie Database", "Value": "8.8/10"}
 ```
 
 **Syntax**: `.fieldname` extracts that field.
@@ -794,29 +867,24 @@ $ cat movie.json | jq '.Title, .Year'
 
 # jq: Working with Arrays
 
-```json
-// movies.json - array of movies
-[
-  {"Title": "Inception", "Year": "2010"},
-  {"Title": "Avatar", "Year": "2009"},
-  {"Title": "The Matrix", "Year": "1999"}
-]
-```
-
 ```bash
-# Get first element
-$ cat movies.json | jq '.[0]'
-{"Title": "Inception", "Year": "2010"}
+# 02_jq_basics.sh → PART 3 (movies.json has 25 movies with issues)
 
-# Get all titles
-$ cat movies.json | jq '.[].Title'
+# Get number of movies
+$ cat movies.json | jq 'length'
+25
+
+# Get first movie
+$ cat movies.json | jq '.[0]'
+{"Title": "Inception", "Year": "2010", "Runtime": "148 min", ...}
+
+# Get all titles (first 5)
+$ cat movies.json | jq '.[].Title' | head -5
 "Inception"
 "Avatar"
-"The Matrix"
-
-# Get length of array
-$ cat movies.json | jq 'length'
-3
+"The Room"
+"Inception"
+"Tenet"
 ```
 
 ---
@@ -847,18 +915,20 @@ $ cat movies.json | jq '.[] | .Title'
 # jq: Building New Objects
 
 ```bash
-# Create new object structure
-$ cat movies.json | jq '.[] | {name: .Title, year: .Year}'
-{"name": "Inception", "year": "2010"}
-{"name": "Avatar", "year": "2009"}
-{"name": "The Matrix", "year": "1999"}
+# 02_jq_basics.sh → PART 4
 
-# Wrap results in array
-$ cat movies.json | jq '[.[] | {name: .Title, year: .Year}]'
+# Transform structure (first 3)
+$ cat movies.json | jq '.[:3] | .[] | {name: .Title, year: .Year, rating: .imdbRating}'
+{"name": "Inception", "year": "2010", "rating": "8.8"}
+{"name": "Avatar", "year": "2009", "rating": "7.9"}
+{"name": "The Room", "year": "2003", "rating": "3.9"}
+
+# Collect into array
+$ cat movies.json | jq '[.[:3][] | {name: .Title, year: .Year}]'
 [
   {"name": "Inception", "year": "2010"},
   {"name": "Avatar", "year": "2009"},
-  {"name": "The Matrix", "year": "1999"}
+  {"name": "The Room", "year": "2003"}
 ]
 ```
 
@@ -867,17 +937,20 @@ $ cat movies.json | jq '[.[] | {name: .Title, year: .Year}]'
 # jq: Filtering with `select()`
 
 ```bash
-# Filter movies from 2010 or later
-$ cat movies.json | jq '.[] | select(.Year >= "2010")'
-{"Title": "Inception", "Year": "2010"}
+# 02_jq_basics.sh → PART 5
 
-# Filter by string match
-$ cat movies.json | jq '.[] | select(.Title == "Avatar")'
-{"Title": "Avatar", "Year": "2009"}
+# Find movies with N/A year
+$ cat movies.json | jq '.[] | select(.Year == "N/A") | .Title'
+"Tenet"
 
-# Filter by pattern (contains)
-$ cat movies.json | jq '.[] | select(.Title | contains("The"))'
-{"Title": "The Matrix", "Year": "1999"}
+# Find movies with N/A BoxOffice
+$ cat movies.json | jq '.[] | select(.BoxOffice == "N/A") | .Title'
+"The Room"
+"Tenet"
+"Old Silent Film"
+
+# Find movies with null/empty title
+$ cat movies.json | jq '.[] | select(.Title == null or .Title == "")'
 ```
 
 ---
@@ -887,16 +960,19 @@ $ cat movies.json | jq '.[] | select(.Title | contains("The"))'
 **Remember: API data often has numbers as strings!**
 
 ```bash
+# 02_jq_basics.sh → PART 6
+
 # Convert string to number
-$ echo '{"year": "2010"}' | jq '.year | tonumber'
+$ echo '{"Year": "2010"}' | jq '.Year | tonumber'
 2010
 
-# Now we can do numeric comparisons
-$ cat movies.json | jq '.[] | select((.Year | tonumber) >= 2005)'
-
-# Convert number to string
-$ echo '{"count": 42}' | jq '.count | tostring'
-"42"
+# Safe year extraction (first 5 valid)
+$ cat movies.json | jq '[.[] | select(.Year != "N/A" and .Year != null) | {title: .Title, year: (.Year | tonumber)}] | .[:5]'
+[
+  {"title": "Inception", "year": 2010},
+  {"title": "Avatar", "year": 2009},
+  ...
+]
 ```
 
 ---
@@ -904,20 +980,21 @@ $ echo '{"count": 42}' | jq '.count | tostring'
 # jq: Handling Missing Data
 
 ```bash
-# Optional field access (no error if missing)
-$ echo '{"title": "X"}' | jq '.rating'
-null
+# 02_jq_basics.sh → PART 7
 
-# Provide default value
-$ echo '{"title": "X"}' | jq '.rating // "N/A"'
+# Default value with //
+$ echo '{"title": "Test"}' | jq '.rating // "N/A"'
 "N/A"
 
 # Check if field exists
-$ echo '{"title": "X"}' | jq 'has("rating")'
+$ cat movie.json | jq 'has("BoxOffice")'
+true
+$ cat movie.json | jq 'has("Budget")'
 false
 
-# Filter out nulls
-$ cat movies.json | jq '.[] | select(.Rating != null)'
+# Count non-null ratings
+$ cat movies.json | jq '[.[] | select(.imdbRating != null and .imdbRating != "N/A")] | length'
+23
 ```
 
 ---
@@ -925,25 +1002,24 @@ $ cat movies.json | jq '.[] | select(.Rating != null)'
 # jq: Aggregation Functions
 
 ```bash
+# 02_jq_basics.sh → PART 8
+
 # Count elements
 $ cat movies.json | jq 'length'
-100
+25
 
-# Get unique values
-$ cat movies.json | jq '[.[].Genre] | unique'
-["Action", "Comedy", "Drama", "Sci-Fi"]
+# Get unique Rated values
+$ cat movies.json | jq '[.[].Rated] | unique'
+["NR", "Not Rated", "PG", "PG-13", "R", "XX"]
 
-# Min and max
-$ cat movies.json | jq '[.[].Year | tonumber] | min'
-1999
-$ cat movies.json | jq '[.[].Year | tonumber] | max'
-2023
-
-# Sum and average
-$ cat movies.json | jq '[.[].Rating | tonumber] | add'
-725.5
-$ cat movies.json | jq '[.[].Rating | tonumber] | add / length'
-7.255
+# Count by Rated (simplified)
+$ cat movies.json | jq 'group_by(.Rated) | map({rated: .[0].Rated, count: length})'
+[
+  {"rated": "NR", "count": 1},
+  {"rated": "PG", "count": 2},
+  {"rated": "PG-13", "count": 9},
+  ...
+]
 ```
 
 ---
@@ -951,17 +1027,21 @@ $ cat movies.json | jq '[.[].Rating | tonumber] | add / length'
 # jq: Sorting
 
 ```bash
-# Sort array of objects by field
-$ cat movies.json | jq 'sort_by(.Year)'
+# 02_jq_basics.sh → PART 9
 
-# Sort descending (reverse)
-$ cat movies.json | jq 'sort_by(.Year) | reverse'
+# Sort by Year (first 5 titles)
+$ cat movies.json | jq '[.[] | select(.Year != "N/A")] | sort_by(.Year) | .[:5] | .[].Title'
+"The Matrix"
+"Amelie"
+"Spider-Man"
+...
 
-# Sort by numeric field
-$ cat movies.json | jq 'sort_by(.Rating | tonumber) | reverse'
-
-# Get top 5 rated movies
-$ cat movies.json | jq 'sort_by(.Rating | tonumber) | reverse | .[0:5]'
+# Top 5 by Year (newest)
+$ cat movies.json | jq '[.[] | select(.Year != "N/A")] | sort_by(.Year) | reverse | .[:5] | .[] | "\(.Title) (\(.Year))"'
+"Unknown Movie (2025)"
+"Avengers: Endgame (2019)"
+"Parasite (2019)"
+...
 ```
 
 ---
@@ -991,45 +1071,68 @@ $ cat movies.json | jq 'group_by(.Year) | map({year: .[0].Year, count: length})'
 # jq: Raw Output Mode
 
 ```bash
-# Default: outputs JSON strings with quotes
-$ cat movies.json | jq '.[].Title'
-"Inception"
-"Avatar"
+# 02_jq_basics.sh → PART 10
 
-# Raw mode: no quotes (useful for scripting)
-$ cat movies.json | jq -r '.[].Title'
+# Raw strings (without quotes)
+$ cat movies.json | jq -r '.[0:3][].Title'
 Inception
 Avatar
+The Room
 
-# Create CSV output
-$ cat movies.json | jq -r '.[] | [.Title, .Year, .Rating] | @csv'
+# CSV output (first 5)
+$ cat movies.json | jq -r '.[:5][] | [.Title, .Year, .imdbRating] | @csv'
 "Inception","2010","8.8"
 "Avatar","2009","7.9"
+"The Room","2003","3.9"
+...
 
-# Create TSV output
-$ cat movies.json | jq -r '.[] | [.Title, .Year] | @tsv'
+# TSV output (first 3)
+$ cat movies.json | jq -r '.[:3][] | [.Title, .Year] | @tsv'
 Inception	2010
 Avatar	2009
 ```
 
 ---
 
-# jq: Practical Data Validation Examples
+# jq: Finding Data Issues
 
 ```bash
-# Find movies with missing ratings
-$ cat movies.json | jq '[.[] | select(.Rating == null or .Rating == "N/A")] | length'
-47
+# 02_jq_basics.sh → PART 11
 
-# Find movies with invalid years
-$ cat movies.json | jq '.[] | select((.Year | tonumber) > 2024 or (.Year | tonumber) < 1900)'
+# Find movies with "N/A" years
+$ cat movies.json | jq '[.[] | select(.Year == "N/A")] | length'
+1
 
-# List all unique values in a field (check for variants)
-$ cat movies.json | jq '[.[].Rated] | unique'
-["G", "PG", "PG-13", "R", "Not Rated", "N/A", null]
+# Find movies with null/empty titles
+$ cat movies.json | jq '.[] | select(.Title == null or .Title == "") | .Year'
+"2020"
+"2018"
 
-# Find duplicate titles
-$ cat movies.json | jq 'group_by(.Title) | map(select(length > 1)) | .[].Title'
+# Find movies with invalid ratings (not a number)
+$ cat movies.json | jq '.[] | select(.imdbRating == "invalid") | .Title'
+"Joker"
+```
+
+---
+
+# jq: Data Quality Checks
+
+```bash
+# 02_jq_basics.sh → PART 11 (Data Summary)
+
+# Full data quality summary
+$ cat movies.json | jq '{
+  total: length,
+  null_titles: [.[] | select(.Title == null or .Title == "")] | length,
+  na_years: [.[] | select(.Year == "N/A")] | length,
+  na_boxoffice: [.[] | select(.BoxOffice == "N/A")] | length
+}'
+{
+  "total": 25,
+  "null_titles": 2,
+  "na_years": 1,
+  "na_boxoffice": 3
+}
 ```
 
 ---
@@ -1065,6 +1168,8 @@ $ cat movies.json | jq 'group_by(.Title) | map(select(length > 1)) | .[].Title'
 
 *The CSV Swiss Army Knife*
 
+<!-- DEMO: lecture-demos/week02/03_csvkit_demo.sh -->
+
 ---
 
 # Why CSVkit?
@@ -1092,21 +1197,19 @@ pip install csvkit
 **Makes CSV readable in terminal.**
 
 ```bash
-$ csvlook movies.csv
-| title      | year | rating | revenue     |
-| ---------- | ---- | ------ | ----------- |
-| Inception  | 2010 |    8.8 | 292576195   |
-| Avatar     | 2009 |    7.9 | 2923706026  |
-| The Matrix | 1999 |    8.7 | 463517383   |
-| The Room   | 2003 |    3.9 |             |
+# 03_csvkit_demo.sh → PART 1
+
+$ csvlook movies.csv | head -7
+| title      | year | runtime  | rating | boxoffice    | genre                     | rated |
+| ---------- | ---- | -------- | ------ | ------------ | ------------------------- | ----- |
+| Inception  | 2010 | 148 min  |    8.8 | $292576195   | Action, Adventure, Sci-Fi | PG-13 |
+| Avatar     | 2009 | 162 min  |    7.9 | $2923706026  | Action, Adventure, Fantasy| PG-13 |
+| The Room   | 2003 | 99 min   |    3.9 | N/A          | Drama                     | R     |
+| Inception  | 2010 | 148 min  |    8.8 | $292576195   | Action, Adventure, Sci-Fi | PG-13 |
+| Tenet      | N/A  | 150 min  |    7.3 | N/A          | Action, Sci-Fi, Thriller  | PG-13 |
 ```
 
-**Compare to raw:**
-```
-title,year,rating,revenue
-Inception,2010,8.8,292576195
-Avatar,2009,7.9,2923706026
-```
+**Compare to raw CSV - much easier to read!**
 
 ---
 
@@ -1115,21 +1218,21 @@ Avatar,2009,7.9,2923706026
 **Get statistics for every column automatically!**
 
 ```bash
-$ csvstat movies.csv
+# 03_csvkit_demo.sh → PART 2
+
+$ csvstat -c title movies.csv
   1. "title"
         Type of data:          Text
-        Contains null values:  False
-        Unique values:         987
-        Longest value:         45 characters
+        Contains null values:  True
+        Unique values:         92
+        Longest value:         29 characters
         Most common values:    Spider-Man (3x)
                                The Matrix (2x)
+                               Inception (2x)
 
-  2. "year"
-        Type of data:          Number
-        Contains null values:  True (13 nulls)
-        Smallest value:        1920
-        Largest value:         2024
-        Mean:                  2005.3
+# Just counts
+$ csvstat --count movies.csv
+96
 ```
 
 ---
@@ -1161,24 +1264,26 @@ $ csvstat --count movies.csv
 # csvcut: Select Columns
 
 ```bash
-# Select by column name
-$ csvcut -c title,year movies.csv
-title,year
-Inception,2010
-Avatar,2009
-
-# Select by column number
-$ csvcut -c 1,3 movies.csv
-
-# Exclude columns
-$ csvcut -C revenue movies.csv
+# 03_csvkit_demo.sh → PART 3
 
 # List column names
 $ csvcut -n movies.csv
   1: title
   2: year
-  3: rating
-  4: revenue
+  3: runtime
+  4: rating
+  5: boxoffice
+  6: genre
+  7: rated
+
+# Select by name (first 5)
+$ csvcut -c title,year movies.csv | head -6
+title,year
+Inception,2010
+Avatar,2009
+The Room,2003
+Inception,2010
+Tenet,N/A
 ```
 
 ---
@@ -1186,17 +1291,19 @@ $ csvcut -n movies.csv
 # csvgrep: Filter Rows
 
 ```bash
-# Filter by exact match
-$ csvgrep -c year -m "2010" movies.csv
+# 03_csvkit_demo.sh → PART 4
 
-# Filter by regex pattern
-$ csvgrep -c title -r "^The" movies.csv    # Starts with "The"
+# Exact match: Year = 2019
+$ csvgrep -c year -m "2019" movies.csv | csvlook
 
-# Filter by inverse (NOT matching)
-$ csvgrep -c rating -m "N/A" -i movies.csv  # Exclude N/A
+# Titles starting with 'The'
+$ csvgrep -c title -r "^The" movies.csv | csvcut -c title | head -10
 
-# Filter for empty values
-$ csvgrep -c revenue -r "^$" movies.csv     # Empty revenue
+# Rows without N/A in boxoffice (count)
+$ csvgrep -c boxoffice -m "N/A" -i movies.csv | wc -l
+
+# Rows with N/A rating
+$ csvgrep -c rating -r "^N/A$" movies.csv | csvlook
 ```
 
 ---
@@ -1204,14 +1311,16 @@ $ csvgrep -c revenue -r "^$" movies.csv     # Empty revenue
 # csvsort: Sort Data
 
 ```bash
-# Sort by column
-$ csvsort -c year movies.csv
+# 03_csvkit_demo.sh → PART 5
 
-# Sort descending
-$ csvsort -c rating -r movies.csv
+# Sort by year (first 5)
+$ csvsort -c year movies.csv | head -6
+
+# Sort by rating descending (first 5)
+$ csvsort -c rating -r movies.csv | head -6
 
 # Sort by multiple columns
-$ csvsort -c year,rating movies.csv
+$ csvsort -c year,rating movies.csv | head -10
 
 # Numeric sort happens automatically for number columns!
 ```
@@ -1221,18 +1330,18 @@ $ csvsort -c year,rating movies.csv
 # csvjson: Convert to JSON
 
 ```bash
-# CSV to JSON array
-$ csvjson movies.csv
+# 03_csvkit_demo.sh → PART 6
+
+# First 3 rows as JSON
+$ head -4 movies.csv | csvjson | jq '.'
 [
-  {"title": "Inception", "year": 2010, "rating": 8.8},
-  {"title": "Avatar", "year": 2009, "rating": 7.9}
+  {"title": "Inception", "year": "2010", "runtime": "148 min", ...},
+  {"title": "Avatar", "year": "2009", "runtime": "162 min", ...},
+  {"title": "The Room", "year": "2003", "runtime": "99 min", ...}
 ]
 
 # Indented output
-$ csvjson -i 2 movies.csv
-
-# JSON to CSV (reverse)
-$ cat movies.json | in2csv -f json > movies.csv
+$ head -3 movies.csv | csvjson -i 2
 ```
 
 **Great for converting between formats!**
@@ -1244,19 +1353,18 @@ $ cat movies.json | in2csv -f json > movies.csv
 **Yes, you can run SQL on CSV files.**
 
 ```bash
-# Run SQL query
-$ csvsql --query "SELECT title, rating FROM movies WHERE year > 2010" movies.csv
+# 03_csvkit_demo.sh → PART 7
+
+# Basic select
+$ csvsql --query "SELECT title, rating FROM movies WHERE rating > 8.5 ORDER BY rating DESC" movies.csv | csvlook
 
 # Find duplicates
-$ csvsql --query "SELECT title, COUNT(*) as cnt
-                  FROM movies
-                  GROUP BY title
-                  HAVING cnt > 1" movies.csv
-
-# Join two CSV files
-$ csvsql --query "SELECT m.title, g.genre
-                  FROM movies m
-                  JOIN genres g ON m.id = g.movie_id" movies.csv genres.csv
+$ csvsql --query "SELECT title, COUNT(*) as count FROM movies GROUP BY title HAVING count > 1" movies.csv | csvlook
+| title      | count |
+| ---------- | ----- |
+| Inception  |     2 |
+| Spider-Man |     3 |
+| The Matrix |     2 |
 ```
 
 ---
@@ -1264,14 +1372,13 @@ $ csvsql --query "SELECT m.title, g.genre
 # csvsql: Data Validation Queries
 
 ```bash
-# Find rows with missing values
-$ csvsql --query "SELECT * FROM movies WHERE rating IS NULL" movies.csv
+# 03_csvkit_demo.sh → PART 7
 
-# Find out-of-range values
-$ csvsql --query "SELECT * FROM movies WHERE year < 1900 OR year > 2025" movies.csv
+# Movies per year (sample)
+$ csvsql --query "SELECT year, COUNT(*) as count FROM movies GROUP BY year ORDER BY count DESC LIMIT 5" movies.csv | csvlook
 
-# Find suspiciously high values
-$ csvsql --query "SELECT * FROM movies WHERE revenue > 5000000000" movies.csv
+# Count N/A boxoffice by year
+$ csvsql --query "SELECT year, COUNT(*) as missing FROM movies WHERE boxoffice = 'N/A' GROUP BY year ORDER BY missing DESC LIMIT 5" movies.csv | csvlook
 ```
 
 ---
@@ -1279,14 +1386,15 @@ $ csvsql --query "SELECT * FROM movies WHERE revenue > 5000000000" movies.csv
 # csvclean: Fix Common Issues
 
 ```bash
-# Check for problems (dry run)
-$ csvclean -n movies.csv
-1 error found:
-Line 47: Expected 4 columns, found 5
+# 03_csvkit_demo.sh → PART 8
 
-# Fix and create cleaned file
-$ csvclean movies.csv
-# Creates movies_out.csv (cleaned) and movies_err.csv (errors)
+# Check for structural issues (dry run)
+$ csvclean -n movies.csv
+(no issues found)
+
+# If issues existed, it would create:
+# - movies_out.csv (cleaned)
+# - movies_err.csv (errors with line numbers)
 
 # Common fixes:
 # - Removes rows with wrong column count
@@ -1299,20 +1407,20 @@ $ csvclean movies.csv
 # CSVkit Pipeline Example
 
 ```bash
-# Full data validation pipeline
-$ cat movies.csv \
-  | csvclean -n 2>&1 | head -5           # Check for structural issues
+# 03_csvkit_demo.sh → PART 9
 
-$ csvstat -c year,rating movies.csv      # Profile key columns
+# Top rated movies by genre (sample)
+$ csvcut -c title,rating,genre movies.csv \
+  | csvgrep -c rating -r "^[0-9]" \
+  | csvsort -c rating -r \
+  | head -10 \
+  | csvlook
 
-$ csvgrep -c rating -m "N/A" movies.csv \
-  | csvcut -c title,year                  # Find movies with N/A rating
-
-$ csvsql --query \
-  "SELECT year, COUNT(*) as count, AVG(rating) as avg_rating
-   FROM movies
-   GROUP BY year
-   ORDER BY year DESC" movies.csv         # Aggregate stats
+# Data quality summary
+$ echo "Total rows: $(csvstat --count movies.csv)"
+$ echo "Unique titles: $(csvcut -c title movies.csv | tail -n +2 | sort -u | wc -l)"
+$ echo "N/A in boxoffice: $(csvgrep -c boxoffice -m 'N/A' movies.csv | wc -l)"
+$ echo "N/A in rating: $(csvgrep -c rating -m 'N/A' movies.csv | wc -l)"
 ```
 
 ---
@@ -1347,39 +1455,39 @@ $ csvsql --query \
 
 *Understanding your data before using it*
 
+<!-- DEMO: lecture-demos/week02/06_data_profiling.py -->
+
 ---
 
 # What is Data Profiling?
 
 **Data profiling** = Analyzing data to understand its structure, content, and quality.
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                     DATA PROFILING QUESTIONS                      │
-├───────────────────────────────────────────────────────────────────┤
-│   STRUCTURE:     How many rows? Columns? What types?              │
-│   COMPLETENESS:  How many nulls per column?                       │
-│   UNIQUENESS:    How many distinct values? Duplicates?            │
-│   DISTRIBUTION:  Min, max, mean, median? Outliers?                │
-│   PATTERNS:      What formats are used? Any anomalies?            │
-└───────────────────────────────────────────────────────────────────┘
-```
+| Aspect | Questions to Ask |
+|--------|------------------|
+| **Structure** | How many rows? Columns? What types? |
+| **Completeness** | How many nulls per column? |
+| **Uniqueness** | How many distinct values? Duplicates? |
+| **Distribution** | Min, max, mean, median? Outliers? |
+| **Patterns** | What formats are used? Any anomalies? |
 
 ---
 
 # Profiling Step 1: Basic Shape
 
 ```bash
+# 03_csvkit_demo.sh → PART 2 (csvstat)
+
 # How many rows and columns?
 $ head -1 movies.csv | tr ',' '\n' | wc -l      # columns
-5
+7
 
 $ wc -l movies.csv                              # rows (including header)
-1001
+97
 
 # Or with csvstat
 $ csvstat --count movies.csv
-1000
+96
 ```
 
 **First sanity check**: Does shape match expectations?
@@ -1508,22 +1616,20 @@ $ csvcut -c rating movies.csv | sort | uniq -c | sort -rn | head
 
 *Contracts for your data*
 
+<!-- DEMO: lecture-demos/week02/04_json_schema_validation.py -->
+
 ---
 
 # What is a Schema?
 
 **Schema** = A formal description of expected data structure.
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                         SCHEMA DEFINES                            │
-├───────────────────────────────────────────────────────────────────┤
-│   FIELD NAMES:      What columns/keys should exist?               │
-│   DATA TYPES:       String, integer, float, boolean, array?       │
-│   CONSTRAINTS:      Required? Min/max? Pattern? Enum?             │
-│   RELATIONSHIPS:    References to other data?                     │
-└───────────────────────────────────────────────────────────────────┘
-```
+| Schema Defines | Examples |
+|----------------|----------|
+| **Field names** | What columns/keys should exist? |
+| **Data types** | String, integer, float, boolean, array? |
+| **Constraints** | Required? Min/max? Pattern? Enum? |
+| **Relationships** | References to other data? |
 
 **Analogy**: A schema is like a contract between data producer and consumer.
 
@@ -1778,7 +1884,8 @@ schema = {
 # Validating with Python
 
 ```python
-import json
+# 04_json_schema_validation.py
+
 from jsonschema import validate, ValidationError
 
 schema = {
@@ -1822,6 +1929,8 @@ except ValidationError as e:
 
 *Pythonic data validation*
 
+<!-- DEMO: lecture-demos/week02/05_pydantic_basics.py -->
+
 ---
 
 # Why Pydantic?
@@ -1844,6 +1953,8 @@ except ValidationError as e:
 # Pydantic: Basic Model
 
 ```python
+# 05_pydantic_basics.py
+
 from pydantic import BaseModel
 
 class Movie(BaseModel):
@@ -1861,24 +1972,24 @@ print(movie.year)   # 2010 (as int, not string!)
 
 ---
 
-# Pydantic: The Bouncer Analogy
+# Pydantic: The Immigration Officer Analogy
 
 <div class="insight">
 
-**Think of Pydantic like a nightclub bouncer**: The bouncer checks everyone at the door. If you don't meet the requirements (dress code, age, etc.), you don't get in. Once inside, everyone is guaranteed to meet the standards.
+**Think of Pydantic like an immigration officer**: Before entering the country (your code), your documents (data) are checked. Wrong passport type? Rejected. Missing visa? Rejected. Once you're through, everyone inside is guaranteed to have valid documents.
 
 </div>
 
 ```python
-class Movie(BaseModel):  # <- The bouncer's checklist
-    title: str           # Must have a name
-    year: int            # Must be a valid year (number)
-    rating: float        # Must have a rating (number)
+class Movie(BaseModel):  # <- The document checklist
+    title: str           # Must have a title (like name on passport)
+    year: int            # Must be a valid year (like birth date)
+    rating: float        # Must have a rating (like visa number)
 
-# The bouncer checks at the door (object creation)
+# Immigration check happens at entry (object creation)
 movie = Movie(**raw_data)  # <- Validation happens HERE
 
-# Once past the bouncer, you're guaranteed valid
+# Once inside, you're guaranteed valid
 print(movie.year + 1)  # Safe - year is definitely an int
 ```
 
@@ -1927,6 +2038,8 @@ title
 # Pydantic: Field Constraints
 
 ```python
+# 05_pydantic_basics.py
+
 from pydantic import BaseModel, Field
 
 class Movie(BaseModel):
@@ -1934,9 +2047,7 @@ class Movie(BaseModel):
     year: int = Field(ge=1880, le=2030)  # ge = greater or equal
     rating: float = Field(ge=0, le=10)
     revenue: int | None = None  # Optional field
-```
 
-```python
 Movie(title="X", year=1850, rating=8.0)
 # ValidationError: year - Input should be >= 1880
 ```
@@ -1983,30 +2094,25 @@ print(movie.is_released) # True
 
 # Pydantic: The Mental Model
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                    PYDANTIC WORKFLOW                              │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   1. DEFINE     class Movie(BaseModel): ...                       │
-│                                                                   │
-│   2. CREATE     movie = Movie(**raw_data)                         │
-│                       |                                           │
-│                       v                                           │
-│               [Validation happens HERE]                           │
-│                       |                                           │
-│              Valid?  / \  Invalid?                                │
-│                     /   \                                         │
-│   3. USE      movie.title   raise ValidationError                 │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+## The Three-Step Workflow
+
+| Step | Code | What Happens |
+|------|------|--------------|
+| **1. DEFINE** | `class Movie(BaseModel): ...` | Declare your schema with type hints |
+| **2. CREATE** | `movie = Movie(**raw_data)` | Validation happens automatically |
+| **3. USE** | `movie.title`, `movie.year + 1` | Data is guaranteed valid |
+
+**At step 2, one of two things happens:**
+- **Valid data** → Object created, ready to use
+- **Invalid data** → `ValidationError` raised immediately
 
 ---
 
 # Pydantic: Practical Example
 
 ```python
+# 05_pydantic_basics.py - MovieFromAPI class
+
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -2059,17 +2165,13 @@ Character 'e' with accent = ??? (depends on encoding!)
 
 **Encoding** = The mapping between characters and bytes.
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                        COMMON ENCODINGS                           │
-├───────────────────────────────────────────────────────────────────┤
-│   ASCII        - 128 characters (English only)                    │
-│   Latin-1      - 256 characters (Western European)                │
-│   UTF-8        - 1,112,064 characters (everything!)               │
-│   UTF-16       - Same characters, different byte format           │
-│   Windows-1252 - Microsoft's Latin-1 variant                      │
-└───────────────────────────────────────────────────────────────────┘
-```
+| Encoding | Characters | Use Case |
+|----------|------------|----------|
+| **ASCII** | 128 | English only |
+| **Latin-1** | 256 | Western European |
+| **UTF-8** | 1,112,064 | Everything (modern standard) |
+| **UTF-16** | Same as UTF-8 | Different byte format |
+| **Windows-1252** | 256 | Microsoft's Latin-1 variant |
 
 ---
 
@@ -2285,15 +2387,9 @@ assert df['year'].dtype == 'int64', "Year should be integer"
 
 **Check data when it enters your system, not later.**
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   External  │ --> │  Validation │ --> │   Your      │
-│   Data      │     │  Layer      │     │   System    │
-└─────────────┘     └─────────────┘     └─────────────┘
-                          |
-                          v
-                    [Invalid data rejected here]
-```
+**External Data** → **Validation Layer** → **Your System**
+                           ↓
+                   *Invalid data rejected*
 
 **Why?**
 - Invalid data doesn't spread through your system
@@ -2469,26 +2565,22 @@ def test_year_validation():
 
 *Putting it all together*
 
+<!-- DEMO: lecture-demos/week02/07_validation_pipeline.py -->
+
 ---
 
 # The Validation Pipeline
 
-```
-┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-│   Ingest    │-->│   Inspect   │-->│   Validate  │-->│   Clean     │
-│   Raw Data  │   │   Profile   │   │   Schema    │   │   Transform │
-└─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘
-                                           |
-                                           v
-                                    [Reject/Quarantine
-                                     Invalid Records]
-```
+**Ingest** → **Inspect** → **Validate** → **Clean**
+                                ↓
+                        *Reject invalid records*
 
-**Four stages:**
-1. **Ingest**: Load raw data
-2. **Inspect**: Profile and understand
-3. **Validate**: Check against rules
-4. **Clean**: Fix and transform
+| Stage | Action | Tools |
+|-------|--------|-------|
+| **1. Ingest** | Load raw data | `curl`, `requests` |
+| **2. Inspect** | Profile and understand | `jq`, `csvstat`, pandas |
+| **3. Validate** | Check against rules | JSON Schema, Pydantic |
+| **4. Clean** | Fix and transform | pandas, custom functions |
 
 ---
 
@@ -2536,17 +2628,18 @@ print(df.isnull().sum())
 # Stage 3: Validate - Define Schema
 
 ```python
-from jsonschema import validate, ValidationError
+# 07_validation_pipeline.py - CleanMovie schema
 
-schema = {
-    "type": "object",
-    "properties": {
-        "title": {"type": "string", "minLength": 1},
-        "year": {"type": "integer", "minimum": 1880, "maximum": 2030},
-        "rating": {"type": ["number", "null"]}
-    },
-    "required": ["title", "year"]
-}
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+class CleanMovie(BaseModel):
+    title: str = Field(..., min_length=1)
+    year: int = Field(..., ge=1888, le=2030)
+    rating: Optional[float] = Field(None, ge=0, le=10)
+    revenue: Optional[int] = Field(None, ge=0)
+    runtime_minutes: Optional[int] = None
+    genres: List[str] = []
 ```
 
 ---
@@ -2554,15 +2647,18 @@ schema = {
 # Stage 3: Validate - Run Validation
 
 ```python
+# 07_validation_pipeline.py - validate_batch method
+
 valid_movies = []
 invalid_movies = []
 
-for movie in movies:
+for i, raw in enumerate(data):
     try:
-        validate(instance=movie, schema=schema)
+        cleaned = transform_movie(raw)  # Transform first
+        movie = CleanMovie(**cleaned)   # Validate with Pydantic
         valid_movies.append(movie)
-    except ValidationError as e:
-        invalid_movies.append({"movie": movie, "error": str(e)})
+    except (ValidationError, ValueError) as e:
+        invalid_movies.append({'index': i, 'raw_data': raw, 'error': str(e)})
 
 print(f"Valid: {len(valid_movies)}, Invalid: {len(invalid_movies)}")
 ```
@@ -2572,14 +2668,17 @@ print(f"Valid: {len(valid_movies)}, Invalid: {len(invalid_movies)}")
 # Stage 4: Clean and Transform
 
 ```python
-def clean_movie(movie):
-    """Transform raw movie data into clean format."""
+# 07_validation_pipeline.py - transform_movie function
+
+def transform_movie(raw: dict) -> dict:
+    """Transform raw API data to clean format."""
     return {
-        "title": movie["title"].strip(),
-        "year": int(movie["year"]),
-        "rating": float(movie["rating"]) if movie.get("rating") else None,
-        "revenue": parse_revenue(movie.get("revenue")),
-        "genres": parse_genres(movie.get("genre")),
+        'title': raw.get('Title', raw.get('title', '')),
+        'year': clean_year(raw.get('Year', raw.get('year'))),
+        'rating': clean_rating(raw.get('imdbRating', raw.get('rating'))),
+        'revenue': clean_revenue(raw.get('BoxOffice')),
+        'runtime_minutes': clean_runtime(raw.get('Runtime')),
+        'genres': clean_genres(raw.get('Genre')),
     }
 ```
 
@@ -2588,14 +2687,21 @@ def clean_movie(movie):
 # Stage 4: Helper Functions
 
 ```python
-def parse_revenue(rev_str):
-    """Convert '$292,576,195' to 292576195"""
-    if not rev_str or rev_str == "N/A":
-        return None
-    return int(rev_str.replace("$", "").replace(",", ""))
+# 07_validation_pipeline.py - cleaning functions
 
-# Apply cleaning to all valid movies
-cleaned_movies = [clean_movie(m) for m in valid_movies]
+def clean_revenue(value):
+    """Convert '$292,576,195' to 292576195"""
+    if value is None or value == '' or value == 'N/A':
+        return None
+    cleaned = str(value).replace('$', '').replace(',', '')
+    return int(cleaned) if int(cleaned) >= 0 else None
+
+def clean_runtime(value):
+    """Convert '148 min' to 148"""
+    if value is None or value == '' or value == 'N/A':
+        return None
+    match = re.search(r'(\d+)', str(value))
+    return int(match.group(1)) if match else None
 ```
 
 ---

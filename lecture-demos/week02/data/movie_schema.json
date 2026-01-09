@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Movie",
+  "description": "Schema for validating movie data from OMDB API",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Movie title"
+    },
+    "year": {
+      "type": "integer",
+      "minimum": 1880,
+      "maximum": 2030,
+      "description": "Release year"
+    },
+    "rating": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 10,
+      "description": "IMDB rating"
+    },
+    "revenue": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Box office revenue in USD"
+    },
+    "runtime_minutes": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "maximum": 1000,
+      "description": "Runtime in minutes"
+    },
+    "genres": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1,
+      "description": "List of genres"
+    },
+    "rated": {
+      "type": "string",
+      "enum": ["G", "PG", "PG-13", "R", "NC-17", "Not Rated", "NR"],
+      "description": "MPAA rating"
+    }
+  },
+  "required": ["title", "year", "genres"]
+}

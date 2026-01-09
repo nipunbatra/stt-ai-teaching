@@ -1,0 +1,96 @@
+title,year,runtime,rating,boxoffice,genre,rated
+Inception,2010,148 min,8.8,$292576195,"Action, Adventure, Sci-Fi",PG-13
+Avatar,2009,162 min,7.9,$2923706026,"Action, Adventure, Fantasy",PG-13
+The Room,2003,99 min,3.9,N/A,Drama,R
+Inception,2010,148 min,8.8,$292576195,"Action, Adventure, Sci-Fi",PG-13
+Tenet,N/A,150 min,7.3,N/A,"Action, Sci-Fi, Thriller",PG-13
+The Matrix,1999,136 min,8.7,$463517383,"Action, Sci-Fi",R
+The Shawshank Redemption,1994,142 min,9.3,$28341469,Drama,R
+Pulp Fiction,1994,154 min,8.9,$213928762,"Crime, Drama",R
+The Dark Knight,2008,152 min,9.0,$1006102277,"Action, Crime, Drama",PG-13
+Fight Club,1999,139 min,8.8,$101209702,Drama,R
+Forrest Gump,1994,142 min,8.8,$678151312,"Drama, Romance",PG-13
+The Matrix,1999,136 min,8.7,$463517383,"Action, Sci-Fi",R
+Interstellar,2014,169 min,8.7,$701729206,"Adventure, Drama, Sci-Fi",PG-13
+The Godfather,1972,175 min,9.2,$250341816,"Crime, Drama",R
+Parasite,2019,132 min,8.5,$263136194,"Drama, Thriller",R
+Spider-Man,2002,121 min,7.4,$407022860,"Action, Adventure, Sci-Fi",PG-13
+Spider-Man,2002,121 min,7.4,$407022860,"Action, Adventure, Sci-Fi",PG-13
+Spider-Man,2002,121 min,7.3,$407022860,"Action, Adventure, Sci-Fi",PG-13
+Joker,2019,122 min,8.4,$1078958294,"Crime, Drama, Thriller",R
+Avengers: Endgame,2019,181 min,8.4,$2799439100,"Action, Adventure, Drama",PG-13
+Titanic,1997,194 min,7.9,$2264743305,"Drama, Romance",PG-13
+The Lion King,1994,88 min,8.5,$968511805,"Animation, Adventure, Drama",G
+Toy Story,1995,81 min,8.3,$394436586,"Animation, Adventure, Comedy",G
+Finding Nemo,2003,100 min,8.2,$940352645,"Animation, Adventure, Comedy",G
+Up,2009,96 min,8.3,$735099102,"Animation, Adventure, Comedy",PG
+WALL-E,2008,98 min,8.4,$532512171,"Animation, Adventure, Family",G
+Coco,2017,105 min,8.4,$807725453,"Animation, Adventure, Drama",PG
+Ratatouille,2007,111 min,8.1,$620702951,"Animation, Comedy, Family",G
+The Incredibles,2004,115 min,8.0,$631607053,"Animation, Action, Adventure",PG
+Inside Out,2015,95 min,8.1,$857611174,"Animation, Adventure, Comedy",PG
+Monsters Inc,2001,92 min,8.1,$577425734,"Animation, Adventure, Comedy",G
+A Quiet Place,2018,90 min,7.5,$340952971,"Drama, Horror, Sci-Fi",PG-13
+Get Out,2017,104 min,7.7,$255457574,"Horror, Mystery, Thriller",R
+Us,2019,116 min,6.8,$255105930,"Horror, Mystery, Thriller",R
+Hereditary,2018,127 min,7.3,$80220884,"Drama, Horror, Mystery",R
+Midsommar,2019,148 min,7.1,$47972,"Drama, Horror, Mystery",R
+The Conjuring,2013,112 min,7.5,$319494638,"Horror, Mystery, Thriller",R
+It,2017,135 min,7.3,$701796444,"Horror, Thriller",R
+Annihilation,2018,115 min,6.8,$43269589,"Adventure, Drama, Horror",R
+Blade Runner 2049,2017,164 min,8.0,$267691332,"Action, Drama, Mystery",R
+Dune,2021,155 min,8.0,$402027830,"Action, Adventure, Drama",PG-13
+Mad Max: Fury Road,2015,120 min,8.1,$380419312,"Action, Adventure, Sci-Fi",R
+John Wick,2014,101 min,7.4,$88761661,"Action, Crime, Thriller",R
+Baby Driver,2017,113 min,7.6,$226945087,"Action, Crime, Drama",R
+The Revenant,2015,156 min,8.0,$533000000,"Action, Adventure, Drama",R
+Arrival,2016,116 min,7.9,$203388186,"Drama, Mystery, Sci-Fi",PG-13
+Ex Machina,2014,108 min,7.7,$36869169,"Drama, Mystery, Sci-Fi",R
+Her,2013,126 min,8.0,$48000000,"Drama, Romance, Sci-Fi",R
+Gravity,2013,91 min,7.7,$723192705,"Drama, Sci-Fi, Thriller",PG-13
+The Martian,2015,144 min,8.0,$630620916,"Adventure, Drama, Sci-Fi",PG-13
+Unknown Movie,2025,90 min,9.9,$999999999999,"Action",PG-13
+Bad Data Movie,-500,abc min,15.0,-50000000,Unknown,XX
+,2020,100 min,7.5,$100000000,Drama,R
+Another Movie,2010,,7.0,$50000000,Comedy,PG-13
+Test Film,2015,95 min,N/A,N/A,Drama,Not Rated
+Old Silent Film,1920,45 min,6.5,N/A,Drama,Not Rated
+Future Movie,2030,120 min,8.0,$0,Sci-Fi,PG-13
+Amelie,2001,122 min,8.3,$174200000,"Comedy, Romance",R
+Leon: The Professional,1994,110 min,8.5,$45300000,"Action, Crime, Drama",R
+City of God,2002,130 min,8.6,$30680000,"Crime, Drama",R
+Spirited Away,2001,125 min,8.6,$395800000,"Animation, Adventure, Family",PG
+Your Name,2016,106 min,8.4,$380140000,"Animation, Drama, Fantasy",PG
+Akira,1988,124 min,8.0,$553171,"Animation, Action, Drama",R
+Oldboy,2003,120 min,8.4,$15000000,"Action, Drama, Mystery",R
+The Handmaiden,2016,145 min,8.1,$37700938,"Drama, Mystery, Romance",NR
+Memories of Murder,2003,132 min,8.1,$1200000,"Crime, Drama, Mystery",NR
+Seven Samurai,1954,207 min,8.6,$318000,"Action, Drama",NR
+Rashomon,1950,88 min,8.2,$95000,"Crime, Drama, Mystery",NR
+Cinema Paradiso,1988,155 min,8.5,$13000000,"Drama, Romance",R
+Life Is Beautiful,1997,116 min,8.6,$230000000,"Comedy, Drama, Romance",PG-13
+The Secret in Their Eyes,2009,129 min,8.2,$35100000,"Drama, Mystery, Thriller",R
+Pan's Labyrinth,2006,118 min,8.2,$83300000,"Drama, Fantasy, War",R
+The Lives of Others,2006,137 min,8.4,$77300000,"Drama, Mystery, Thriller",R
+Amores Perros,2000,154 min,8.0,$20900000,"Drama, Thriller",R
+Y Tu Mama Tambien,2001,106 min,7.7,$33600000,"Drama, Romance",R
+Roma,2018,135 min,7.7,$5000000,Drama,R
+The Diving Bell and the Butterfly,2007,112 min,8.0,$19800000,"Biography, Drama",PG-13
+Waltz with Bashir,2008,90 min,8.0,$11300000,"Animation, Biography, Documentary",R
+The Act of Killing,2012,159 min,8.2,$486919,Documentary,NR
+Jiro Dreams of Sushi,2011,81 min,7.8,$2552478,Documentary,PG
+Won't You Be My Neighbor,2018,94 min,8.4,$22800000,"Biography, Documentary",PG-13
+Free Solo,2018,100 min,8.1,$28575000,"Documentary, Sport",PG-13
+Searching for Sugar Man,2012,86 min,8.2,$3694236,"Biography, Documentary, Music",PG-13
+20 Feet from Stardom,2013,91 min,7.5,$4940000,"Documentary, Music",PG-13
+Blackfish,2013,83 min,8.1,$2073582,"Documentary, Drama",PG-13
+The Cove,2009,92 min,8.4,$864000,Documentary,PG-13
+An Inconvenient Truth,2006,96 min,7.4,$50000000,Documentary,PG
+March of the Penguins,2005,80 min,7.5,$127400000,"Documentary, Family",G
+Planet Earth,2006,540 min,9.4,N/A,"Documentary, Family",TV-G
+Blue Planet II,2017,420 min,9.3,N/A,"Documentary, Family",TV-G
+Our Planet,2019,400 min,9.3,N/A,Documentary,TV-PG
+Cosmos: A Spacetime Odyssey,2014,585 min,9.3,N/A,Documentary,TV-PG
+The Social Dilemma,2020,94 min,7.6,$70000,"Documentary, Drama",PG-13
+Bowling for Columbine,2002,120 min,8.0,$58000000,Documentary,R
+Fahrenheit 9/11,2004,122 min,7.5,$222500000,"Documentary, War",R
