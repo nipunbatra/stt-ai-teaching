@@ -1474,16 +1474,18 @@ $ echo "N/A in rating: $(csvgrep -c rating -m 'N/A' movies.csv | wc -l)"
 # Profiling Step 1: Basic Shape
 
 ```bash
+# 03_csvkit_demo.sh → PART 2 (csvstat)
+
 # How many rows and columns?
 $ head -1 movies.csv | tr ',' '\n' | wc -l      # columns
-5
+7
 
 $ wc -l movies.csv                              # rows (including header)
-1001
+97
 
 # Or with csvstat
 $ csvstat --count movies.csv
-1000
+96
 ```
 
 **First sanity check**: Does shape match expectations?
@@ -1872,7 +1874,8 @@ schema = {
 # Validating with Python
 
 ```python
-import json
+# 04_json_schema_validation.py
+
 from jsonschema import validate, ValidationError
 
 schema = {
@@ -1940,6 +1943,8 @@ except ValidationError as e:
 # Pydantic: Basic Model
 
 ```python
+# 05_pydantic_basics.py
+
 from pydantic import BaseModel
 
 class Movie(BaseModel):
@@ -2023,6 +2028,8 @@ title
 # Pydantic: Field Constraints
 
 ```python
+# 05_pydantic_basics.py
+
 from pydantic import BaseModel, Field
 
 class Movie(BaseModel):
@@ -2030,9 +2037,7 @@ class Movie(BaseModel):
     year: int = Field(ge=1880, le=2030)  # ge = greater or equal
     rating: float = Field(ge=0, le=10)
     revenue: int | None = None  # Optional field
-```
 
-```python
 Movie(title="X", year=1850, rating=8.0)
 # ValidationError: year - Input should be >= 1880
 ```
@@ -2096,6 +2101,8 @@ print(movie.is_released) # True
 # Pydantic: Practical Example
 
 ```python
+# 05_pydantic_basics.py - MovieFromAPI class
+
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -2607,17 +2614,18 @@ print(df.isnull().sum())
 # Stage 3: Validate - Define Schema
 
 ```python
-from jsonschema import validate, ValidationError
+# 07_validation_pipeline.py - CleanMovie schema
 
-schema = {
-    "type": "object",
-    "properties": {
-        "title": {"type": "string", "minLength": 1},
-        "year": {"type": "integer", "minimum": 1880, "maximum": 2030},
-        "rating": {"type": ["number", "null"]}
-    },
-    "required": ["title", "year"]
-}
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+class CleanMovie(BaseModel):
+    title: str = Field(..., min_length=1)
+    year: int = Field(..., ge=1888, le=2030)
+    rating: Optional[float] = Field(None, ge=0, le=10)
+    revenue: Optional[int] = Field(None, ge=0)
+    runtime_minutes: Optional[int] = None
+    genres: List[str] = []
 ```
 
 ---
@@ -2625,15 +2633,18 @@ schema = {
 # Stage 3: Validate - Run Validation
 
 ```python
+# 07_validation_pipeline.py - validate_batch method
+
 valid_movies = []
 invalid_movies = []
 
-for movie in movies:
+for i, raw in enumerate(data):
     try:
-        validate(instance=movie, schema=schema)
+        cleaned = transform_movie(raw)  # Transform first
+        movie = CleanMovie(**cleaned)   # Validate with Pydantic
         valid_movies.append(movie)
-    except ValidationError as e:
-        invalid_movies.append({"movie": movie, "error": str(e)})
+    except (ValidationError, ValueError) as e:
+        invalid_movies.append({'index': i, 'raw_data': raw, 'error': str(e)})
 
 print(f"Valid: {len(valid_movies)}, Invalid: {len(invalid_movies)}")
 ```
@@ -2643,14 +2654,17 @@ print(f"Valid: {len(valid_movies)}, Invalid: {len(invalid_movies)}")
 # Stage 4: Clean and Transform
 
 ```python
-def clean_movie(movie):
-    """Transform raw movie data into clean format."""
+# 07_validation_pipeline.py - transform_movie function
+
+def transform_movie(raw: dict) -> dict:
+    """Transform raw API data to clean format."""
     return {
-        "title": movie["title"].strip(),
-        "year": int(movie["year"]),
-        "rating": float(movie["rating"]) if movie.get("rating") else None,
-        "revenue": parse_revenue(movie.get("revenue")),
-        "genres": parse_genres(movie.get("genre")),
+        'title': raw.get('Title', raw.get('title', '')),
+        'year': clean_year(raw.get('Year', raw.get('year'))),
+        'rating': clean_rating(raw.get('imdbRating', raw.get('rating'))),
+        'revenue': clean_revenue(raw.get('BoxOffice')),
+        'runtime_minutes': clean_runtime(raw.get('Runtime')),
+        'genres': clean_genres(raw.get('Genre')),
     }
 ```
 
@@ -2659,14 +2673,21 @@ def clean_movie(movie):
 # Stage 4: Helper Functions
 
 ```python
-def parse_revenue(rev_str):
-    """Convert '$292,576,195' to 292576195"""
-    if not rev_str or rev_str == "N/A":
-        return None
-    return int(rev_str.replace("$", "").replace(",", ""))
+# 07_validation_pipeline.py - cleaning functions
 
-# Apply cleaning to all valid movies
-cleaned_movies = [clean_movie(m) for m in valid_movies]
+def clean_revenue(value):
+    """Convert '$292,576,195' to 292576195"""
+    if value is None or value == '' or value == 'N/A':
+        return None
+    cleaned = str(value).replace('$', '').replace(',', '')
+    return int(cleaned) if int(cleaned) >= 0 else None
+
+def clean_runtime(value):
+    """Convert '148 min' to 148"""
+    if value is None or value == '' or value == 'N/A':
+        return None
+    match = re.search(r'(\d+)', str(value))
+    return int(match.group(1)) if match else None
 ```
 
 ---

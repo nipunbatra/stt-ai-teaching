@@ -1518,16 +1518,18 @@ $ <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;N/A in
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="77" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="77" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="profiling-step-1-basic-shape">Profiling Step 1: Basic Shape</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash"><span class="hljs-comment"># How many rows and columns?</span>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash"><span class="hljs-comment"># 03_csvkit_demo.sh → PART 2 (csvstat)</span>
+
+<span class="hljs-comment"># How many rows and columns?</span>
 $ <span class="hljs-built_in">head</span> -1 movies.csv | <span class="hljs-built_in">tr</span> <span class="hljs-string">&#x27;,&#x27;</span> <span class="hljs-string">&#x27;\n&#x27;</span> | <span class="hljs-built_in">wc</span> -l      <span class="hljs-comment"># columns</span>
-5
+7
 
 $ <span class="hljs-built_in">wc</span> -l movies.csv                              <span class="hljs-comment"># rows (including header)</span>
-1001
+97
 
 <span class="hljs-comment"># Or with csvstat</span>
 $ csvstat --count movies.csv
-1000
+96
 </code></pre>
 <p><strong>First sanity check</strong>: Does shape match expectations?</p>
 </section>
@@ -1940,7 +1942,8 @@ schema = {
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="96" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="96" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="validating-with-python">Validating with Python</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">import</span> json
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 04_json_schema_validation.py</span>
+
 <span class="hljs-keyword">from</span> jsonschema <span class="hljs-keyword">import</span> validate, ValidationError
 
 schema = {
@@ -2001,7 +2004,9 @@ movie = {<span class="hljs-string">&quot;title&quot;</span>: <span class="hljs-s
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="100" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="100" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="pydantic-basic-model">Pydantic: Basic Model</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> pydantic <span class="hljs-keyword">import</span> BaseModel
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 05_pydantic_basics.py</span>
+
+<span class="hljs-keyword">from</span> pydantic <span class="hljs-keyword">import</span> BaseModel
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Movie</span>(<span class="hljs-title class_ inherited__">BaseModel</span>):
     title: <span class="hljs-built_in">str</span>
@@ -2063,15 +2068,17 @@ title
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="104" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="104" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="pydantic-field-constraints">Pydantic: Field Constraints</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> pydantic <span class="hljs-keyword">import</span> BaseModel, Field
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 05_pydantic_basics.py</span>
+
+<span class="hljs-keyword">from</span> pydantic <span class="hljs-keyword">import</span> BaseModel, Field
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Movie</span>(<span class="hljs-title class_ inherited__">BaseModel</span>):
     title: <span class="hljs-built_in">str</span> = Field(min_length=<span class="hljs-number">1</span>)
     year: <span class="hljs-built_in">int</span> = Field(ge=<span class="hljs-number">1880</span>, le=<span class="hljs-number">2030</span>)  <span class="hljs-comment"># ge = greater or equal</span>
     rating: <span class="hljs-built_in">float</span> = Field(ge=<span class="hljs-number">0</span>, le=<span class="hljs-number">10</span>)
     revenue: <span class="hljs-built_in">int</span> | <span class="hljs-literal">None</span> = <span class="hljs-literal">None</span>  <span class="hljs-comment"># Optional field</span>
-</code></pre>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">Movie(title=<span class="hljs-string">&quot;X&quot;</span>, year=<span class="hljs-number">1850</span>, rating=<span class="hljs-number">8.0</span>)
+
+Movie(title=<span class="hljs-string">&quot;X&quot;</span>, year=<span class="hljs-number">1850</span>, rating=<span class="hljs-number">8.0</span>)
 <span class="hljs-comment"># ValidationError: year - Input should be &gt;= 1880</span>
 </code></pre>
 </section>
@@ -2175,7 +2182,9 @@ title
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="108" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="108" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="pydantic-practical-example">Pydantic: Practical Example</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> pydantic <span class="hljs-keyword">import</span> BaseModel, Field
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 05_pydantic_basics.py - MovieFromAPI class</span>
+
+<span class="hljs-keyword">from</span> pydantic <span class="hljs-keyword">import</span> BaseModel, Field
 <span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Optional</span>
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">MovieFromAPI</span>(<span class="hljs-title class_ inherited__">BaseModel</span>):
@@ -2719,57 +2728,71 @@ df = pd.DataFrame(movies)
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="134" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="134" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="stage-3-validate---define-schema">Stage 3: Validate - Define Schema</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">from</span> jsonschema <span class="hljs-keyword">import</span> validate, ValidationError
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 07_validation_pipeline.py - CleanMovie schema</span>
 
-schema = {
-    <span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>,
-    <span class="hljs-string">&quot;properties&quot;</span>: {
-        <span class="hljs-string">&quot;title&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>, <span class="hljs-string">&quot;minLength&quot;</span>: <span class="hljs-number">1</span>},
-        <span class="hljs-string">&quot;year&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;integer&quot;</span>, <span class="hljs-string">&quot;minimum&quot;</span>: <span class="hljs-number">1880</span>, <span class="hljs-string">&quot;maximum&quot;</span>: <span class="hljs-number">2030</span>},
-        <span class="hljs-string">&quot;rating&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: [<span class="hljs-string">&quot;number&quot;</span>, <span class="hljs-string">&quot;null&quot;</span>]}
-    },
-    <span class="hljs-string">&quot;required&quot;</span>: [<span class="hljs-string">&quot;title&quot;</span>, <span class="hljs-string">&quot;year&quot;</span>]
-}
+<span class="hljs-keyword">from</span> pydantic <span class="hljs-keyword">import</span> BaseModel, Field
+<span class="hljs-keyword">from</span> typing <span class="hljs-keyword">import</span> <span class="hljs-type">Optional</span>, <span class="hljs-type">List</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CleanMovie</span>(<span class="hljs-title class_ inherited__">BaseModel</span>):
+    title: <span class="hljs-built_in">str</span> = Field(..., min_length=<span class="hljs-number">1</span>)
+    year: <span class="hljs-built_in">int</span> = Field(..., ge=<span class="hljs-number">1888</span>, le=<span class="hljs-number">2030</span>)
+    rating: <span class="hljs-type">Optional</span>[<span class="hljs-built_in">float</span>] = Field(<span class="hljs-literal">None</span>, ge=<span class="hljs-number">0</span>, le=<span class="hljs-number">10</span>)
+    revenue: <span class="hljs-type">Optional</span>[<span class="hljs-built_in">int</span>] = Field(<span class="hljs-literal">None</span>, ge=<span class="hljs-number">0</span>)
+    runtime_minutes: <span class="hljs-type">Optional</span>[<span class="hljs-built_in">int</span>] = <span class="hljs-literal">None</span>
+    genres: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>] = []
 </code></pre>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="135" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="135" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="stage-3-validate---run-validation">Stage 3: Validate - Run Validation</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python">valid_movies = []
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 07_validation_pipeline.py - validate_batch method</span>
+
+valid_movies = []
 invalid_movies = []
 
-<span class="hljs-keyword">for</span> movie <span class="hljs-keyword">in</span> movies:
+<span class="hljs-keyword">for</span> i, raw <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(data):
     <span class="hljs-keyword">try</span>:
-        validate(instance=movie, schema=schema)
+        cleaned = transform_movie(raw)  <span class="hljs-comment"># Transform first</span>
+        movie = CleanMovie(**cleaned)   <span class="hljs-comment"># Validate with Pydantic</span>
         valid_movies.append(movie)
-    <span class="hljs-keyword">except</span> ValidationError <span class="hljs-keyword">as</span> e:
-        invalid_movies.append({<span class="hljs-string">&quot;movie&quot;</span>: movie, <span class="hljs-string">&quot;error&quot;</span>: <span class="hljs-built_in">str</span>(e)})
+    <span class="hljs-keyword">except</span> (ValidationError, ValueError) <span class="hljs-keyword">as</span> e:
+        invalid_movies.append({<span class="hljs-string">&#x27;index&#x27;</span>: i, <span class="hljs-string">&#x27;raw_data&#x27;</span>: raw, <span class="hljs-string">&#x27;error&#x27;</span>: <span class="hljs-built_in">str</span>(e)})
 
 <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Valid: <span class="hljs-subst">{<span class="hljs-built_in">len</span>(valid_movies)}</span>, Invalid: <span class="hljs-subst">{<span class="hljs-built_in">len</span>(invalid_movies)}</span>&quot;</span>)
 </code></pre>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="136" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="136" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="stage-4-clean-and-transform">Stage 4: Clean and Transform</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">clean_movie</span>(<span class="hljs-params">movie</span>):
-    <span class="hljs-string">&quot;&quot;&quot;Transform raw movie data into clean format.&quot;&quot;&quot;</span>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 07_validation_pipeline.py - transform_movie function</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">transform_movie</span>(<span class="hljs-params">raw: <span class="hljs-built_in">dict</span></span>) -&gt; <span class="hljs-built_in">dict</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Transform raw API data to clean format.&quot;&quot;&quot;</span>
     <span class="hljs-keyword">return</span> {
-        <span class="hljs-string">&quot;title&quot;</span>: movie[<span class="hljs-string">&quot;title&quot;</span>].strip(),
-        <span class="hljs-string">&quot;year&quot;</span>: <span class="hljs-built_in">int</span>(movie[<span class="hljs-string">&quot;year&quot;</span>]),
-        <span class="hljs-string">&quot;rating&quot;</span>: <span class="hljs-built_in">float</span>(movie[<span class="hljs-string">&quot;rating&quot;</span>]) <span class="hljs-keyword">if</span> movie.get(<span class="hljs-string">&quot;rating&quot;</span>) <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>,
-        <span class="hljs-string">&quot;revenue&quot;</span>: parse_revenue(movie.get(<span class="hljs-string">&quot;revenue&quot;</span>)),
-        <span class="hljs-string">&quot;genres&quot;</span>: parse_genres(movie.get(<span class="hljs-string">&quot;genre&quot;</span>)),
+        <span class="hljs-string">&#x27;title&#x27;</span>: raw.get(<span class="hljs-string">&#x27;Title&#x27;</span>, raw.get(<span class="hljs-string">&#x27;title&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>)),
+        <span class="hljs-string">&#x27;year&#x27;</span>: clean_year(raw.get(<span class="hljs-string">&#x27;Year&#x27;</span>, raw.get(<span class="hljs-string">&#x27;year&#x27;</span>))),
+        <span class="hljs-string">&#x27;rating&#x27;</span>: clean_rating(raw.get(<span class="hljs-string">&#x27;imdbRating&#x27;</span>, raw.get(<span class="hljs-string">&#x27;rating&#x27;</span>))),
+        <span class="hljs-string">&#x27;revenue&#x27;</span>: clean_revenue(raw.get(<span class="hljs-string">&#x27;BoxOffice&#x27;</span>)),
+        <span class="hljs-string">&#x27;runtime_minutes&#x27;</span>: clean_runtime(raw.get(<span class="hljs-string">&#x27;Runtime&#x27;</span>)),
+        <span class="hljs-string">&#x27;genres&#x27;</span>: clean_genres(raw.get(<span class="hljs-string">&#x27;Genre&#x27;</span>)),
     }
 </code></pre>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="137" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="137" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
 <h1 id="stage-4-helper-functions">Stage 4: Helper Functions</h1>
-<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">parse_revenue</span>(<span class="hljs-params">rev_str</span>):
-    <span class="hljs-string">&quot;&quot;&quot;Convert &#x27;$292,576,195&#x27; to 292576195&quot;&quot;&quot;</span>
-    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> rev_str <span class="hljs-keyword">or</span> rev_str == <span class="hljs-string">&quot;N/A&quot;</span>:
-        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
-    <span class="hljs-keyword">return</span> <span class="hljs-built_in">int</span>(rev_str.replace(<span class="hljs-string">&quot;$&quot;</span>, <span class="hljs-string">&quot;&quot;</span>).replace(<span class="hljs-string">&quot;,&quot;</span>, <span class="hljs-string">&quot;&quot;</span>))
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-python"><span class="hljs-comment"># 07_validation_pipeline.py - cleaning functions</span>
 
-<span class="hljs-comment"># Apply cleaning to all valid movies</span>
-cleaned_movies = [clean_movie(m) <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> valid_movies]
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">clean_revenue</span>(<span class="hljs-params">value</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Convert &#x27;$292,576,195&#x27; to 292576195&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> value <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> value == <span class="hljs-string">&#x27;&#x27;</span> <span class="hljs-keyword">or</span> value == <span class="hljs-string">&#x27;N/A&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+    cleaned = <span class="hljs-built_in">str</span>(value).replace(<span class="hljs-string">&#x27;$&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>).replace(<span class="hljs-string">&#x27;,&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">int</span>(cleaned) <span class="hljs-keyword">if</span> <span class="hljs-built_in">int</span>(cleaned) &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">clean_runtime</span>(<span class="hljs-params">value</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Convert &#x27;148 min&#x27; to 148&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">if</span> value <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">or</span> value == <span class="hljs-string">&#x27;&#x27;</span> <span class="hljs-keyword">or</span> value == <span class="hljs-string">&#x27;N/A&#x27;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>
+    <span class="hljs-keyword">match</span> = re.search(<span class="hljs-string">r&#x27;(\d+)&#x27;</span>, <span class="hljs-built_in">str</span>(value))
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">int</span>(<span class="hljs-keyword">match</span>.group(<span class="hljs-number">1</span>)) <span class="hljs-keyword">if</span> <span class="hljs-keyword">match</span> <span class="hljs-keyword">else</span> <span class="hljs-literal">None</span>
 </code></pre>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="138" data-paginate="true" data-theme="iitgn-modern" lang="en-IN" data-marpit-pagination="138" style="--paginate:true;--theme:iitgn-modern;" data-marpit-pagination-total="150">
