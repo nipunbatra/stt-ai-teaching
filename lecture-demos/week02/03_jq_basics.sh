@@ -178,7 +178,15 @@ echo "--- Top 5 by Year (newest) ---"
 cat movies.json | jq '[.[] | select(.Year != "N/A")] | sort_by(.Year) | reverse | .[:5] | .[] | "\(.Title) (\(.Year))"'
 
 # =============================================================================
-# PART 10: Raw Output and CSV
+# PART 10: Grouping
+# =============================================================================
+
+
+cat movies.json | jq 'group_by(.Year)'
+cat movies.json | jq 'group_by(.Year) | map({year: .[0].Year, count: length})'
+
+# =============================================================================
+# PART 11: Raw Output and CSV
 # =============================================================================
 
 echo ""

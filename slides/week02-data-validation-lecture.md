@@ -570,7 +570,6 @@ $ head -500000 huge.csv | tail -10
 # The `sort` Command
 
 **Sort lines alphabetically or numerically.**
-
 ```bash
 # 01_unix_inspection.sh → PART 5
 
@@ -1504,13 +1503,14 @@ $ csvstat movies.csv 2>&1 | grep "Type of data"
 ```bash
 # Count nulls per column
 $ csvstat movies.csv 2>&1 | grep -A1 "Contains null"
-        Contains null values:  False
---
-        Contains null values:  True (13 nulls)
---
-        Contains null values:  True (108 nulls)
---
-        Contains null values:  True (366 nulls)
+              
+-- Contains null values:  False
+        
+-- Contains null values:  True (13 nulls)
+        
+-- Contains null values:  True (108 nulls)
+
+-- Contains null values:  True (366 nulls)
 ```
 
 **Results:**
@@ -1658,6 +1658,9 @@ schema = {
     "rating": {"type": "number", "minimum": 0, "maximum": 10}
 }
 ```
+
+---
+# Why Schemas Matter
 
 **Schemas enable:**
 - Automatic validation
@@ -2458,6 +2461,10 @@ def validate_movies(movies):
     logging.info(f"Validated {len(valid)}/{len(movies)} movies")
     return valid
 ```
+
+---
+
+# Principle 5: Log Validation Failures
 
 **Why?**
 - Understand data quality trends

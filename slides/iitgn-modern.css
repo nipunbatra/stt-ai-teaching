@@ -106,6 +106,7 @@ section li a {
 /* Modern code styling */
 code {
   background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+  background-size: cover;
   color: var(--primary);
   padding: 3px 8px;
   border-radius: 6px;
@@ -122,10 +123,10 @@ pre {
   font-size: 0.75em;
   line-height: 1.45;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   margin: 12px 45px;
   box-shadow: none;
-  max-height: 380px;
+  /* max-height: 380px; */
 }
 
 pre code {
