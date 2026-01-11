@@ -1,0 +1,176 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+% Page Setup
+\geometry{margin=1in}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Python Introduction Lab}
+\rhead{CS203 STT AI}
+\rfoot{\thepage}
+
+% Code Listing Style
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{\textbf{Lab: Transitioning from Colab to Local Python Development}}
+\author{Introduction to Python}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+In this lab, we will move beyond the browser-based Google Colab environment and learn how to run Python code on your own computer.
+
+\textbf{Duration:} 1 - 1.5 Hours
+
+\section{Prerequisites: Installation}
+Before we begin, you must have Python installed. 
+
+You should also install a code editor such as \textbf{VS Code} (recommended) or any other suitable editor (e.g., Sublime Text, Atom, PyCharm). VS Code can be downloaded from \url{https://code.visualstudio.com/}.
+
+\subsection{Video Tutorial}
+Please watch this video for a step-by-step guide on installing Python for Windows and Mac:
+\begin{center}
+    \href{https://www.youtube.com/watch?v=YYXdXT2l-Gg}{\textbf{CLICK HERE: Python Tutorial for Beginners - Install and Setup (Corey Schafer)}}
+\end{center}
+
+\subsection{Important Step for Windows Users}
+When installing Python on Windows, you will see a checkbox at the bottom of the installer that says:
+\begin{center}
+    \textbf{``Add Python to PATH''}
+\end{center}
+\textbf{You MUST check this box.} If you miss it, you won't be able to run Python easily from the command prompt.
+
+\section{Topic 1: The Command Line Interface (CLI)}
+The terminal (or Command Prompt) is how you interact with your computer's file system textually.
+
+\subsection{Basic Navigation Commands}
+Open your terminal (Command Prompt/PowerShell on Windows, Terminal on Mac/Linux) and try these:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Action} & \textbf{Windows (cmd)} & \textbf{Mac / Linux} & \textbf{Description} \\ \hline
+Check Directory & \texttt{cd} or \texttt{chdir} & \texttt{pwd} & Print Working Directory \\ \hline
+List Files & \texttt{dir} & \texttt{ls} & List files in current folder \\ \hline
+Change Folder & \texttt{cd foldername} & \texttt{cd foldername} & Enter a folder \\ \hline
+Go Back & \texttt{cd ..} & \texttt{cd ..} & Go up one folder level \\ \hline
+Make Folder & \texttt{mkdir name} & \texttt{mkdir name} & Create a new directory \\ \hline
+Clear Screen & \texttt{cls} & \texttt{clear} & Clears text from screen \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Topic 2: Running Python Scripts Locally}
+In Colab, you press "Play". Locally, you tell the Python interpreter to read a text file.
+
+\begin{enumerate}
+    \item Create a folder named \texttt{lab\_demo}.
+    \item Inside, create a file named \texttt{hello.py} with the content: \texttt{print("Hello World")}.
+    \item Open your terminal, navigate to the folder using \texttt{cd}.
+    \item Run the command:
+    \begin{itemize}
+        \item \textbf{Windows:} \texttt{python hello.py}
+        \item \textbf{Mac/Linux:} \texttt{python3 hello.py} (sometimes just \texttt{python})
+    \end{itemize}
+\end{enumerate}
+
+\section{Topic 3: Imports and Modular Code}
+Real software is split across multiple files. 
+
+\subsection{The \texttt{import} system}
+If you have \texttt{helper.py} and \texttt{main.py} in the same folder:
+
+\textbf{helper.py:}
+\begin{lstlisting}[language=Python]
+def greet(name):
+    return f"Hello, {name}"
+\end{lstlisting}
+
+\textbf{main.py:}
+\begin{lstlisting}[language=Python]
+from helper import greet
+
+print(greet("Student"))
+\end{lstlisting}
+Run \texttt{main.py} to see how imports work.
+
+\section{Topic 4: Virtual Environments (Venv)}
+Virtual environments isolate your project. One project might need \texttt{pandas} version 1.0, another needs version 2.0. Venv keeps them separate.
+
+\subsection{Creating and Activating}
+Run these commands in your project folder:
+
+\textbf{1. Create the environment (named 'venv'):}
+\begin{itemize}
+    \item Win/Mac/Linux: \texttt{python -m venv venv} (or \texttt{python3 ...})
+\end{itemize}
+
+\textbf{2. Activate the environment:}
+\begin{itemize}
+    \item \textbf{Windows (Command Prompt):} \texttt{venv\textbackslash Scripts\textbackslash activate}
+    \item \textbf{Windows (PowerShell):} \texttt{venv\textbackslash Scripts\textbackslash Activate.ps1}
+    \item \textbf{Mac/Linux:} \texttt{source venv/bin/activate}
+\end{itemize}
+When active, your terminal prompt will show \texttt{(venv)}.
+
+\section{Topic 5: Installing Packages (Pip)}
+\texttt{pip} is the package installer for Python.
+
+\begin{itemize}
+    \item \textbf{Install a package:} \texttt{pip install requests}
+    \item \textbf{List installed packages:} \texttt{pip list}
+    \item \textbf{Save requirements:} \texttt{pip freeze > requirements.txt}
+    \item \textbf{Install from file:} \texttt{pip install -r requirements.txt}
+\end{itemize}
+
+\section{Lab Activity}
+Download the provided \texttt{lab\_demo} folder. It contains:
+\begin{itemize}
+    \item \texttt{main.py}: The entry point script.
+    \item \texttt{my\_module.py}: A helper module.
+    \item \texttt{requirements.txt}: List of dependencies.
+\end{itemize}
+
+\textbf{Task:}
+\begin{enumerate}
+    \item Navigate to \texttt{lab\_demo} in your terminal.
+    \item Create a virtual environment: \texttt{python -m venv venv}.
+    \item Activate it.
+    \item Install dependencies: \texttt{pip install -r requirements.txt}.
+    \item Run the code: \texttt{python main.py "Your Name"}.
+\end{enumerate}
+
+\end{document}
