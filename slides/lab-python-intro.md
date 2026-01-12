@@ -10,7 +10,7 @@ paginate: true
 
 ## Lab · CS 203: Software Tools and Techniques for AI
 
-**Introduction to Python**
+**Introduction to Python & Linux**
 
 *IIT Gandhinagar*
 
@@ -48,224 +48,295 @@ Why move beyond Google Colab?
 
 **By the end of this lab, you will know how to:**
 
-1. Install Python correctly (adding it to PATH).
-2. Use the Command Line Interface (CLI) to navigate folders.
-3. Run Python scripts locally.
-4. Understand how `import` works across files.
-5. Use the mysterious `if __name__ == "__main__":` block.
+1. Refresh your Python basics.
+2. Run Python in different modes (Interactive vs Scripts).
+3. Setup and use a Linux environment (WSL/Lab).
+4. Master the Command Line Interface (CLI).
+5. Work with Intermediate Python concepts (JSON, Pandas, I/O).
 6. Create Virtual Environments to manage libraries.
-7. Install packages using `pip`.
+7. Understand Modular Code & Imports.
 
 ---
 
 <!-- _class: lead -->
 
-# Part 2: Installation
+# Part 2: Python Refresher
+
+*A quick warm-up*
 
 ---
 
-# Step 1: Install Python
+# Python Cheat Sheet
 
-If you haven't already, you need Python installed on your system.
-
-**Video Tutorial (Windows & Mac)**:
 <div class="insight">
 
-[Click to Watch: Python Tutorial for Beginners (Corey Schafer)](https://www.youtube.com/watch?v=YYXdXT2l-Gg)
+**Resource**: [Python Cheat Sheet](https://www.pythoncheatsheet.org/)
 
 </div>
 
----
-
-# IMPORTANT Step for Windows
-
-<div class="warning">
-
-**When installing on Windows:**
-
-You **MUST** check the box that says: **"Add Python to PATH"**
-
-</div>
-
-**Why?**
-If you don't do this, typing `python` in your terminal will do nothing (or open the Windows Store).
-
-![width:500px](https://miro.medium.com/v2/resize:fit:720/1*0-9nWzT0AvF2x7dffPFryA.jpeg)
+**Key Concepts to Remember:**
+- **Variables**: `x = 5`, `name = "Alice"`
+- **Lists**: `items = [1, 2, 3]`
+- **Loops**: `for i in items: print(i)`
+- **Functions**:
+  ```python
+  def add(a, b):
+      return a + b
+  ```
 
 ---
 
 <!-- _class: lead -->
 
-# Part 3: The Command Line Interface (CLI)
+# Part 3: Running Python
 
-*Talking to your computer with text*
-
----
-
-# CLI Survival Guide
-
-Open your terminal:
-- **Windows**: `cmd` (Command Prompt) or PowerShell
-- **Mac/Linux**: Terminal
-
-| Action | Windows (cmd) | Mac / Linux |
-|--------|---------------|-------------|
-| **Where am I?** | `cd` or `chdir` | `pwd` |
-| **List files** | `dir` | `ls` |
-| **Change folder** | `cd foldername` | `cd foldername` |
-| **Go up one level** | `cd ..` | `cd ..` |
-| **Make folder** | `mkdir name` | `mkdir name` |
-| **Clear screen** | `cls` | `clear` |
+*Interactive, Scripts, and Cloud*
 
 ---
 
-# Activity: Navigate!
+# Modes of Execution
 
-1. Open your terminal.
-2. Type `dir` (Win) or `ls` (Mac/Lin) to see where you are.
-3. Create a new folder:
-   ```bash
-   mkdir lab_demo
-   ```
-4. Enter that folder:
-   ```bash
-   cd lab_demo
-   ```
-5. Check it's empty (run list command again).
+| Mode | Tool | Use Case | Command |
+|------|------|----------|---------|
+| **Interactive** | Jupyter Notebook | Data Science, Exploration | `jupyter notebook` |
+| **Script** | Python Interpreter | Production, Automation | `python script.py` |
+| **Cloud** | Google Colab | Quick start, GPU access | (Browser) |
+| **Terminal** | Python REPL | Quick math, testing | `python` |
+
+---
+
+# 1. Interactive Mode: Jupyter Notebook
+
+**What is it?** A web-based interactive computing platform.
+
+- **Cells**: Code is divided into chunks.
+- **State**: Variables persist between cells.
+- **Rich Output**: Graphs, tables, and text inline.
+
+**How to run locally:**
+```bash
+pip install notebook
+jupyter notebook
+```
+
+---
+
+# 2. Scripts: The `.py` File
+
+**What is it?** A plain text file containing Python code.
+
+- **Structure**: Top-to-bottom execution.
+- **Usage**: Building apps, servers, tools.
+- **Example**:
+  ```python
+  # abc.py
+  print("Running as a script!")
+  ```
+
+**Run it:**
+```bash
+python abc.py
+```
+
+---
+
+# 3. Google Colab & The `!` Magic
+
+In Colab (and Jupyter), you can run shell commands using `!`.
+
+**Examples:**
+- `!ls`: List files in the cloud VM.
+- `!pip install pandas`: Install libraries.
+- `!cd`: **Note** - `!cd` runs in a subshell, so it won't change the persistent directory. Use `%cd` instead.
 
 ---
 
 <!-- _class: lead -->
 
-# Part 4: Running Python Locally
+# Part 4: The Linux Environment
 
-*Goodbye, "Play" button*
-
----
-
-# Creating a Script
-
-1. Open a text editor (Notepad, VS Code, Sublime).
-2. Write this code:
-   ```python
-   # hello.py
-   print("Hello from my local computer!")
-   ```
-3. Save the file as `hello.py` inside your `lab_demo` folder.
+*The Operating System of AI*
 
 ---
 
-# Running the Script
+# Why Linux?
 
-In your terminal (make sure you are inside `lab_demo`):
+- **Industry Standard**: Most servers and AI clusters run Linux.
+- **Tools**: Best support for Docker, Git, and dev tools.
+- **Control**: Powerful command line automation.
 
-**Windows**:
+**Your Options:**
+1. **Lab Computers**: Native Linux installation.
+2. **Windows Subsystem for Linux (WSL)**: Run Linux inside Windows.
+3. **Mac**: Unix-based (very similar to Linux).
+
+---
+
+# Setup: WSL (Windows Users)
+
+If you are on Windows, **WSL is highly recommended**.
+
+1. Open PowerShell as Administrator.
+2. Run: `wsl --install`
+3. Restart computer.
+4. Open "Ubuntu" from Start Menu.
+
+**Now you have a full Linux terminal inside Windows!**
+
+---
+
+# Using Linux
+
+**The GUI (Graphical User Interface)**:
+- Like Windows/Mac, you have windows, menus, and apps.
+- **File Manager**: Browse files visually.
+- **Text Editor**: VS Code, Gedit, Sublime.
+
+**The Terminal**:
+- The "Black Box".
+- Where the real power lies.
+
+---
+
+# Basic Linux Commands
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `pwd` | **P**rint **W**orking **D**irectory | `pwd` |
+| `ls` | **L**i**s**t files | `ls -l` |
+| `cd` | **C**hange **D**irectory | `cd Folder` |
+| `cat` | View file content | `cat data.txt` |
+| `touch` | Create empty file | `touch new.py` |
+| `mkdir` | **M**a**k**e **Dir**ectory | `mkdir lab1` |
+
+---
+
+# Editing Files: `nano`
+
+A simple terminal-based text editor.
+
+**To create/edit a file:**
 ```bash
-python hello.py
+nano hello.py
 ```
 
-**Mac/Linux** (sometimes requires `python3`):
+**Cheatsheet:**
+- `Ctrl + O`: **Save** (Write Out)
+- `Enter`: Confirm filename
+- `Ctrl + X`: **Exit**
+
+---
+
+# Installing Software (CLI)
+
+In Linux, we use package managers (like an App Store for terminal).
+
+**Ubuntu/Debian/WSL:**
 ```bash
-python3 hello.py
+# Update list of available software
+sudo apt update
+
+# Install a tool (e.g., git, python3, tree)
+sudo apt install git tree
 ```
 
-**Result**: You should see "Hello from my local computer!" printed in the terminal.
+---
+
+# Activity: Linux Survival
+
+1. Open your terminal (WSL or Lab Terminal).
+2. Check where you are: `pwd`
+3. Create a directory: `mkdir week1_lab`
+4. Enter it: `cd week1_lab`
+5. Create a file: `touch script.py`
+6. Edit it with nano: `nano script.py` -> add `print("Hello Linux")`
+7. Run it: `python3 script.py`
 
 ---
 
 <!-- _class: lead -->
 
-# Part 5: Modular Code & Imports
+# Part 5: Intermediate Python
 
-*Breaking code into pieces*
-
----
-
-# The `import` System
-
-Real software isn't written in one giant file. We split it up.
-
-**Scenario**:
-- `my_module.py`: Contains useful functions.
-- `main.py`: Uses those functions.
+*Libraries, Data, and I/O*
 
 ---
 
-# File 1: `my_module.py`
+# Python Libraries
 
-Create this file in `lab_demo`:
+Python's power comes from its ecosystem.
 
-```python
-def greet(name):
-    """
-    A simple function to return a greeting message.
-    """
-    return f"Hello, {name}! Welcome to your first local Python lab."
-
-def add(a, b):
-    return a + b
-```
-
----
-
-# File 2: `main.py`
-
-Create this file in `lab_demo`:
-
-```python
-import sys
-# Import from our local file
-from my_module import greet
-
-def main():
-    # sys.argv allows us to access command line arguments
-    if len(sys.argv) > 1:
-        user_name = sys.argv[1]
-    else:
-        user_name = "Future Engineer"
-
-    message = greet(user_name)
-    print(message)
-
-if __name__ == "__main__":
-    main()
-```
-
----
-
-# Running the Modular Code
-
-Run `main.py` from the terminal:
-
+**Installing libraries:**
 ```bash
-python main.py
+pip install pandas numpy
 ```
-*Output: Hello, Future Engineer! ...*
 
-Now try passing an argument:
-```bash
-python main.py Alice
+**Using libraries:**
+```python
+import math
+print(math.sqrt(16))
+
+import pandas as pd
+# pd is an "alias" for pandas
 ```
-*Output: Hello, Alice! ...*
 
 ---
 
-# The Mystery: `if __name__ == "__main__":`
+# JSON (JavaScript Object Notation)
 
-**Why do we write this?**
+Standard format for data exchange (APIs, config files).
 
 ```python
-if __name__ == "__main__":
-    main()
+import json
+
+# Data dictionary
+data = {"name": "Alice", "score": 95}
+
+# Writing to string
+json_str = json.dumps(data)
+
+# Reading from string
+parsed = json.loads(json_str)
 ```
 
-- **When you run `python main.py`**:
-  Python sets the internal variable `__name__` to `__main__`. The code runs.
+---
 
-- **When you run `import main`** (in another script):
-  Python sets `__name__` to `"main"` (the filename). The code **DOES NOT** run automatically.
+# Pandas: DataFrames
 
-**Rule**: This prevents your script from executing immediately when imported as a library.
+The Excel of Python.
+
+```python
+import pandas as pd
+
+# Creating a DataFrame
+df = pd.DataFrame({
+    "Name": ["Alice", "Bob"],
+    "Age": [25, 30]
+})
+
+print(df)
+
+# Reading CSV
+# df = pd.read_csv("data.csv")
+```
+
+---
+
+# File I/O (Input/Output)
+
+Reading and writing files directly.
+
+```python
+# Writing
+with open("test.txt", "w") as f:
+    f.write("Hello World\n")
+
+# Reading
+with open("test.txt", "r") as f:
+    content = f.read()
+    print(content)
+```
+*Using `with` ensures the file is closed automatically.*
 
 ---
 
@@ -290,7 +361,7 @@ Each project gets its own isolated folder of libraries.
 
 # Creating a `venv`
 
-In your terminal (inside `lab_demo`):
+In your terminal:
 
 ```bash
 python -m venv venv
@@ -364,19 +435,116 @@ pip install -r requirements.txt
 
 ---
 
-# Lab Activity: Complete Workflow
+<!-- _class: lead -->
 
-**Task**:
-1. Navigate to `lab_demo`.
-2. Create a virtual environment: `python -m venv venv`.
-3. Activate it.
-4. Create a `requirements.txt` with:
-   ```
-   colorama==0.4.6
-   ```
-5. Install it: `pip install -r requirements.txt`.
-6. Modify `main.py` to use `colorama` (print in color!).
-7. Run it!
+# Part 8: Modular Code & Imports
+
+*Breaking code into pieces*
+
+---
+
+# The `import` System
+
+Real software isn't written in one giant file. We split it up.
+
+**Scenario**:
+- `my_module.py`: Contains useful functions.
+- `main.py`: Uses those functions.
+
+---
+
+# File 1: `my_module.py`
+
+Create this file:
+
+```python
+def greet(name):
+    """
+    A simple function to return a greeting message.
+    """
+    return f"Hello, {name}! Welcome to your first local Python lab."
+
+def add(a, b):
+    return a + b
+```
+
+---
+
+# File 2: `main.py`
+
+Create this file:
+
+```python
+import sys
+# Import from our local file
+from my_module import greet
+
+def main():
+    # sys.argv allows us to access command line arguments
+    if len(sys.argv) > 1:
+        user_name = sys.argv[1]
+    else:
+        user_name = "Future Engineer"
+
+    message = greet(user_name)
+    print(message)
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+# Running the Modular Code
+
+Run `main.py` from the terminal:
+
+```bash
+python main.py
+```
+*Output: Hello, Future Engineer! ...*
+
+Now try passing an argument:
+```bash
+python main.py Alice
+```
+*Output: Hello, Alice! ...*
+
+---
+
+# Relative Imports
+
+When files are in subfolders:
+
+`project/`
+├── `main.py`
+└── `utils/`
+    ├── `__init__.py`
+    └── `helper.py`
+
+In `main.py`:
+```python
+from utils.helper import some_function
+```
+
+*Note: Relative imports (using `.`) work best within packages.*
+
+---
+
+# The Mystery: `if __name__ == "__main__":`
+
+**Why do we write this?**
+
+```python
+if __name__ == "__main__":
+    main()
+```
+
+- **When you run `python main.py`**:
+  Python sets the internal variable `__name__` to `__main__`. The code runs.
+
+- **When you run `import main`** (in another script):
+  Python sets `__name__` to `"main"` (the filename). The code **DOES NOT** run automatically.
 
 ---
 
