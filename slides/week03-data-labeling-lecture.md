@@ -67,19 +67,17 @@ movies = [
 
 # The Labeling Bottleneck
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                     THE AI REALITY CHECK                          │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   Unlabeled Data:   ABUNDANT   (web, sensors, logs, databases)   │
-│                                                                   │
-│   Labeled Data:     SCARCE     (expensive, time-consuming)       │
-│                                                                   │
-│   Time on Labeling: 80% of AI project effort                     │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+<div class="insight">
+
+**The AI Reality Check**
+
+| Data Type | Availability |
+|-----------|--------------|
+| Unlabeled Data | **Abundant** — web, sensors, logs, databases |
+| Labeled Data | **Scarce** — expensive, time-consuming |
+| Time on Labeling | **80%** of AI project effort |
+
+</div>
 
 **This is the bottleneck that slows down most AI projects.**
 
@@ -125,20 +123,12 @@ Without labels, model can't learn what "terrible" means for the task.
 
 **Learn to transform unlabeled data into labeled training data.**
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                      TODAY'S JOURNEY                              │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   1. Where does unlabeled data come from?                         │
-│   2. Types of labeling tasks (text, image, audio, video)          │
-│   3. How to label: tools and platforms                            │
-│   4. How to measure label quality (IAA, Cohen's Kappa)            │
-│   5. Quality control and guidelines                               │
-│   6. Managing annotation teams                                    │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+1. Where does unlabeled data come from?
+2. Types of labeling tasks (text, image, audio, video)
+3. How to label: tools and platforms
+4. How to measure label quality (IAA, Cohen's Kappa)
+5. Quality control and guidelines
+6. Managing annotation teams
 
 ---
 
@@ -152,21 +142,13 @@ Without labels, model can't learn what "terrible" means for the task.
 
 # The Data Landscape
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                   SOURCES OF UNLABELED DATA                       │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   PUBLIC                          PRIVATE                         │
-│   ------                          -------                         │
-│   - Web scraping                  - Company databases             │
-│   - Public APIs                   - User uploads                  │
-│   - Open datasets                 - Internal logs                 │
-│   - Government data               - Sensor streams                │
-│   - Social media                  - Transaction records           │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+| **Public Sources** | **Private Sources** |
+|--------------------|---------------------|
+| Web scraping | Company databases |
+| Public APIs | User uploads |
+| Open datasets | Internal logs |
+| Government data | Sensor streams |
+| Social media | Transaction records |
 
 **Unlabeled data is everywhere. The challenge is getting labels.**
 
@@ -220,19 +202,7 @@ sensor_stream = read_sensor(device_id)
 
 # The Label Gap
 
-```
-                    UNLABELED                      LABELED
-
-    Common Crawl    [================]
-    (400TB)
-                                                   ImageNet
-    YouTube         [==========]                   [=]
-    (500 hrs/min)                                  (14M images)
-
-    Company Logs    [========]                     SQuAD
-    (varies)                                       [.]
-                                                   (100K QA pairs)
-```
+![w:900](images/week03/label_gap.png)
 
 **The gap between available data and labeled data is enormous.**
 
@@ -240,21 +210,7 @@ sensor_stream = read_sensor(device_id)
 
 # From Unlabeled to Labeled
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  Unlabeled  │     │   Labeling  │     │   Labeled   │
-│    Data     │ --> │   Process   │ --> │    Data     │
-│  (10,000)   │     │             │     │  (10,000)   │
-└─────────────┘     └─────────────┘     └─────────────┘
-                          |
-                          v
-                    ┌───────────┐
-                    │   Cost:   │
-                    │  $$$$$    │
-                    │   Time    │
-                    │  Effort   │
-                    └───────────┘
-```
+![w:800](images/week03/labeling_pipeline.png)
 
 **The labeling process is where the real work happens.**
 
@@ -289,18 +245,7 @@ sensor_stream = read_sensor(device_id)
 
 # Task Complexity Spectrum
 
-```
-SIMPLE                                                      COMPLEX
-  |                                                            |
-  v                                                            v
-
-Binary          Multi-class        Sequence        Pixel-level
-Classification  Classification     Labeling        Segmentation
-
-[Spam/Not]      [Cat/Dog/Bird]     [NER Tags]      [Every Pixel]
-
-  2 min/item     5 min/item        10 min/item     30+ min/item
-```
+![w:1000](images/week03/task_complexity.png)
 
 **More complex tasks = more time = more cost**
 
@@ -336,26 +281,7 @@ Classification  Classification     Labeling        Segmentation
 
 # Text Classification: Annotation Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  TEXT CLASSIFICATION INTERFACE                                    │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  Text: "The movie had stunning visuals but a weak plot."         │
-│                                                                   │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │  Select sentiment:                                           │ │
-│  │                                                              │ │
-│  │    ( ) Positive                                              │ │
-│  │    (o) Mixed           <-- Selected                          │ │
-│  │    ( ) Negative                                              │ │
-│  │    ( ) Neutral                                               │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-│                                                                   │
-│                              [Submit]                             │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:750](images/week03/text_classification_ui.png)
 
 ---
 
@@ -388,24 +314,7 @@ Entities:
 
 # NER: Annotation Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  NER ANNOTATION INTERFACE                                         │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  [Apple] CEO [Tim Cook] announced [iPhone 15] in [Cupertino].    │
-│   ─────       ────────            ─────────      ─────────       │
-│    ORG         PERSON               PRODUCT       LOCATION        │
-│                                                                   │
-│  Labels:                                                          │
-│  ┌─────────┬─────────┬─────────┬─────────┐                       │
-│  │   ORG   │ PERSON  │ PRODUCT │   LOC   │                       │
-│  └─────────┴─────────┴─────────┴─────────┘                       │
-│                                                                   │
-│  Instructions: Highlight text, then click label                   │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:750](images/week03/ner_ui.png)
 
 ---
 
@@ -496,27 +405,7 @@ What's the overall label?
 
 **Task**: Find answer span in passage.
 
-```json
-{
-  "context": "The Apollo program landed 12 astronauts on
-              the Moon between 1969 and 1972.",
-  "question": "When did Apollo land astronauts?",
-  "answers": [
-    {"text": "between 1969 and 1972", "start": 54}
-  ]
-}
-```
-
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  Context: The Apollo program landed 12 astronauts on the Moon    │
-│           [between 1969 and 1972].  <-- Highlighted answer        │
-│                                                                   │
-│  Question: When did Apollo land astronauts?                       │
-│                                                                   │
-│  [ ] No answer in text                                            │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:800](images/week03/qa_ui.png)
 
 ---
 
@@ -545,25 +434,7 @@ Relations:
 
 # Relation Extraction: Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  RELATION EXTRACTION INTERFACE                                    │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  Text: [Steve Jobs] founded [Apple] in [1976].                   │
-│         ───────────          ─────     ────                       │
-│           PERSON              ORG      DATE                       │
-│              │                 │         │                        │
-│              │    FOUNDED      │         │                        │
-│              └────────────────>│         │                        │
-│                                │ FOUNDED │                        │
-│                                │   IN    │                        │
-│                                └────────>│                        │
-│                                                                   │
-│  Relation Types: [FOUNDED] [WORKS_AT] [BORN_IN] [LOCATED_IN]     │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:800](images/week03/relation_extraction_ui.png)
 
 ---
 
@@ -594,25 +465,9 @@ Relations:
 
 # Image Classification: Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  IMAGE CLASSIFICATION INTERFACE                                   │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   ┌─────────────────────────────────┐                            │
-│   │                                 │                            │
-│   │       [  Image of a cat  ]      │                            │
-│   │                                 │                            │
-│   └─────────────────────────────────┘                            │
-│                                                                   │
-│   What animal is in this image?                                   │
-│                                                                   │
-│   [  Cat  ]  [ Dog ]  [ Bird ]  [ Other ]                        │
-│       ^                                                           │
-│       Selected                                                    │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:600](images/week03/image_classification.png)
+
+**Interface**: Display image, annotator selects from predefined categories
 
 ---
 
@@ -639,36 +494,17 @@ Relations:
 
 # Object Detection: Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  OBJECT DETECTION INTERFACE                                       │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   ┌─────────────────────────────────────────────────────────┐    │
-│   │                                                         │    │
-│   │     ┌──────────────┐                                    │    │
-│   │     │              │        ┌────┐                      │    │
-│   │     │     CAR      │        │PERS│                      │    │
-│   │     │              │        │ ON │                      │    │
-│   │     └──────────────┘        └────┘                      │    │
-│   │                                                         │    │
-│   └─────────────────────────────────────────────────────────┘    │
-│                                                                   │
-│   Tools: [Rectangle] [Zoom] [Undo]   Labels: [Car] [Person]      │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:800](images/week03/object_detection.png)
+
+**Tools**: Rectangle draw, zoom, undo | **Labels**: Car (red), Person (blue)
 
 ---
 
 # Object Detection: Best Practices
 
 **Bounding Box Tightness**:
-```
-Too Loose:  [    |--object--|     ]  Bad
-Too Tight:  [--objec]               Bad (cuts off)
-Just Right: [ |--object--| ]        Good (small margin)
-```
+
+![w:800](images/week03/bbox_tightness.png)
 
 **Occlusion Rules**:
 - Label partially visible objects? (>20% visible = yes)
@@ -703,47 +539,18 @@ Pixel values:
 
 # Segmentation: Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  SEGMENTATION INTERFACE                                           │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   Original Image              Segmentation Mask                   │
-│   ┌─────────────────┐        ┌─────────────────┐                 │
-│   │   ████████      │        │   ████████      │ <- Person (red) │
-│   │   ████████      │   ->   │   ████████      │                 │
-│   │ ████████████    │        │ ▓▓▓▓▓▓▓▓▓▓▓▓    │ <- Car (blue)   │
-│   │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│        │░░░░░░░░░░░░░░░░│ <- Road (gray)  │
-│   └─────────────────┘        └─────────────────┘                 │
-│                                                                   │
-│   Tools: [Brush] [Polygon] [Magic Wand] [SAM]                    │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:900](images/week03/semantic_segmentation.png)
+
+**Tools**: Brush, Polygon, Magic Wand, SAM (Segment Anything Model)
 
 ---
 
 # Instance vs Semantic Segmentation
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                  SEGMENTATION COMPARISON                          │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   SEMANTIC SEGMENTATION         INSTANCE SEGMENTATION             │
-│                                                                   │
-│   All "person" pixels           Person #1 -> Instance 1           │
-│   get class ID = 1              Person #2 -> Instance 2           │
-│                                 Person #3 -> Instance 3           │
-│                                                                   │
-│   ┌─────────────┐               ┌─────────────┐                  │
-│   │ ██  ██  ██  │               │ ██  ▓▓  ░░  │                  │
-│   │ ██  ██  ██  │               │ ██  ▓▓  ░░  │                  │
-│   │ all same    │               │ different   │                  │
-│   └─────────────┘               └─────────────┘                  │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:900](images/week03/instance_vs_semantic.png)
+
+**Semantic**: All pixels of same class get same label (all dogs = red)
+**Instance**: Each object gets unique ID (dog 1 = red, dog 2 = green, dog 3 = blue)
 
 ---
 
@@ -769,30 +576,10 @@ Pixel values:
 
 # Keypoint Detection: Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  KEYPOINT ANNOTATION (Human Pose)                                 │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│                        o  <- nose                                 │
-│                      /   \                                        │
-│                     o     o  <- eyes                              │
-│                       \ /                                         │
-│                        |                                          │
-│                   o----+----o  <- shoulders                       │
-│                   |    |    |                                     │
-│                   o    |    o  <- elbows                          │
-│                   |    |    |                                     │
-│                   o    |    o  <- wrists                          │
-│                        |                                          │
-│                   o----+----o  <- hips                            │
-│                   |         |                                     │
-│                   o         o  <- knees                           │
-│                   |         |                                     │
-│                   o         o  <- ankles                          │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:700](images/week03/pose_estimation.png)
+
+**17 keypoints**: Head, shoulders, elbows, wrists, hips, knees, ankles
+**Visibility flags**: 0=occluded, 1=visible, 2=outside image
 
 ---
 
@@ -824,24 +611,7 @@ Pixel values:
 
 # Audio Transcription: Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  AUDIO TRANSCRIPTION INTERFACE                                    │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   Waveform:                                                       │
-│   ▂▃▅▇█▇▅▃▂▁▂▃▅▇█▇▅▃▂▁▂▃▅▇█▇▅▃▂▁                                │
-│   |---------|------------|---------|                              │
-│   0:00      0:03         0:06      0:09                           │
-│                                                                   │
-│   Segments:                                                       │
-│   [Speaker A: "Hello, how are you?"]  [0:00 - 0:03]              │
-│   [Speaker B: "I'm doing well."]      [0:03 - 0:06]              │
-│                                                                   │
-│   Controls: [Play] [Pause] [0.5x] [1x] [1.5x] [Loop]             │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:700](images/week03/audio_transcription_ui.png)
 
 ---
 
@@ -976,26 +746,10 @@ Include or remove?
 
 # Video Tracking: Diagram
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  VIDEO TRACKING INTERFACE                                         │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  Frame 1          Frame 2          Frame 3          Frame 4      │
-│  ┌───────┐        ┌───────┐        ┌───────┐        ┌───────┐   │
-│  │ [1]   │        │  [1]  │        │   [1] │        │    [1]│   │
-│  │       │   ->   │       │   ->   │       │   ->   │       │   │
-│  │   [2] │        │   [2] │        │   [2] │        │   [2] │   │
-│  └───────┘        └───────┘        └───────┘        └───────┘   │
-│                                                                   │
-│  Track 1: Car (ID=1) - continuous path                           │
-│  Track 2: Person (ID=2) - stationary                             │
-│                                                                   │
-│  Timeline: [====|====|====|====|====|====|====|====]             │
-│            0    1    2    3    4    5    6    7    8              │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+![w:900](images/week03/video_tracking.png)
+
+**Key concept**: Same object maintains consistent ID across frames
+**Challenges**: Occlusion, re-identification after object disappears
 
 ---
 
@@ -1214,18 +968,7 @@ We need a way to measure agreement and quality.
 
 </div>
 
-**The chain reaction:**
-```
-Ambiguous task definition
-       ↓
-Annotators interpret differently
-       ↓
-Inconsistent labels in training data
-       ↓
-Model learns conflicting patterns
-       ↓
-Poor and unpredictable performance
-```
+![w:700](images/week03/chain_reaction.png)
 
 **Fix it at the source**: Clear guidelines → High agreement → Clean labels → Better models
 
@@ -1316,26 +1059,16 @@ print(f"Cohen's Kappa: {kappa:.2f}")  # 0.50
 
 # Kappa Interpretation
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                    KAPPA INTERPRETATION                           │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   Kappa Value     Agreement Level      Action                     │
-│   -----------     ---------------      ------                     │
-│   < 0.00          Poor                 Redesign task              │
-│   0.00 - 0.20     Slight               Major guideline revision   │
-│   0.21 - 0.40     Fair                 Significant revision       │
-│   0.41 - 0.60     Moderate             Minor revision             │
-│   0.61 - 0.80     Substantial          Guidelines working         │
-│   0.81 - 1.00     Almost Perfect       Excellent!                 │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+| Kappa Value | Agreement Level | Action |
+|-------------|-----------------|--------|
+| < 0.00 | Poor | Redesign task |
+| 0.00 - 0.20 | Slight | Major guideline revision |
+| 0.21 - 0.40 | Fair | Significant revision |
+| 0.41 - 0.60 | Moderate | Minor revision |
+| 0.61 - 0.80 | Substantial | Guidelines working |
+| 0.81 - 1.00 | Almost Perfect | Excellent! |
 
-**Target**: kappa >= 0.8 for most production tasks
-
-**If kappa < 0.6**: Improve your guidelines before proceeding!
+**Target**: kappa >= 0.8 for production | **If kappa < 0.6**: Improve guidelines first!
 
 ---
 
@@ -1405,26 +1138,9 @@ print(f"Fleiss' Kappa: {fleiss_kappa(data):.3f}")
 
 # IoU for Spatial Annotations
 
-**For bounding boxes and segmentation:**
+![w:700](images/week03/iou_diagram.png)
 
-```
-                 Area of Overlap
-IoU = ─────────────────────────────────
-       Area of Union (both boxes)
-
-      ┌─────────────┐
-      │    ┌────────┼───────┐
-      │    │////////│       │
-      │    │//Ovrlp/│       │
-      └────┼────────┘       │
-           │                │
-           └────────────────┘
-
-IoU = Overlap / (Box1 + Box2 - Overlap)
-```
-
-**IoU > 0.5**: Generally considered a match
-**IoU > 0.7**: Good agreement for detection tasks
+**IoU > 0.5**: Generally considered a match | **IoU > 0.7**: Good agreement
 
 ---
 
@@ -1550,19 +1266,7 @@ A: SPAM (even if not selling anything - potential phishing)
 
 # Guidelines: Decision Trees
 
-```
-Is the email from a known sender?
-├── Yes: Is the content relevant?
-│   ├── Yes: NOT SPAM
-│   └── No: Does it have unsubscribe link?
-│       ├── Yes: NOT SPAM (newsletter)
-│       └── No: SPAM
-└── No: Does it ask for money or personal info?
-    ├── Yes: SPAM
-    └── No: Is it selling something?
-        ├── Yes: SPAM
-        └── No: Probably NOT SPAM (review manually)
-```
+![w:900](images/week03/decision_tree.png)
 
 **Decision trees reduce annotator uncertainty.**
 
@@ -1668,23 +1372,14 @@ for item, labels in annotations.items():
 
 # 5. Monitoring: Track Quality Over Time
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│  ANNOTATOR QUALITY DASHBOARD                                      │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  Annotator    Gold Acc.   IAA     Speed     Status                │
-│  ---------    ---------   ---     -----     ------                │
-│  Alice        95%         0.85    120/hr    Good                  │
-│  Bob          92%         0.82    145/hr    Good                  │
-│  Charlie      78%         0.65    180/hr    REVIEW NEEDED         │
-│  Diana        89%         0.78    100/hr    OK                    │
-│                                                                   │
-│  Overall IAA: 0.81 (Substantial)                                  │
-│  Items completed: 4,523 / 10,000                                  │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
-```
+| Annotator | Gold Acc. | IAA | Speed | Status |
+|-----------|-----------|-----|-------|--------|
+| Alice | 95% | 0.85 | 120/hr | Good |
+| Bob | 92% | 0.82 | 145/hr | Good |
+| Charlie | 78% | 0.65 | 180/hr | **REVIEW NEEDED** |
+| Diana | 89% | 0.78 | 100/hr | OK |
+
+**Overall IAA**: 0.81 (Substantial) | **Progress**: 4,523 / 10,000 items
 
 ---
 
@@ -1847,51 +1542,11 @@ print(f"Expert budget: ${expert_budget:,.0f}")  # $45,000
 
 ---
 
-# Team Structures: Small & Medium Projects
+# Team Structures
 
-```
-SMALL PROJECT (<1000 items)
+![w:1000](images/week03/team_structures.png)
 
-    ┌───────────┐
-    │    You    │  ->  Do it yourself or with 1-2 helpers
-    └───────────┘
-
-
-MEDIUM PROJECT (1k-10k items)
-
-    ┌───────────┐
-    │   Lead    │  ->  1 lead + 3-5 annotators
-    └─────┬─────┘
-          │
-    ┌─────┼─────┐
-    v     v     v
-  [A1]  [A2]  [A3]
-```
-
----
-
-# Team Structures: Large Projects
-
-```
-LARGE PROJECT (>10k items)
-
-        ┌─────────────────┐
-        │  Project Lead   │
-        └────────┬────────┘
-                 │
-      ┌──────────┼──────────┐
-      v          v          v
-  [QC Lead]  [QC Lead]  [QC Lead]
-      |          |          |
-      v          v          v
-  [Team A]   [Team B]   [Team C]
-  (5 ann)    (5 ann)    (5 ann)
-```
-
-**Roles:**
-- **Project Lead**: Guidelines, training, escalations
-- **QC Lead**: Monitor quality, adjudicate, retrain
-- **Annotators**: Label items according to guidelines
+**Roles**: Project Lead (guidelines, training) | QC Lead (quality, adjudication) | Annotators (labeling)
 
 ---
 
@@ -1947,24 +1602,7 @@ Solution:
 
 # Annotator Feedback Loop
 
-```
-   ┌─────────────┐
-   │  Annotator  │  <-- Individual feedback on quality
-   │   Labels    │
-   └──────┬──────┘
-          │
-          v
-   ┌─────────────┐      ┌─────────────┐
-   │   Quality   │ ---> │   Feedback  │  --> Weekly quality reports
-   │   Check     │      │   to Team   │
-   └──────┬──────┘      └─────────────┘
-          │
-          v
-   ┌─────────────┐
-   │   Update    │  --> FAQ, edge case clarifications
-   │  Guidelines │
-   └─────────────┘
-```
+![w:700](images/week03/feedback_loop.png)
 
 **Continuous improvement through regular feedback!**
 
