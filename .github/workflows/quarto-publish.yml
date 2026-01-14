@@ -38,6 +38,8 @@ jobs:
             echo "Building HTML: $f"
             marp "$f" -o "html/${filename}.html" --allow-local-files --theme-set slides/iitgn-modern.css
           done
+          # Copy images so relative paths work in HTML
+          cp -r slides/images html/
 
       - name: Build Marp slides (PDF)
         run: |
