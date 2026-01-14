@@ -257,7 +257,16 @@ sensor_stream = read_sensor(device_id)
 
 ---
 
-# Text: Classification
+# The Problem: Email Overload
+
+![w:800](images/week03/problem_email_spam.png)
+
+**Your inbox has 4,521 emails. Which are spam?**
+A human can't review millions of emails. We need machines to learn the pattern.
+
+---
+
+# The Solution: Text Classification
 
 **Task**: Assign label(s) to entire text.
 
@@ -285,7 +294,16 @@ sensor_stream = read_sensor(device_id)
 
 ---
 
-# Text: Named Entity Recognition (NER)
+# The Problem: Extracting Information from Clinical Notes
+
+![w:900](images/week03/problem_clinical_notes.png)
+
+**Hospitals have millions of unstructured notes.**
+How do we extract drug names, dosages, symptoms automatically?
+
+---
+
+# The Solution: Named Entity Recognition (NER)
 
 **Task**: Identify and classify spans of text.
 
@@ -444,6 +462,15 @@ Relations:
 
 ---
 
+# The Problem: What Does a Self-Driving Car See?
+
+![w:1000](images/week03/problem_selfdriving_raw.png)
+
+**A camera captures 30 frames per second. The car must understand each one.**
+Pedestrians, vehicles, traffic lights, lane markings — all in milliseconds.
+
+---
+
 # Image: Classification
 
 **Task**: Assign label(s) to entire image.
@@ -517,6 +544,15 @@ Relations:
 
 ---
 
+# The Problem: Finding Tumors in Medical Scans
+
+![w:700](images/week03/problem_medical_raw.png)
+
+**Radiologists review thousands of scans. Can AI help spot anomalies?**
+Every pixel matters — is it healthy tissue or tumor?
+
+---
+
 # Image: Semantic Segmentation
 
 **Task**: Classify every pixel in image.
@@ -551,6 +587,24 @@ Pixel values:
 
 **Semantic**: All pixels of same class get same label (all dogs = red)
 **Instance**: Each object gets unique ID (dog 1 = red, dog 2 = green, dog 3 = blue)
+
+---
+
+# Another Application: Urban Planning from Satellites
+
+![w:900](images/week03/problem_satellite_raw.png)
+
+**Segmentation isn't just for medical imaging.**
+Urban planners use satellite segmentation to map buildings, roads, vegetation, water bodies.
+
+---
+
+# The Problem: Tracking Patient Movement
+
+![w:800](images/week03/problem_physio_raw.png)
+
+**Physical therapists need to track joint angles and movement patterns.**
+Is the patient doing the exercise correctly? Is their range of motion improving?
 
 ---
 
