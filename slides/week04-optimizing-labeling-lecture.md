@@ -25,79 +25,51 @@ paginate: true
 
 # Previously on CS 203...
 
-**Week 1**: Collected movie data from APIs
+| Week | What We Did | Outcome |
+|------|-------------|---------|
+| **Week 1** | Collected movie data from APIs | Raw dataset |
+| **Week 2** | Validated and cleaned the data | Clean dataset |
+| **Week 3** | Labeled data with quality control | 1,000 labeled movies |
 
-**Week 2**: Validated and cleaned the data
+**The Problem**: We need 100,000 labeled movies!
 
-**Week 3**: Learned how to label data with quality control
-
-```python
-# We labeled 1,000 movies... but we need 100,000!
-labeled_movies = 1000
-total_needed = 100000
-remaining = total_needed - labeled_movies  # 99,000 more!
-```
-
-**Problem**: At $0.30/movie and 5 min/movie, this would cost $30,000 and 8,333 hours!
-
----
-
-# The Labeling Bottleneck
-
-```
-    TRADITIONAL APPROACH
-
-    ┌──────────────────────────────────────────────────────────┐
-    │                                                          │
-    │   Unlabeled      Label         Labeled        Train      │
-    │     Data    -->  ALL of   -->   Data     --> Model       │
-    │   (100,000)      them!        (100,000)                  │
-    │                                                          │
-    │   Cost: $$$$$    Time: Months                            │
-    │                                                          │
-    └──────────────────────────────────────────────────────────┘
-```
+| Metric | Calculation | Total |
+|--------|-------------|-------|
+| Cost | 99,000 × ₹25/movie | **₹24.75 lakhs** |
+| Time | 99,000 × 5 min | **8,333 hours** |
 
 **Can we do better?**
 
 ---
 
-# Three Strategies to Reduce Labeling Cost
+# The Labeling Bottleneck
 
-```
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ ACTIVE LEARNING │  │ WEAK SUPERVISION│  │  LLM LABELING   │
-├─────────────────┤  ├─────────────────┤  ├─────────────────┤
-│                 │  │                 │  │                 │
-│  Label SMARTER  │  │ Label with CODE │  │ Label with AI   │
-│                 │  │                 │  │                 │
-│  Pick the most  │  │ Write rules &   │  │ Use GPT/Claude  │
-│  informative    │  │ heuristics      │  │ as annotators   │
-│  examples       │  │                 │  │                 │
-│                 │  │                 │  │                 │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
+**Traditional Approach**: Label everything, then train
 
-    Human labels       Noisy labels        AI labels
-    fewer items        many items          many items
-```
+Unlabeled Data (100K) → **Label ALL** → Labeled Data → Train Model
+
+| | Cost | Time |
+|--|------|------|
+| Labeling 100K examples | ₹25 lakhs | 8,333 hours |
+| Training model | Minimal | Hours |
+
+**The bottleneck is labeling, not training!**
+
+What if we could label *smarter* instead of labeling *everything*?
 
 ---
 
-# The Core Insight
+# Three Strategies to Reduce Labeling Cost
 
-<div class="insight">
+**Core Insight**: Not all labels are equal. Be strategic about *where* you invest human effort.
 
-**Not all labels are created equal, and not all examples need human labels.** The key insight is that we can be strategic about *where* we invest human effort, and *how* we generate labels at scale.
+| Strategy | How It Works | Savings |
+|----------|--------------|---------|
+| **Active Learning** | Model picks hardest examples for humans | 2-10x fewer labels |
+| **LLM Labeling** | Use GPT/Claude as cheap annotators | 10-50x cost reduction |
+| **Noisy Label Handling** | Detect and fix label errors | +10-20% accuracy |
 
-</div>
-
-| Strategy | Key Idea | When to Use |
-|----------|----------|-------------|
-| **Active Learning** | Humans label only the hardest examples | Limited annotation budget |
-| **Weak Supervision** | Encode expert knowledge as rules | Domain experts available |
-| **LLM Labeling** | Use AI as a cheap annotator | Well-defined tasks, need scale |
-
-**Often the best approach combines all three!**
+**Today**: Deep dive into Active Learning + overview of others
 
 ---
 
@@ -105,12 +77,13 @@ remaining = total_needed - labeled_movies  # 99,000 more!
 
 **Learn techniques to reduce labeling effort by 10x or more.**
 
-| Technique | Effort Reduction | Best When |
-|-----------|------------------|-----------|
-| Active Learning | 2-10x | Limited budget for human labels |
-| Weak Supervision | 10-100x | Patterns can be encoded as rules |
-| LLM Labeling | 10-50x | Task is well-defined, cost-sensitive |
-| Noisy Label Handling | 1.5-2x | Labels already exist but noisy |
+| Technique | What You'll Learn |
+|-----------|-------------------|
+| **Active Learning** | Let model pick which examples to label (2-10x savings) |
+| **LLM Labeling** | Use GPT/Claude as annotators (10-50x cost reduction) |
+| **Noisy Label Handling** | Detect & fix errors with cleanlab (+10-20% accuracy) |
+
+**Real-world pipelines combine these techniques!**
 
 ---
 
@@ -126,19 +99,12 @@ remaining = total_needed - labeled_movies  # 99,000 more!
 
 **Core Idea**: Let the model choose which examples to label.
 
-```
-    PASSIVE LEARNING (Traditional)
+![w:480](images/week04/passive_vs_active_learning.png)
 
-    Random sample --> Human labels --> Train model
-
-
-    ACTIVE LEARNING
-
-    Model picks "hard" examples --> Human labels --> Train model
-          ^                                              |
-          |______________________________________________|
-                         (repeat)
-```
+| Passive Learning | Active Learning |
+|------------------|-----------------|
+| Random sampling | Model picks "hard" examples |
+| Wastes labels on easy examples | Focuses on informative examples |
 
 **Why it works**: Not all examples are equally informative!
 
@@ -148,19 +114,13 @@ remaining = total_needed - labeled_movies  # 99,000 more!
 
 **Imagine you're learning to drive:**
 
-```
-    PASSIVE LEARNING:
-    Instructor randomly picks roads
-    - 50 trips on straight highways  (easy, repetitive)
-    - 3 trips in parking lots        (never practiced!)
-    - 2 trips in rain                (rare but important!)
-
-    ACTIVE LEARNING:
-    You tell instructor what you struggle with
-    - 10 trips on straight highways  (got it!)
-    - 20 trips in parking lots       (need practice)
-    - 15 trips in rain               (challenging!)
-```
+| | Passive Learning | Active Learning |
+|--|------------------|-----------------|
+| **Approach** | Instructor randomly picks roads | You tell instructor what you struggle with |
+| **Highways** | 50 trips (easy, repetitive) | 10 trips (got it!) |
+| **Parking lots** | 3 trips (never practiced!) | 20 trips (need practice) |
+| **Rain driving** | 2 trips (rare but important!) | 15 trips (challenging!) |
+| **Result** | Wasted time on easy stuff | Focused on weak areas |
 
 **Active learning focuses effort where it helps most!**
 
@@ -168,21 +128,18 @@ remaining = total_needed - labeled_movies  # 99,000 more!
 
 # Active Learning: The Intuition
 
-```
-                        Easy Examples
-                       (Model is confident)
-    ┌──────────────────────────────────────────────────────┐
-    │  "I loved this movie! Best film ever!"               │
-    │  Model: 99% POSITIVE  --> Don't need to label this   │
-    └──────────────────────────────────────────────────────┘
+**Easy Examples** (Model is confident → Don't label)
+- *"I loved this movie! Best film ever!"* → Model: **99% POSITIVE**
+- *"Terrible waste of time."* → Model: **98% NEGATIVE**
 
-                        Hard Examples
-                       (Model is uncertain)
-    ┌──────────────────────────────────────────────────────┐
-    │  "The movie was... interesting."                     │
-    │  Model: 48% POS, 52% NEG  --> LABEL THIS ONE!        │
-    └──────────────────────────────────────────────────────┘
-```
+**Hard Examples** (Model is uncertain → **LABEL THESE!**)
+- *"The movie was... interesting."* → Model: **48% POS, 52% NEG**
+- *"It was okay, I guess."* → Model: **51% POS, 49% NEG**
+
+| Example Type | Model Confidence | Action |
+|--------------|------------------|--------|
+| Easy | > 90% | Skip (already knows) |
+| Hard | ~50% | **Label** (most informative) |
 
 **Hard examples teach the model the most!**
 
@@ -211,94 +168,80 @@ reviews = [
 
 # The Decision Boundary Intuition
 
-```
-    Positive Reviews                    Negative Reviews
-         +                                     -
-       + + +                                 - - -
-     + + + + +          ?  ?  ?            - - - - -
-   + + + + + + +      ? ? ? ? ?          - - - - - - -
-     + + + + +          ?  ?  ?            - - - - -
-       + + +                                 - - -
-         +                                     -
+**Example**: Classifying handwritten digits 3 vs 5
 
-    Easy to classify     THE BOUNDARY        Easy to classify
-    (don't need labels)  (need labels!)      (don't need labels)
-```
+![w:550](images/week04/decision_boundary_3vs5.png)
 
-**Active learning samples from the decision boundary where the model is confused!**
+- Far from boundary → Easy to classify (don't need labels)
+- Near boundary → **Ambiguous** (model confused) → **Label these!**
+
+**Active learning focuses on the decision boundary!**
 
 ---
 
 # The Active Learning Loop
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                                                              │
-│  1. Start with small labeled set (seed data)                 │
-│                       │                                      │
-│                       v                                      │
-│  2. Train model on labeled data                              │
-│                       │                                      │
-│                       v                                      │
-│  3. Model scores unlabeled examples                          │
-│                       │                                      │
-│                       v                                      │
-│  4. Select most informative examples (query strategy)        │
-│                       │                                      │
-│                       v                                      │
-│  5. Human labels selected examples                           │
-│                       │                                      │
-│                       v                                      │
-│  6. Add to labeled set, repeat from step 2                   │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-```
+![w:700](images/week04/active_learning_loop.png)
+
+**Repeat until budget exhausted or accuracy target reached**
 
 ---
 
 # Query Strategies: How to Pick Examples
 
-**1. Uncertainty Sampling** - Pick examples where model is least confident
+**Model predicts class probabilities** → Use them to find informative examples
 
-```python
-# For classification, pick where max probability is lowest
-uncertainty = 1 - max(model.predict_proba(x))
-```
+| Example | P(Pos) | P(Neu) | P(Neg) | Which to label? |
+|---------|--------|--------|--------|-----------------|
+| "Amazing film!" | 0.95 | 0.03 | 0.02 | ✗ Confident |
+| "Terrible movie" | 0.02 | 0.03 | 0.95 | ✗ Confident |
+| "It was okay" | 0.35 | 0.40 | 0.25 | ✓ Uncertain |
+| "Interesting..." | 0.45 | 0.10 | 0.45 | ✓ Very uncertain |
+| "Not bad" | 0.48 | 0.04 | 0.48 | ✓ Most uncertain |
 
-**2. Margin Sampling** - Pick where top two classes are closest
+**Three ways to measure "uncertainty":**
 
-```python
-probs = sorted(model.predict_proba(x), reverse=True)
-margin = probs[0] - probs[1]  # Small margin = uncertain
-```
-
-**3. Entropy Sampling** - Pick where prediction distribution is most spread
-
-```python
-entropy = -sum(p * log(p) for p in model.predict_proba(x))
-```
+| Strategy | Formula | Picks Example With... |
+|----------|---------|----------------------|
+| **Uncertainty** | 1 - max(P) | Lowest max probability |
+| **Margin** | P₁ - P₂ | Smallest gap between top 2 |
+| **Entropy** | -Σ P·log(P) | Most spread distribution |
 
 ---
 
-# Query Strategy Comparison
+# Visualizing Uncertainty: Binary Case
 
-```
-UNCERTAINTY SAMPLING           MARGIN SAMPLING
+![w:750](images/week04/uncertainty_binary.png)
 
-Probs: [0.34, 0.33, 0.33]     Probs: [0.50, 0.49, 0.01]
-Max: 0.34 (low confidence)     Margin: 0.50 - 0.49 = 0.01
+**Both peak at P(+) = 0.5** — maximum uncertainty when model is 50-50!
 
-Both would select this         Very uncertain between
-example - very uncertain!      top 2 classes
+---
 
-ENTROPY SAMPLING
+# Visualizing Uncertainty: 3-Class Simplex
 
-Probs: [0.34, 0.33, 0.33]
-Entropy = -3 * (0.33 * log(0.33)) = 1.58 (high)
+![w:900](images/week04/uncertainty_simplex.png)
 
-Probs: [0.98, 0.01, 0.01]
-Entropy = -(0.98*log(0.98) + 2*0.01*log(0.01)) = 0.12 (low)
-```
+**★ Center** = All strategies agree: [0.33, 0.33, 0.33] is most uncertain
+
+---
+
+# Query Strategy Comparison: Different Picks!
+
+| Example | Probs [Pos, Neg, Neu] | Uncertainty | Margin | Entropy |
+|---------|----------------------|-------------|--------|---------|
+| A | [0.40, 0.35, 0.25] | **0.60** ✓ | 0.05 | 1.05 |
+| B | [0.50, 0.49, 0.01] | 0.50 | **0.01** ✓ | 0.71 |
+| C | [0.34, 0.33, 0.33] | 0.66 | 0.01 | **1.58** ✓ |
+
+**Different strategies → Different selections:**
+
+| Strategy | Selects | Why |
+|----------|---------|-----|
+| **Uncertainty** | A | Lowest max prob (0.40) |
+| **Margin** | B | Smallest gap between top 2 (0.01) |
+| **Entropy** | C | Most spread distribution |
+
+**Choose strategy based on your task!**
 
 ---
 
@@ -327,120 +270,207 @@ learner = ActiveLearner(
 # Active Learning Loop in Practice
 
 ```python
-n_queries = 100
+for i in range(100):  # 100 queries
+    # 1. Query most uncertain example
+    query_idx, query_inst = learner.query(X_pool)
 
-for i in range(n_queries):
-    # Query for the most uncertain example
-    query_idx, query_instance = learner.query(X_pool)
+    # 2. Get human label
+    y_new = get_human_label(query_inst)
 
-    # Get label from human (or oracle in experiments)
-    y_new = get_human_label(query_instance)
-
-    # Teach the model
-    learner.teach(query_instance, y_new)
-
-    # Remove from pool
+    # 3. Teach model & remove from pool
+    learner.teach(query_inst, y_new)
     X_pool = np.delete(X_pool, query_idx, axis=0)
 
-    # Track performance
-    accuracy = learner.score(X_test, y_test)
-    print(f"Query {i+1}: Accuracy = {accuracy:.2%}")
+    print(f"Query {i+1}: Acc = {learner.score(X_test, y_test):.1%}")
 ```
+
+**Output**: Accuracy improves with each informative label!
 
 ---
 
 # Active Learning: Typical Results
 
-```
-    Accuracy
-        ^
-   1.0  |                                    ___________
-        |                               ____/
-   0.9  |                          ____/
-        |                     ____/
-   0.8  |                ____/  <-- Active Learning
-        |           ____/
-   0.7  |      ____/      _______________________
-        |  ___/     _____/
-   0.6  | /    ____/  <-- Random Sampling
-        |/____/
-   0.5  +----------------------------------------->
-        0    100   200   300   400   500
-                Number of Labels
+![w:550](images/week04/active_learning_results.png)
 
-    Active learning reaches 90% accuracy with 200 labels
-    Random sampling needs 400+ labels for same accuracy
-```
+| Interpretation | Reading | Benefit |
+|----------------|---------|---------|
+| **Horizontal (green)** | Fix accuracy at 90% | 50% fewer labels needed |
+| **Vertical (purple)** | Fix budget at 200 labels | +15% higher accuracy |
 
 ---
 
-# Batch Active Learning
+# Batch Active Learning: The Problem
 
-**Problem**: Querying one example at a time is slow.
+**Problem**: Querying one at a time is slow. Let's query a batch!
 
-**Solution**: Select a batch of examples at once.
+![w:1000](images/week04/batch_similar_problem.png)
 
-```python
-from modAL.batch import uncertainty_batch_sampling
+All 5 are uncertain "3 vs 5" — labeling all gives ~same info as labeling 1!
 
-learner = ActiveLearner(
-    estimator=RandomForestClassifier(),
-    query_strategy=uncertainty_batch_sampling,
-    X_training=X_initial,
-    y_training=y_initial
-)
+---
 
-# Query 10 examples at once
-query_idx, query_instances = learner.query(X_pool, n_instances=10)
-```
+# Batch Active Learning: The Solution
 
-**Challenge**: Top-10 uncertain examples might be very similar!
+**Solution**: Select *diverse* uncertain examples
+
+![w:1000](images/week04/batch_diverse_solution.png)
+
+Each example covers a **different confusion** — each label teaches something new!
 
 ---
 
 # Diversity in Batch Selection
 
-```python
-from modAL.batch import ranked_batch
+![w:500](images/week04/diversity_clustering.png)
 
-def diversity_uncertainty_sampling(classifier, X_pool, n_instances=10):
-    # Get uncertainty scores
-    uncertainty = 1 - np.max(classifier.predict_proba(X_pool), axis=1)
+**Algorithm**: Cluster uncertain samples → Pick one (★) from each cluster
 
-    # Cluster similar examples
-    from sklearn.cluster import KMeans
-    kmeans = KMeans(n_clusters=n_instances).fit(X_pool)
-
-    # Pick most uncertain from each cluster
-    selected = []
-    for cluster_id in range(n_instances):
-        cluster_mask = kmeans.labels_ == cluster_id
-        cluster_uncertainty = uncertainty[cluster_mask]
-        best_idx = np.argmax(cluster_uncertainty)
-        selected.append(np.where(cluster_mask)[0][best_idx])
-
-    return selected
-```
+📖 **Further Reading**: BALD (Houlsby et al., 2011), BatchBALD (Kirsch et al., 2019)
 
 ---
 
-# Active Learning: Practical Considerations
+# Practical Issue 1: Cold Start Problem
 
-**1. Cold Start Problem**
-- Initial model is bad, uncertainty estimates unreliable
-- Solution: Start with diverse random sample or stratified sample
+**Problem**: Initial model is bad → uncertainty estimates are meaningless!
 
-**2. Stopping Criteria**
-- When to stop labeling?
-- Options: Budget exhausted, accuracy plateau, uncertainty threshold
+| Round | Model Quality | Uncertainty Estimates |
+|-------|---------------|----------------------|
+| Round 1 | Random guessing | **Unreliable** |
+| Round 5 | Slightly better | Still noisy |
+| Round 20 | Decent model | **Now useful!** |
 
-**3. Class Imbalance**
-- Uncertainty sampling may neglect rare classes
-- Solution: Add diversity constraint or stratified sampling
+**Solutions**:
+- Start with random/stratified sample (10-50 examples)
+- Use diversity sampling for first few rounds
+- Switch to uncertainty after model stabilizes
 
-**4. Batch vs Sequential**
-- Sequential: More efficient per label
-- Batch: Faster in practice (parallel labeling)
+---
+
+# Practical Issue 2: When to Stop?
+
+**Problem**: How do you know when you have enough labels?
+
+| Stopping Criterion | How It Works |
+|-------------------|--------------|
+| **Budget exhausted** | Fixed ₹ or time limit |
+| **Accuracy plateau** | No improvement for N rounds |
+| **Uncertainty threshold** | All remaining examples have confidence > 95% |
+
+**Practical tip**: Plot learning curve live!
+- If accuracy plateaus → stop (more labels won't help)
+- If still rising steeply → continue
+
+---
+
+# Practical Issue 3: Class Imbalance
+
+**Problem**: Uncertainty sampling may ignore rare classes!
+
+| Class | Frequency | Model Behavior |
+|-------|-----------|----------------|
+| "Positive" | 90% | High confidence (lots of examples) |
+| "Negative" | 10% | **Always uncertain** (few examples) |
+
+**What happens**: Model never learns rare class well
+
+**Solutions**:
+- Stratified sampling (ensure all classes represented)
+- Class-balanced uncertainty (normalize by class frequency)
+- Hybrid: uncertainty + random sampling from rare classes
+
+---
+
+# Practical Issue 4: Batch vs Sequential
+
+| Mode | Pros | Cons |
+|------|------|------|
+| **Sequential** | Most efficient per label | Slow (retrain after each) |
+| **Batch** | Faster (parallel labeling) | Less efficient per label |
+
+**Practical choice**: Almost always use batch!
+
+- Batch size 10-50 is typical
+- Retrain every batch (not every label)
+- Use diversity to avoid redundant batches
+
+---
+
+# Query By Committee (QBC)
+
+**Idea**: Train multiple models, query where they *disagree*
+
+| Model | Prediction for "It was okay" |
+|-------|------------------------------|
+| Model 1 (SVM) | POSITIVE |
+| Model 2 (RF) | NEGATIVE |
+| Model 3 (NB) | POSITIVE |
+| Model 4 (LR) | NEGATIVE |
+
+**Vote Entropy**: 2 POS, 2 NEG → High disagreement → **Label this!**
+
+| Measure | Formula | Interpretation |
+|---------|---------|----------------|
+| **Vote Entropy** | -Σ (votes/n) log(votes/n) | High = disagreement |
+| **KL Divergence** | Avg divergence from consensus | High = disagreement |
+
+**When to use**: When you can train multiple diverse models cheaply
+
+---
+
+# Active Learning for Regression
+
+**Problem**: No class probabilities! How to measure uncertainty?
+
+| Strategy | Formula | Intuition |
+|----------|---------|-----------|
+| **Predicted Variance** | σ²(x) from ensemble | Models disagree on value |
+| **QBC Std Dev** | std([f₁(x), f₂(x), ...]) | Committee predictions vary |
+| **Gaussian Process** | Posterior variance | Epistemic uncertainty |
+
+**Example**: Predicting house prices
+
+| House | Model 1 | Model 2 | Model 3 | **Std Dev** |
+|-------|---------|---------|---------|-------------|
+| A | ₹50L | ₹52L | ₹51L | ₹1L (low) |
+| B | ₹40L | ₹60L | ₹45L | **₹10L (high)** ✓ |
+
+→ Query House B — models are uncertain about its price!
+
+---
+
+# Active Learning for Other Tasks
+
+| Task | Uncertainty Measure | Notes |
+|------|---------------------|-------|
+| **NER** | Token-level entropy, sequence probability | Aggregate over tokens or use CRF marginals |
+| **Object Detection** | Box confidence, classification entropy | Query images with uncertain detections |
+| **Semantic Segmentation** | Pixel-wise entropy, region uncertainty | Focus on boundary regions |
+| **Machine Translation** | Sequence probability, attention entropy | Use beam search diversity |
+
+**Key Insight**: Adapt uncertainty to your output structure!
+
+**NER Example**: "Apple announced iPhone"
+- P(Apple=ORG) = 0.51, P(Apple=PRODUCT) = 0.49 → High uncertainty → Query!
+
+**Object Detection**: Query images where detector is unsure if object exists or about bounding box
+
+---
+
+# Bayesian Active Learning
+
+**Idea**: Use model uncertainty from Bayesian inference
+
+| Approach | How It Works |
+|----------|--------------|
+| **MC Dropout** | Run model multiple times with dropout, measure variance |
+| **Deep Ensembles** | Train multiple neural nets, measure disagreement |
+| **BALD** | Maximize mutual information between predictions and model parameters |
+
+**BALD (Bayesian Active Learning by Disagreement)**:
+- Select examples that would most reduce model uncertainty
+- Considers both *what* the model is uncertain about and *why*
+
+**Libraries**: `baal` (Bayesian Active Learning), `uncertainty-toolbox`
 
 ---
 
@@ -472,6 +502,14 @@ pip install label-studio-ml
 
 ---
 
+# Weak Supervision: The Big Picture
+
+![w:900](images/week04/weak_supervision_pipeline.png)
+
+**Key Idea**: Write **labeling functions** (heuristics) instead of labeling examples manually. Snorkel combines noisy votes into reliable probabilistic labels.
+
+---
+
 # What is Weak Supervision?
 
 **Core Idea**: Write labeling functions (code) instead of labeling examples.
@@ -500,25 +538,23 @@ def lf_exclamation_count(text):
 
 **You're a movie critic. How do you know a review is positive?**
 
-```
-    YOUR BRAIN'S "LABELING FUNCTIONS":
-
-    1. Contains "amazing", "loved", "masterpiece" --> Positive
-    2. Contains "boring", "waste", "terrible"     --> Negative
-    3. Rating mentioned > 8/10                    --> Positive
-    4. Multiple exclamation marks                 --> Probably positive
-    5. Mentions "Oscar" or "award"                --> Probably positive
-    6. Very short review                          --> Often negative (rant)
-```
+| Signal | Rule | Label |
+|--------|------|-------|
+| Keywords | "amazing", "loved", "masterpiece" | → Positive |
+| Keywords | "boring", "waste", "terrible" | → Negative |
+| Rating | Mentions score > 8/10 | → Positive |
+| Punctuation | Multiple !!! | → Probably positive |
+| Awards | Mentions "Oscar" | → Probably positive |
+| Length | Very short review | → Often negative |
 
 **Weak supervision = encoding your expert intuition as code!**
 
 ---
 
-# Labeling Functions: Netflix Movie Example
+# Labeling Functions: Netflix Example (using Snorkel)
 
 ```python
-# Real labeling functions for our Netflix movie dataset
+# Snorkel labeling functions for movie sentiment
 
 @labeling_function()
 def lf_high_rating(movie):
@@ -553,27 +589,9 @@ def lf_sequel_fatigue(movie):
 
 # Labeling Functions: Characteristics
 
-```
-                    COVERAGE vs ACCURACY
+![w:700](images/week04/lf_characteristics.png)
 
-    High Coverage,          Low Coverage,
-    Low Accuracy            High Accuracy
-         ^                       ^
-         |                       |
-    ┌─────────┐             ┌─────────┐
-    │ Keyword │             │ Pattern │
-    │ Match   │             │ Match   │
-    │         │             │         │
-    │ "good"  │             │ rating  │
-    │ in text │             │ > 9/10  │
-    │ -> POS  │             │ -> POS  │
-    └─────────┘             └─────────┘
-
-    Matches 40%             Matches 5%
-    of data                 of data
-
-    70% accurate            95% accurate
-```
+**Key tradeoff**: Each LF may be weak alone, but combining many gives coverage + accuracy!
 
 ---
 
@@ -622,229 +640,188 @@ lf_contains_terrible(text) # Returns: "NEGATIVE"
 # Snorkel: The Weak Supervision Framework
 
 ```python
-from snorkel.labeling import labeling_function, LFAnalysis
+from snorkel.labeling import labeling_function
+
+ABSTAIN, NEGATIVE, POSITIVE = -1, 0, 1
 
 @labeling_function()
 def lf_contains_good(x):
-    return 1 if "good" in x.text.lower() else -1  # 1=POS, 0=NEG, -1=ABSTAIN
+    return POSITIVE if "good" in x.text.lower() else ABSTAIN
 
 @labeling_function()
 def lf_contains_bad(x):
-    return 0 if "bad" in x.text.lower() else -1
+    return NEGATIVE if "bad" in x.text.lower() else ABSTAIN
 
 @labeling_function()
-def lf_rating_based(x):
-    if hasattr(x, 'rating') and x.rating is not None:
-        return 1 if x.rating > 7 else 0
-    return -1
+def lf_high_rating(x):
+    return POSITIVE if x.rating > 8 else ABSTAIN
 ```
+
+📁 **Demo**: `lecture-demos/week04/snorkel_weak_supervision.py`
 
 ---
 
-# Applying Labeling Functions
+# Worked Example: Our 5 Movie Reviews
+
+**Task**: Label these 5 reviews as POS/NEG (we don't know true labels!)
+
+| # | Review | Rating |
+|---|--------|--------|
+| 1 | "A **good** movie with great acting" | 8.0 |
+| 2 | "**Good** visuals but boring plot" | 5.0 |
+| 3 | "Absolutely **terrible**, waste of time" | 2.0 |
+| 4 | "Decent film, worth watching" | 7.5 |
+| 5 | "**Good** fun but poorly made" | 4.0 |
+
+**2 Labeling Functions:**
+- **LF₁**: "good" in text → vote POS (else abstain)
+- **LF₂**: rating > 7 → vote POS; rating < 4 → vote NEG (else abstain)
+
+---
+
+# Step 1: Apply LFs → Label Matrix
+
+| # | Review | LF₁ (keyword) | LF₂ (rating) |
+|---|--------|---------------|--------------|
+| 1 | "good movie" (8.0) | POS | POS |
+| 2 | "good but boring" (5.0) | POS | — |
+| 3 | "terrible" (2.0) | — | NEG |
+| 4 | "decent film" (7.5) | — | POS |
+| 5 | "good but poor" (4.0) | POS | — |
+
+**Coverage**: LF₁ fires on 3/5 = **60%**, LF₂ fires on 3/5 = **60%**
+
+---
+
+# Step 2: Find Overlaps & Conflicts
+
+**Overlap** = both LFs vote on same review
+
+| # | LF₁ | LF₂ | Both vote? | Agree? |
+|---|-----|-----|------------|--------|
+| 1 | POS | POS | ✅ Yes | ✅ Yes |
+| 2 | POS | — | No | — |
+| 3 | — | NEG | No | — |
+| 4 | — | POS | No | — |
+| 5 | POS | — | No | — |
+
+**Only 1 overlap, and they agree!** → Agreement rate = 1/1 = **100%**
+
+*(With 1000 reviews, we'd see more overlaps to estimate from)*
+
+---
+
+# Step 3a: The Agreement Equation (2 LFs)
+
+**When do two LFs agree?** Both correct OR both wrong!
+
+$$P(\text{agree}) = \underbrace{\alpha_1 \cdot \alpha_2}_{\text{both correct}} + \underbrace{(1-\alpha_1)(1-\alpha_2)}_{\text{both wrong}}$$
+
+**Observed**: LF₁ and LF₂ agree on **85%** of overlapping examples
+
+$$0.85 = \alpha_1 \alpha_2 + (1-\alpha_1)(1-\alpha_2)$$
+
+One equation, two unknowns! Need more information...
+
+---
+
+# Step 3b: With N Labeling Functions
+
+**With 3+ LFs, we get multiple equations:**
+
+| LF Pair | Observed Agreement | Equation |
+|---------|-------------------|----------|
+| LF₁, LF₂ | 85% | 0.85 = α₁α₂ + (1-α₁)(1-α₂) |
+| LF₁, LF₃ | 80% | 0.80 = α₁α₃ + (1-α₁)(1-α₃) |
+| LF₂, LF₃ | 90% | 0.90 = α₂α₃ + (1-α₂)(1-α₃) |
+
+**3 equations, 3 unknowns** → Can solve for α₁, α₂, α₃!
+
+With N LFs: **N(N-1)/2 pairwise equations**, only **N unknowns** → overdetermined!
+
+---
+
+# Step 3c: The Optimization Problem
+
+**Snorkel solves via Maximum Likelihood Estimation:**
+
+$$\max_{\alpha_1, ..., \alpha_N} P(\text{observed label matrix} | \alpha_1, ..., \alpha_N)$$
+
+**Algorithm** (simplified):
+1. Initialize: guess α₁ = α₂ = ... = 0.7
+2. **E-step**: Given current α's, estimate likely true labels
+3. **M-step**: Given estimated labels, update α's to maximize agreement
+4. Repeat until converged
+
+**Output for our example**: α₁ = 0.80, α₂ = 0.90
+
+*(This is Expectation-Maximization on a generative model)*
+
+---
+
+# Step 4: Convert Accuracy → Voting Weight
+
+**Weight formula** (log-odds of accuracy):
+
+$$w = \log\frac{\alpha}{1-\alpha}$$
+
+| LF | Accuracy (α) | Calculation | Weight (w) |
+|----|--------------|-------------|------------|
+| LF₁ | 0.80 | log(0.8/0.2) = log(4) | **1.39** |
+| LF₂ | 0.90 | log(0.9/0.1) = log(9) | **2.20** |
+
+**Intuition**: Higher accuracy → higher weight → more influence in vote
+
+---
+
+# Step 5: Compute Final Probabilities
+
+**Review 1**: "good movie" (8.0) — LF₁=POS, LF₂=POS
+
+| Class | Which LFs voted | Score |
+|-------|-----------------|-------|
+| POS | LF₁ + LF₂ | 1.39 + 2.20 = **3.59** |
+| NEG | (none) | **0** |
+
+$$P(\text{POS}) = \frac{e^{3.59}}{e^{3.59} + e^{0}} = \frac{36.2}{37.2} = \textbf{97\%}$$
+
+---
+
+# Step 5 (cont.): More Reviews
+
+**Review 2**: "good but boring" (5.0) — LF₁=POS, LF₂=abstain
+
+$$P(\text{POS}) = \frac{e^{1.39}}{e^{1.39} + e^{0}} = \frac{4.0}{5.0} = \textbf{80\%}$$
+
+**Review 3**: "terrible" (2.0) — LF₁=abstain, LF₂=NEG
+
+$$P(\text{POS}) = \frac{e^{0}}{e^{0} + e^{2.20}} = \frac{1}{10} = \textbf{10\%}$$
+
+**Review 4**: "decent film" (7.5) — LF₁=abstain, LF₂=POS → **90% POS**
+
+**Review 5**: "good but poor" (4.0) — LF₁=POS, LF₂=abstain → **80% POS**
+
+---
+
+# Worked Example: Step 5 — Train Final Model
 
 ```python
-from snorkel.labeling import PandasLFApplier
+# Get probabilistic labels from Snorkel
+probs = label_model.predict_proba(L_train)  # e.g., [0.92, 0.35, 0.87, ...]
 
-# Define all LFs
-lfs = [lf_contains_good, lf_contains_bad, lf_rating_based]
-
-# Apply to data
-applier = PandasLFApplier(lfs=lfs)
-L_train = applier.apply(df_train)
-
-# L_train is a matrix: (n_examples, n_lfs)
-# Each cell is 1 (POS), 0 (NEG), or -1 (ABSTAIN)
-
-print(L_train[:5])
-# [[-1,  0, -1],   # Only lf_contains_bad fired -> NEG
-#  [ 1, -1,  1],   # lf_contains_good and lf_rating agree -> POS
-#  [-1, -1, -1],   # No LF fired -> unlabeled
-#  [ 1,  0, -1],   # Conflict! good vs bad
-#  [-1, -1,  0]]   # Only lf_rating -> NEG
-```
-
----
-
-# Analyzing Labeling Functions
-
-```python
-from snorkel.labeling import LFAnalysis
-
-analysis = LFAnalysis(L=L_train, lfs=lfs).lf_summary()
-print(analysis)
-```
-
-| LF | Polarity | Coverage | Overlaps | Conflicts |
-|----|----------|----------|----------|-----------|
-| lf_contains_good | [1] | 0.25 | 0.12 | 0.05 |
-| lf_contains_bad | [0] | 0.18 | 0.08 | 0.05 |
-| lf_rating_based | [0, 1] | 0.60 | 0.15 | 0.02 |
-
-**Coverage**: Fraction of data the LF labels
-**Overlaps**: Fraction where LF agrees with another
-**Conflicts**: Fraction where LF disagrees with another
-
----
-
-# The Label Model
-
-**Goal**: Combine noisy LF outputs into probabilistic labels.
-
-```python
-from snorkel.labeling.model import LabelModel
-
-# Train label model
-label_model = LabelModel(cardinality=2, verbose=True)
-label_model.fit(L_train=L_train, n_epochs=500)
-
-# Get probabilistic labels
-probs = label_model.predict_proba(L_train)
-# probs[i] = [P(NEG), P(POS)] for example i
-
-# Get hard labels (for training downstream model)
-preds = label_model.predict(L_train)
-```
-
----
-
-# How the Label Model Works
-
-```
-    LF Outputs                  Label Model              Probabilistic
-    (noisy votes)               (learns weights)         Labels
-
-    lf_good:  [1, -1, 1, 0]                              [0.85, 0.2, 0.9, 0.3]
-    lf_bad:   [0, -1, 0, 1]  -->  Learns which    -->
-    lf_rating:[1, -1, 1, 1]       LFs are accurate       P(POSITIVE|LF outputs)
-
-    Key Insight:
-    - LFs that often agree are probably accurate
-    - LFs that often conflict might be noisy
-    - Model learns accuracy WITHOUT ground truth labels!
-```
-
----
-
-# The Voting Intuition
-
-**Think of LFs as a jury voting on each example:**
-
-```
-Movie: "The Godfather" (1972)
-
-    LF_high_rating:     POSITIVE  (IMDB: 9.2)
-    LF_oscar_winner:    POSITIVE  (Won Best Picture)
-    LF_classic_year:    POSITIVE  (Before 1980, acclaimed)
-    LF_sequel_fatigue:  ABSTAIN   (Not a sequel)
-    LF_low_budget:      ABSTAIN   (No data)
-
-    Jury Vote: 3 POSITIVE, 0 NEGATIVE, 2 ABSTAIN
-
-    Label Model Output: 95% POSITIVE
-```
-
-**LFs that agree with each other get higher weight!**
-
----
-
-# When LFs Disagree: The Label Model Resolves
-
-```
-Movie: "Sharknado 5" (2017)
-
-    LF_high_rating:     NEGATIVE  (IMDB: 3.5)
-    LF_cult_classic:    POSITIVE  (Has devoted fanbase)
-    LF_sequel_fatigue:  NEGATIVE  (5th sequel!)
-    LF_social_buzz:     POSITIVE  (Trending on Twitter)
-
-    Jury Vote: 2 POSITIVE, 2 NEGATIVE
-
-    But LF_high_rating has 90% accuracy historically
-    And LF_cult_classic only has 60% accuracy
-
-    Label Model Output: 65% NEGATIVE
-    (Weighs LFs by learned accuracy)
-```
-
-**The label model learns which LFs to trust!**
-
----
-
-# Training Downstream Model
-
-```python
-from snorkel.labeling import filter_unlabeled_dataframe
-
-# Filter out examples where no LF fired
-df_train_filtered, probs_filtered = filter_unlabeled_dataframe(
-    df_train, probs, L_train
-)
-
-# Train your actual model on probabilistic labels
+# Train any classifier on these soft labels
 from sklearn.linear_model import LogisticRegression
-
-# Use soft labels (probabilistic)
 model = LogisticRegression()
-model.fit(
-    df_train_filtered['text_features'],
-    probs_filtered[:, 1]  # P(POSITIVE)
-)
-
-# Or use hard labels
-hard_labels = (probs_filtered[:, 1] > 0.5).astype(int)
-model.fit(df_train_filtered['text_features'], hard_labels)
+model.fit(X_features, (probs[:, 1] > 0.5).astype(int))
 ```
 
----
+**Full pipeline summary:**
+1. Write 10-20 labeling functions (heuristics)
+2. Apply LFs → get noisy vote matrix
+3. Train Label Model → learn LF reliabilities
+4. Get probabilistic labels → train your real model
 
-# Weak Supervision: Complete Example
-
-```python
-import pandas as pd
-from snorkel.labeling import labeling_function, PandasLFApplier
-from snorkel.labeling.model import LabelModel
-
-# 1. Load unlabeled data
-df = pd.read_csv("movie_reviews.csv")
-
-# 2. Define labeling functions
-@labeling_function()
-def lf_awesome(x):
-    return 1 if "awesome" in x.text.lower() else -1
-
-@labeling_function()
-def lf_boring(x):
-    return 0 if "boring" in x.text.lower() else -1
-
-lfs = [lf_awesome, lf_boring, ...]  # Add more LFs
-```
-
----
-
-# Weak Supervision: Complete Example (cont.)
-
-```python
-# 3. Apply LFs to data
-applier = PandasLFApplier(lfs=lfs)
-L_train = applier.apply(df)
-
-# 4. Train label model
-label_model = LabelModel(cardinality=2)
-label_model.fit(L_train, n_epochs=500)
-
-# 5. Get probabilistic labels
-probs = label_model.predict_proba(L_train)
-
-# 6. Train downstream model
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-
-vectorizer = TfidfVectorizer()
-X = vectorizer.fit_transform(df['text'])
-model = MultinomialNB()
-model.fit(X, (probs[:, 1] > 0.5).astype(int))
-```
+📁 **Complete code**: `demos/snorkel_weak_supervision.py`
 
 ---
 
@@ -861,33 +838,6 @@ model.fit(X, (probs[:, 1] > 0.5).astype(int))
 - No clear patterns or heuristics
 - Very small dataset (just label it manually)
 - High precision required (weak labels are noisy)
-
----
-
-# The Quality vs Quantity Trade-off
-
-<div class="insight">
-
-**The fundamental trade-off**: Perfect labels for few examples vs. noisy labels for many examples. Surprisingly, more noisy labels often beats fewer perfect labels!
-
-</div>
-
-```
-    Model Performance
-         ^
-         |                         ___________________
-         |                    ____/
-         |               ____/    Many noisy labels
-         |          ____/
-         |     ____/      _______________
-         |____/     _____/
-         |    _____/   Few perfect labels
-         |___/
-         +----------------------------------------->
-                        Training Data Size
-```
-
-**Why?** Neural networks can "average out" random noise across many examples.
 
 ---
 
@@ -923,209 +873,89 @@ total_cost = 20  # USD
 
 # Why LLMs Can Label Data
 
-**LLMs are trained on the entire internet - they've "seen" everything:**
-
-```
-    GPT-4 has read:
-    - Millions of movie reviews
-    - IMDB, Rotten Tomatoes, Metacritic
-    - Professional film criticism
-    - Reddit discussions about movies
-    - Academic papers on sentiment analysis
-
-    So when you ask: "Is this review positive or negative?"
-    It can often answer correctly!
-```
+![w:800](images/week04/why_llms_can_label.png)
 
 **LLMs = Crowdsourced human knowledge, distilled into a model**
 
 ---
 
-# LLM Labeling: Movie Review Example
+# LLM Labeling: ChatGPT Interface
+
+![w:700](images/week04/llm_chatgpt_labeling.png)
+
+**It's this simple!** Just ask the LLM to classify text. But how do we scale this to 10,000 reviews?
+
+---
+
+# LLM Labeling: System vs User Messages
+
+| Role | Purpose | Example |
+|------|---------|---------|
+| **System** | Define the task, persona, output format | "You are a movie critic. Classify as POSITIVE/NEGATIVE/NEUTRAL" |
+| **User** | The actual text to classify | "Review: 'Mind-blowing visuals!'" |
 
 ```python
-import openai
-
-def label_movie_review(review):
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": """
-                You are a movie critic. Classify reviews as:
-                - POSITIVE: Reviewer enjoyed the movie
-                - NEGATIVE: Reviewer did not enjoy the movie
-                - NEUTRAL: Mixed feelings or no clear opinion
-            """},
-            {"role": "user", "content": f'Review: "{review}"\n\nClassification:'}
-        ]
-    )
-    return response.choices[0].message.content
-
-# Examples from our Netflix dataset
-print(label_movie_review("Mind-blowing visuals! Nolan does it again!"))
-# Output: POSITIVE
-
-print(label_movie_review("Meh. Seen better, seen worse."))
-# Output: NEUTRAL
-
-print(label_movie_review("Two hours of my life I'll never get back."))
-# Output: NEGATIVE
+messages = [
+    {"role": "system", "content": "Classify movie reviews as POSITIVE/NEGATIVE/NEUTRAL"},
+    {"role": "user", "content": "Review: 'Mind-blowing visuals! Nolan does it again!'"}
+]
+# Response: "POSITIVE"
 ```
 
 ---
 
-# LLM Labeling: Basic Approach
+# LLM Labeling: API for Scale
 
 ```python
-import openai
+from openai import OpenAI
+client = OpenAI()
 
-def label_with_gpt(text, task_description):
-    response = openai.ChatCompletion.create(
+def label_review(review):
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": task_description},
-            {"role": "user", "content": f"Text: {text}\n\nLabel:"}
+            {"role": "system", "content": "Classify as POSITIVE/NEGATIVE/NEUTRAL. Reply with only the label."},
+            {"role": "user", "content": f"Review: {review}"}
         ],
         max_tokens=10
     )
     return response.choices[0].message.content.strip()
 
-# Example
-task = "Classify movie reviews as POSITIVE or NEGATIVE."
-label = label_with_gpt("This movie was incredible!", task)
-print(label)  # "POSITIVE"
+# Label 1000 reviews
+labels = [label_review(r) for r in reviews]
 ```
+
+📁 **Demo**: `lecture-demos/week04/llm_labeling.py`
 
 ---
 
-# Prompt Engineering for Annotation
+# Better Prompts = Better Labels
 
-**Bad Prompt:**
-```
-Classify this: "The movie was okay I guess"
-```
-
-**Good Prompt:**
-```
-You are an expert movie critic annotating reviews for sentiment.
-
-Task: Classify the sentiment of movie reviews.
-
-Labels:
-- POSITIVE: The reviewer liked the movie
-- NEGATIVE: The reviewer disliked the movie
-- NEUTRAL: The reviewer has mixed or no strong feelings
-
-Review: "The movie was okay I guess"
-
-Classification (respond with only the label):
-```
-
----
-
-# Few-Shot Prompting
+| Technique | Example | Benefit |
+|-----------|---------|---------|
+| **Clear labels** | "POSITIVE/NEGATIVE/NEUTRAL" | No ambiguity |
+| **Definitions** | "POSITIVE: Reviewer enjoyed the movie" | Consistent criteria |
+| **Few-shot** | Give 2-3 examples first | Much higher accuracy |
+| **JSON output** | "Respond in JSON: {label, confidence}" | Easy parsing |
 
 ```python
-prompt = """Classify movie review sentiment.
+prompt = """Examples:
+"Loved it!" → POSITIVE
+"Terrible" → NEGATIVE
 
-Examples:
-Review: "Absolutely loved it! Best movie of the year!"
-Label: POSITIVE
-
-Review: "Waste of time. Don't bother watching."
-Label: NEGATIVE
-
-Review: "It was fine. Nothing special but not bad."
-Label: NEUTRAL
-
-Review: "{review_text}"
+Now classify: "The movie was okay I guess"
 Label:"""
-
-label = label_with_gpt(prompt.format(review_text=text))
 ```
 
-**Few-shot examples significantly improve accuracy!**
-
----
-
-# Getting Confidence Scores
-
-```python
-def label_with_confidence(text):
-    prompt = f"""Classify the sentiment and provide confidence.
-
-Text: "{text}"
-
-Respond in JSON format:
-{{"label": "POSITIVE/NEGATIVE/NEUTRAL", "confidence": 0.0-1.0}}
-"""
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}]
-    )
-
-    import json
-    result = json.loads(response.choices[0].message.content)
-    return result["label"], result["confidence"]
-
-label, conf = label_with_confidence("Great movie!")
-print(f"Label: {label}, Confidence: {conf}")
-# Label: POSITIVE, Confidence: 0.95
-```
-
----
-
-# Batch Processing for Cost Efficiency
-
-```python
-import asyncio
-import aiohttp
-
-async def batch_label(texts, batch_size=10):
-    results = []
-
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i:i+batch_size]
-
-        # Format as single prompt
-        prompt = "Classify each review:\n\n"
-        for j, text in enumerate(batch):
-            prompt += f"{j+1}. {text}\n"
-        prompt += "\nRespond with labels (one per line):"
-
-        response = await async_gpt_call(prompt)
-        labels = response.strip().split('\n')
-        results.extend(labels)
-
-    return results
-```
+**Few-shot examples can improve accuracy by 10-20%!**
 
 ---
 
 # LLM Labeling Quality Control
 
-```python
-def validate_llm_labels(texts, llm_labels, sample_size=100):
-    # Random sample for human validation
-    indices = random.sample(range(len(texts)), sample_size)
+![w:750](images/week04/llm_quality_control.png)
 
-    human_labels = []
-    for idx in indices:
-        print(f"Text: {texts[idx]}")
-        print(f"LLM Label: {llm_labels[idx]}")
-        human = input("Your label (or 'agree'): ")
-        if human.lower() == 'agree':
-            human_labels.append(llm_labels[idx])
-        else:
-            human_labels.append(human)
-
-    # Calculate agreement
-    agreement = sum(h == llm_labels[i] for i, h in
-                   zip(indices, human_labels)) / sample_size
-    print(f"LLM-Human Agreement: {agreement:.1%}")
-
-    return agreement
-```
+**Always validate!** Sample 50-100 labels and check human-LLM agreement before trusting the full batch.
 
 ---
 
@@ -1184,16 +1014,16 @@ def hybrid_labeling(texts, confidence_threshold=0.8):
 
 # LLM Labeling: Cost Comparison
 
-| Method | Cost/1000 | Quality | Speed |
-|--------|-----------|---------|-------|
-| Expert humans | $300-500 | Highest | Slow |
-| Crowdsourcing | $50-100 | Medium | Medium |
-| GPT-4 | $20-50 | Good | Fast |
-| GPT-3.5 | $2-5 | Moderate | Very Fast |
-| Claude Haiku | $1-3 | Moderate | Very Fast |
-| Open source LLM | ~$0 (compute) | Varies | Depends |
+| Method | Cost/1000 labels | INR/1000 | Quality | Speed |
+|--------|------------------|----------|---------|-------|
+| Expert humans | $300-500 | ₹25,000-42,000 | Highest | Slow |
+| Crowdsourcing | $50-100 | ₹4,200-8,400 | Medium | Medium |
+| GPT-4 | $20-50 | ₹1,700-4,200 | Good | Fast |
+| GPT-3.5 | $2-5 | ₹170-420 | Moderate | Very Fast |
+| Claude Haiku | $1-3 | ₹85-250 | Moderate | Very Fast |
+| Open source LLM | ~$0 | ~₹0 (compute) | Varies | Depends |
 
-**Sweet spot**: GPT-3.5/Claude for first pass, humans for validation
+**Sweet spot**: GPT-3.5/Claude Haiku for first pass, humans for validation
 
 ---
 
@@ -1207,216 +1037,50 @@ def hybrid_labeling(texts, confidence_threshold=0.8):
 
 # Sources of Label Noise
 
-```
-┌────────────────────────────────────────────────────────────┐
-│                    LABEL NOISE SOURCES                     │
-├────────────────────────────────────────────────────────────┤
-│                                                            │
-│  1. ANNOTATOR ERROR                                        │
-│     - Fatigue, lack of attention                           │
-│     - Misunderstanding guidelines                          │
-│                                                            │
-│  2. TASK AMBIGUITY                                         │
-│     - Inherently subjective tasks                          │
-│     - Unclear category boundaries                          │
-│                                                            │
-│  3. WEAK SUPERVISION                                       │
-│     - Noisy labeling functions                             │
-│     - Heuristic errors                                     │
-│                                                            │
-│  4. DATA ENTRY ERRORS                                      │
-│     - Mislabeled due to typos                              │
-│     - Wrong column/field mapping                           │
-│                                                            │
-└────────────────────────────────────────────────────────────┘
-```
+| Source | Example | How common |
+|--------|---------|------------|
+| **Annotator error** | Tired annotator clicks wrong button | 5-15% |
+| **Task ambiguity** | "The movie was okay" - POS or NEG? | 10-20% |
+| **Weak supervision** | Heuristic "good" → POS catches "not good" | 15-30% |
+| **Data entry errors** | Columns swapped, typos | 1-5% |
+
+**Real-world datasets often have 5-20% label noise!**
 
 ---
 
-# Detecting Label Errors
+# Detecting Label Errors with Cleanlab
 
-**Approach 1: Confident Learning**
+**Idea**: Train model → find where model strongly disagrees with label
+
+| Review | Given Label | Model says | Suspicious? |
+|--------|-------------|------------|-------------|
+| "Loved it!" | POS | 95% POS | ✅ No |
+| "Not good at all" | **POS** | 92% NEG | ⚠️ **Yes!** |
+| "Meh, it was fine" | NEG | 60% NEG | ✅ No |
 
 ```python
 from cleanlab import Datalab
-
-# Your data with possibly noisy labels
-X, y = load_data()
-
-# Find label issues
 lab = Datalab(data={"X": X, "y": y}, label_name="y")
-lab.find_issues(features=X)
-
-# Get indices of likely mislabeled examples
-issues = lab.get_issues()
-mislabeled = issues[issues['is_label_issue'] == True].index
-print(f"Found {len(mislabeled)} potential label errors")
+lab.find_issues(pred_probs=model.predict_proba(X))
+mislabeled = lab.get_issues()[lab.get_issues()['is_label_issue']].index
 ```
 
----
-
-# Confident Learning: How It Works
-
-```
-    Model predicts P(class|x) for each example
-
-    Example:  Label = "POSITIVE"
-              P(NEGATIVE|x) = 0.92
-              P(POSITIVE|x) = 0.08
-
-    This is likely mislabeled!
-
-    ┌────────────────────────────────────────────┐
-    │  High confidence predictions that          │
-    │  disagree with given labels = suspicious   │
-    └────────────────────────────────────────────┘
-```
-
----
-
-# The Wisdom of the Crowd Intuition
-
-**Imagine 100 students grade an essay. 95 say "B", 5 say "A".**
-
-```
-    If the official grade is "A"... something's wrong!
-
-    Either:
-    1. The grading key was wrong
-    2. The teacher made a mistake
-    3. Those 5 students are unusually generous
-
-    Confident Learning = Train a model on all data
-                         Model becomes the "crowd"
-                         When crowd disagrees with label = suspicious
-```
-
-**The model learns the data distribution and spots outliers!**
-
----
-
-# Real Example: Catching Label Errors
-
-```python
-# Our Netflix movie reviews - some were mislabeled by tired annotators
-
-review = "This movie was not good. I didn't enjoy it at all."
-original_label = "POSITIVE"  # Annotator mistake!
-
-# Model prediction after training
-model_prediction = {
-    "POSITIVE": 0.05,
-    "NEGATIVE": 0.95   # Model is VERY confident this is negative
-}
-
-# cleanlab flags this as a likely error
-# Confidence of label being wrong: 95%
-
-# Upon review: Yes, this was mislabeled!
-corrected_label = "NEGATIVE"
-```
-
-**Cleanlab found the annotator's mistake automatically!**
-
----
-
-# Cleanlab: Practical Example
-
-```python
-from cleanlab import Datalab
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_predict
-
-# Get out-of-fold predictions
-clf = RandomForestClassifier()
-pred_probs = cross_val_predict(clf, X, y, cv=5, method='predict_proba')
-
-# Find label issues using predictions
-lab = Datalab(data={"features": X, "labels": y}, label_name="labels")
-lab.find_issues(pred_probs=pred_probs)
-
-# Examine issues
-print(lab.get_issue_summary())
-print(lab.get_issues().head(10))
-
-# Get clean indices
-clean_indices = lab.get_issues()[
-    lab.get_issues()['is_label_issue'] == False
-].index
-```
+📁 **Notebook**: `lecture-demos/week04/cleanlab_noisy_labels.ipynb`
 
 ---
 
 # What to Do With Noisy Labels?
 
-**Option 1: Remove them**
-```python
-clean_X = X[clean_indices]
-clean_y = y[clean_indices]
-model.fit(clean_X, clean_y)
-```
+| Strategy | When to use | Code |
+|----------|-------------|------|
+| **Remove** | Few errors, enough data | `X_clean = X[~mislabeled]` |
+| **Re-label** | Important examples | Send back to humans |
+| **Label smoothing** | Many errors | `y = [0.9, 0.05, 0.05]` instead of `[1,0,0]` |
 
-**Option 2: Re-label them**
-```python
-for idx in mislabeled_indices:
-    new_label = get_human_label(X[idx])
-    y[idx] = new_label
-```
-
-**Option 3: Train with noise-robust methods**
-```python
-# Use label smoothing, mixup, or noise-robust losses
-```
-
----
-
-# Learning With Noisy Labels
-
-**Label Smoothing**: Soften hard labels
-
-```python
-# Instead of y = [1, 0, 0] (one-hot)
-# Use y = [0.9, 0.05, 0.05] (smoothed)
-
-def label_smoothing(y, num_classes, epsilon=0.1):
-    smoothed = np.full((len(y), num_classes), epsilon / num_classes)
-    for i, label in enumerate(y):
-        smoothed[i, label] = 1 - epsilon + epsilon / num_classes
-    return smoothed
-```
-
-**Mixup**: Interpolate between examples
-
-```python
-# Create synthetic training examples
-alpha = np.random.beta(0.2, 0.2)
-x_mixed = alpha * x1 + (1 - alpha) * x2
-y_mixed = alpha * y1 + (1 - alpha) * y2
-```
-
----
-
-# Noise Transition Matrix
-
-**Idea**: Model how labels get corrupted
-
-```
-True Label ->  Observed Label
-
-              POS    NEG
-True POS    [ 0.85   0.15 ]   15% of true POS are labeled NEG
-True NEG    [ 0.10   0.90 ]   10% of true NEG are labeled POS
-```
-
-```python
-# Estimate transition matrix from data
-from cleanlab.count import estimate_cv_predicted_probabilities
-from cleanlab.count import compute_confident_joint
-
-pred_probs = estimate_cv_predicted_probabilities(X, y, clf)
-confident_joint = compute_confident_joint(labels=y, pred_probs=pred_probs)
-transition_matrix = confident_joint / confident_joint.sum(axis=1, keepdims=True)
-```
+**Rule of thumb**:
+- <5% noise → probably fine, ignore it
+- 5-15% noise → use cleanlab to remove/fix
+- \>15% noise → fix your labeling process!
 
 ---
 
@@ -1430,35 +1094,19 @@ transition_matrix = confident_joint / confident_joint.sum(axis=1, keepdims=True)
 
 # Decision Tree: Which Technique?
 
-```
-                    START
-                      │
-                      v
-            ┌─────────────────────┐
-            │ How much data do    │
-            │ you need to label?  │
-            └─────────┬───────────┘
-                      │
-         ┌────────────┼────────────┐
-         v            v            v
-      <1000       1k-10k        >10k
-         │            │            │
-         v            v            v
-    Manual       Active       Weak Supervision
-    Labeling     Learning     or LLM Labeling
-                     │
-                     v
-              ┌────────────┐
-              │ Can write  │───Yes──> + Weak Supervision
-              │ heuristics?│
-              └────────────┘
-                     │No
-                     v
-              ┌────────────┐
-              │ Budget for │───Yes──> + LLM Labeling
-              │ LLM API?   │
-              └────────────┘
-```
+| Data Size | First Choice | Add if... |
+|-----------|--------------|-----------|
+| **<1,000** | Manual labeling | — |
+| **1k-10k** | Active Learning | + Weak supervision if patterns exist |
+| **>10k** | Weak Supervision or LLM | + Active Learning for hard cases |
+
+**Quick decision guide:**
+
+| Question | Yes → | No → |
+|----------|-------|------|
+| Can you write labeling heuristics? | Weak Supervision | LLM Labeling |
+| Do you have budget for LLM API? | LLM Labeling | Weak Supervision |
+| Is high precision critical? | Active Learning + humans | LLM or Weak Supervision |
 
 ---
 
