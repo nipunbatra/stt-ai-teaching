@@ -59,31 +59,16 @@ What if we could label *smarter* instead of labeling *everything*?
 
 ---
 
-# Three Strategies to Reduce Labeling Cost
-
-**Core Insight**: Not all labels are equal. Be strategic about *where* you invest human effort.
+# Four Strategies to Reduce Labeling Cost
 
 | Strategy | How It Works | Savings |
 |----------|--------------|---------|
 | **Active Learning** | Model picks hardest examples for humans | 2-10x fewer labels |
+| **Weak Supervision** | Write labeling functions (code) instead of manual labels | 10-100x faster |
 | **LLM Labeling** | Use GPT/Claude as cheap annotators | 10-50x cost reduction |
 | **Noisy Label Handling** | Detect and fix label errors | +10-20% accuracy |
 
-**Today**: Deep dive into Active Learning + overview of others
-
----
-
-# Today's Mission
-
-**Learn techniques to reduce labeling effort by 10x or more.**
-
-| Technique | What You'll Learn |
-|-----------|-------------------|
-| **Active Learning** | Let model pick which examples to label (2-10x savings) |
-| **LLM Labeling** | Use GPT/Claude as annotators (10-50x cost reduction) |
-| **Noisy Label Handling** | Detect & fix errors with cleanlab (+10-20% accuracy) |
-
-**Real-world pipelines combine these techniques!**
+**Today**: All four techniques + how to combine them!
 
 ---
 
