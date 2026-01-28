@@ -447,23 +447,11 @@ Each example covers a **different confusion** — each label teaches something n
 
 ---
 
-# AL for Segmentation & Translation
+# AL for Semantic Segmentation
 
-**Semantic Segmentation**: Pixel-wise uncertainty
+![w:800](images/week04/al_segmentation.png)
 
-| Region | Uncertainty | Action |
-|--------|-------------|--------|
-| Clear sky | Low entropy | Don't query |
-| Building edge | High entropy | **Query!** |
-| Road vs sidewalk boundary | High entropy | **Query!** |
-
-*Focus annotation effort on ambiguous boundaries!*
-
-**Machine Translation**: Sequence-level uncertainty
-
-- Low confidence: "The bank is by the river" → bank = 財務? 河岸?
-- Use beam search diversity or dropout uncertainty
-- Query sentences where model produces very different translations
+**Query pixels/regions at boundaries** — clear sky and buildings don't need more labels!
 
 ---
 
