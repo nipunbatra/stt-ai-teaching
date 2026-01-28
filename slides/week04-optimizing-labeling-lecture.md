@@ -503,9 +503,9 @@ pip install label-studio-ml
 
 # Weak Supervision: The Big Picture
 
-![w:900](images/week04/weak_supervision_pipeline.png)
+![w:800](images/week04/weak_supervision_pipeline.png)
 
-**Key Idea**: Write **labeling functions** (heuristics) instead of labeling examples manually. Snorkel combines noisy votes into reliable probabilistic labels.
+Write **labeling functions** (heuristics) → Snorkel combines noisy votes → probabilistic labels
 
 ---
 
