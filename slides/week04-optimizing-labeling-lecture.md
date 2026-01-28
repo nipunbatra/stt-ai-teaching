@@ -704,57 +704,58 @@ def lf_high_rating(x):
 | 4 | — | POS | No | — |
 | 5 | POS | — | No | — |
 
-**Only 1 overlap, and they agree!** → Agreement rate = 1/1 = **100%**
-
-*(With 1000 reviews, we'd see more overlaps to estimate from)*
+**Only 1 overlap** — not enough to estimate accuracy! Let's scale up...
 
 ---
 
-# Step 3a: The Agreement Equation (2 LFs)
+# Step 3a: Scaling to 1000 Reviews
 
-**When do two LFs agree?** Both correct OR both wrong!
+**Same LFs applied to 1000 reviews:**
 
-$$P(\text{agree}) = \underbrace{\alpha_1 \cdot \alpha_2}_{\text{both correct}} + \underbrace{(1-\alpha_1)(1-\alpha_2)}_{\text{both wrong}}$$
+| Statistic | Value |
+|-----------|-------|
+| LF₁ fires on | 300 reviews (30%) |
+| LF₂ fires on | 250 reviews (25%) |
+| **Both fire on** | **100 reviews** (overlaps) |
+| Both agree | 85 reviews |
+| Both disagree | 15 reviews |
 
-**Observed**: LF₁ and LF₂ agree on **85%** of overlapping examples
+**Observed agreement rate** = 85/100 = **85%**
+
+Now we can estimate accuracy!
+
+---
+
+# Step 3b: The Agreement Equation
+
+**Key insight**: When do LF₁ and LF₂ agree on a review?
+
+1. **Both correct**: LF₁ right AND LF₂ right → probability = α₁ × α₂
+2. **Both wrong**: LF₁ wrong AND LF₂ wrong → probability = (1-α₁) × (1-α₂)
+
+$$P(\text{agree}) = \alpha_1 \alpha_2 + (1-\alpha_1)(1-\alpha_2)$$
+
+**We observed 85% agreement**, so:
 
 $$0.85 = \alpha_1 \alpha_2 + (1-\alpha_1)(1-\alpha_2)$$
 
-One equation, two unknowns! Need more information...
+One equation, two unknowns (α₁, α₂). Need a 3rd LF!
 
 ---
 
-# Step 3b: With N Labeling Functions
+# Step 3c: Solving with 3 LFs
 
-**With 3+ LFs, we get multiple equations:**
+**Add LF₃**: rating < 4 → NEG. Now we have 3 pairwise agreements:
 
-| LF Pair | Observed Agreement | Equation |
-|---------|-------------------|----------|
-| LF₁, LF₂ | 85% | 0.85 = α₁α₂ + (1-α₁)(1-α₂) |
-| LF₁, LF₃ | 80% | 0.80 = α₁α₃ + (1-α₁)(1-α₃) |
-| LF₂, LF₃ | 90% | 0.90 = α₂α₃ + (1-α₂)(1-α₃) |
+| Pair | Overlaps | Agree | Agreement Rate |
+|------|----------|-------|----------------|
+| LF₁, LF₂ | 100 | 85 | **85%** |
+| LF₁, LF₃ | 80 | 64 | **80%** |
+| LF₂, LF₃ | 60 | 54 | **90%** |
 
-**3 equations, 3 unknowns** → Can solve for α₁, α₂, α₃!
+**3 equations, 3 unknowns** → Solve to get: **α₁=0.80, α₂=0.90, α₃=0.85**
 
-With N LFs: **N(N-1)/2 pairwise equations**, only **N unknowns** → overdetermined!
-
----
-
-# Step 3c: The Optimization Problem
-
-**Snorkel solves via Maximum Likelihood Estimation:**
-
-$$\max_{\alpha_1, ..., \alpha_N} P(\text{observed label matrix} | \alpha_1, ..., \alpha_N)$$
-
-**Algorithm** (simplified):
-1. Initialize: guess α₁ = α₂ = ... = 0.7
-2. **E-step**: Given current α's, estimate likely true labels
-3. **M-step**: Given estimated labels, update α's to maximize agreement
-4. Repeat until converged
-
-**Output for our example**: α₁ = 0.80, α₂ = 0.90
-
-*(This is Expectation-Maximization on a generative model)*
+*Snorkel does this automatically via Expectation-Maximization!*
 
 ---
 
