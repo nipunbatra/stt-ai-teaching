@@ -202,31 +202,20 @@ reviews = [
 
 ---
 
-# Visualizing Uncertainty: 3-Class Case
+# Query Strategies: 3-Class Comparison
 
-![w:850](images/week04/uncertainty_simplex.png)
+| Example | Probs [A, B, C] | 1-max(P) | P₁-P₂ | Entropy | Picked by |
+|---------|-----------------|----------|-------|---------|-----------|
+| Ex 1 | [0.80, 0.10, 0.10] | 0.20 | 0.70 | 0.92 | — |
+| Ex 2 | [0.50, 0.49, 0.01] | 0.50 | **0.01** | 0.69 | **Margin** |
+| Ex 3 | [0.40, 0.35, 0.25] | **0.60** | 0.05 | 1.53 | **Uncertainty** |
+| Ex 4 | [0.34, 0.33, 0.33] | 0.66 | 0.01 | **1.58** | **Entropy** |
 
-Different strategies pick different examples — choose based on your task!
-
----
-
-# Query Strategy Comparison: Different Picks!
-
-| Example | Probs [Pos, Neg, Neu] | Uncertainty | Margin | Entropy |
-|---------|----------------------|-------------|--------|---------|
-| A | [0.40, 0.35, 0.25] | **0.60** ✓ | 0.05 | 1.05 |
-| B | [0.50, 0.49, 0.01] | 0.50 | **0.01** ✓ | 0.71 |
-| C | [0.34, 0.33, 0.33] | 0.66 | 0.01 | **1.58** ✓ |
-
-**Different strategies → Different selections:**
-
-| Strategy | Selects | Why |
-|----------|---------|-----|
-| **Uncertainty** | A | Lowest max prob (0.40) |
-| **Margin** | B | Smallest gap between top 2 (0.01) |
-| **Entropy** | C | Most spread distribution |
-
-**Choose strategy based on your task!**
+| Strategy | What it finds | Best for |
+|----------|---------------|----------|
+| **Uncertainty** (1-max) | Least confident overall | General exploration |
+| **Margin** (P₁-P₂) | Near decision boundary | Binary-like decisions |
+| **Entropy** | Maximum confusion | Multi-class spread |
 
 ---
 
