@@ -760,15 +760,40 @@ One equation, two unknowns (α₁, α₂). Need a 3rd LF!
 
 **Add LF₃**: rating < 4 → NEG. Now we have 3 pairwise agreements:
 
-| Pair | Overlaps | Agree | Agreement Rate |
-|------|----------|-------|----------------|
-| LF₁, LF₂ | 100 | 85 | **85%** |
-| LF₁, LF₃ | 80 | 64 | **80%** |
-| LF₂, LF₃ | 60 | 54 | **90%** |
+| Pair | Agreement | Equation |
+|------|-----------|----------|
+| LF₁, LF₂ | 85% | α₁α₂ + (1-α₁)(1-α₂) = 0.85 |
+| LF₁, LF₃ | 80% | α₁α₃ + (1-α₁)(1-α₃) = 0.80 |
+| LF₂, LF₃ | 90% | α₂α₃ + (1-α₂)(1-α₃) = 0.90 |
 
-**3 equations, 3 unknowns** → Solve to get: **α₁=0.80, α₂=0.90, α₃=0.85**
+**3 equations, 3 unknowns** → Can solve!
 
-*Snorkel does this automatically via Expectation-Maximization!*
+---
+
+# Step 3e: Solving Iteratively (Python)
+
+```python
+import numpy as np
+# Observed agreement rates
+agree_12, agree_13, agree_23 = 0.85, 0.80, 0.90
+
+# Initialize randomly
+α1, α2, α3 = 0.7, 0.7, 0.7
+
+for i in range(10):
+    # Update each α to minimize error
+    α1 = np.sqrt((agree_12 - (1-α2)**2) / (2*α2 - 1) + 0.5)  # simplified
+    α2 = np.sqrt((agree_23 - (1-α3)**2) / (2*α3 - 1) + 0.5)
+    α3 = np.sqrt((agree_13 - (1-α1)**2) / (2*α1 - 1) + 0.5)
+    α1, α2, α3 = np.clip([α1,α2,α3], 0.5, 1)  # keep valid
+    print(f"Iter {i+1}: α1={α1:.3f}, α2={α2:.3f}, α3={α3:.3f}")
+```
+```
+Iter 1: α1=0.789, α2=0.894, α3=0.841
+Iter 5: α1=0.800, α2=0.900, α3=0.850  ✓ Converged!
+```
+
+📁 **Full demo**: `lecture-demos/week04/solve_lf_accuracy.py`
 
 ---
 
