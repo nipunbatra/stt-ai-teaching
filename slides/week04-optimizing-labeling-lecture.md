@@ -708,7 +708,22 @@ def lf_high_rating(x):
 
 ---
 
-# Step 3a: Scaling to 1000 Reviews
+# Step 3a: What is α (Accuracy)?
+
+**α = probability that a labeling function is correct when it votes**
+
+| LF | α (accuracy) | Meaning |
+|----|--------------|---------|
+| LF₁ | α₁ = 0.80 | When LF₁ votes, it's correct 80% of the time |
+| LF₂ | α₂ = 0.90 | When LF₂ votes, it's correct 90% of the time |
+
+**Problem**: We don't know the true labels, so we can't directly compute α!
+
+**Snorkel's trick**: Estimate α from **agreement patterns** between LFs.
+
+---
+
+# Step 3b: Scaling to 1000 Reviews
 
 **Same LFs applied to 1000 reviews:**
 
@@ -722,11 +737,9 @@ def lf_high_rating(x):
 
 **Observed agreement rate** = 85/100 = **85%**
 
-Now we can estimate accuracy!
-
 ---
 
-# Step 3b: The Agreement Equation
+# Step 3c: The Agreement Equation
 
 **Key insight**: When do LF₁ and LF₂ agree on a review?
 
@@ -743,7 +756,7 @@ One equation, two unknowns (α₁, α₂). Need a 3rd LF!
 
 ---
 
-# Step 3c: Solving with 3 LFs
+# Step 3d: Solving with 3 LFs
 
 **Add LF₃**: rating < 4 → NEG. Now we have 3 pairwise agreements:
 
