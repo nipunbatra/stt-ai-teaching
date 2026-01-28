@@ -420,19 +420,50 @@ Each example covers a **different confusion** — each label teaches something n
 
 # Active Learning for Other Tasks
 
-| Task | Uncertainty Measure | Notes |
-|------|---------------------|-------|
-| **NER** | Token-level entropy, sequence probability | Aggregate over tokens or use CRF marginals |
-| **Object Detection** | Box confidence, classification entropy | Query images with uncertain detections |
-| **Semantic Segmentation** | Pixel-wise entropy, region uncertainty | Focus on boundary regions |
-| **Machine Translation** | Sequence probability, attention entropy | Use beam search diversity |
+**Key Insight**: Adapt uncertainty measure to your output structure!
 
-**Key Insight**: Adapt uncertainty to your output structure!
+| Task | Output | Uncertainty Measure |
+|------|--------|---------------------|
+| **NER** | Token labels | Token-level entropy |
+| **Object Detection** | Boxes + classes | Detection confidence |
+| **Segmentation** | Pixel masks | Pixel/region entropy |
+| **Translation** | Sequences | Sequence probability |
 
-**NER Example**: "Apple announced iPhone"
-- P(Apple=ORG) = 0.51, P(Apple=PRODUCT) = 0.49 → High uncertainty → Query!
+---
 
-**Object Detection**: Query images where detector is unsure if object exists or about bounding box
+# AL for NER: Token-Level Uncertainty
+
+![w:800](images/week04/al_ner_example.png)
+
+**Aggregate strategies**: Query sentence if *any* token is uncertain, or by *average* uncertainty.
+
+---
+
+# AL for Object Detection
+
+![w:800](images/week04/al_object_detection.png)
+
+**Query images where**: detector unsure if object exists, confused about class, or uncertain about box location.
+
+---
+
+# AL for Segmentation & Translation
+
+**Semantic Segmentation**: Pixel-wise uncertainty
+
+| Region | Uncertainty | Action |
+|--------|-------------|--------|
+| Clear sky | Low entropy | Don't query |
+| Building edge | High entropy | **Query!** |
+| Road vs sidewalk boundary | High entropy | **Query!** |
+
+*Focus annotation effort on ambiguous boundaries!*
+
+**Machine Translation**: Sequence-level uncertainty
+
+- Low confidence: "The bank is by the river" → bank = 財務? 河岸?
+- Use beam search diversity or dropout uncertainty
+- Query sentences where model produces very different translations
 
 ---
 
