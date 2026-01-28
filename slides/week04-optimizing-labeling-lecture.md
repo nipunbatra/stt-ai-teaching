@@ -1221,33 +1221,6 @@ mislabeled = lab.get_issues()[lab.get_issues()['is_label_issue']].index
 
 ---
 
-# Hybrid Pipeline Example
-
-```python
-# Step 1: Weak supervision for bulk labels
-weak_labels = apply_labeling_functions(unlabeled_data)
-
-# Step 2: LLM for high-uncertainty examples
-uncertain = get_low_confidence_examples(weak_labels)
-llm_labels = batch_label_with_gpt(uncertain)
-
-# Step 3: Active learning for remaining hard cases
-learner = ActiveLearner(estimator=model)
-for round in range(n_rounds):
-    query_idx = learner.query(hard_examples)
-    human_labels = get_human_labels(hard_examples[query_idx])
-    learner.teach(hard_examples[query_idx], human_labels)
-
-# Step 4: Clean noisy labels
-all_labels = combine_labels(weak_labels, llm_labels, human_labels)
-clean_labels = cleanlab_filter(all_labels)
-
-# Step 5: Train final model
-model.fit(data, clean_labels)
-```
-
----
-
 # Cost-Benefit Analysis
 
 | Approach | Setup Cost | Per-Label Cost | Quality |
@@ -1265,24 +1238,6 @@ model.fit(data, clean_labels)
 <!-- _class: lead -->
 
 # Part 7: Key Takeaways
-
----
-
-# Interview Questions
-
-**Common interview questions on labeling optimization:**
-
-1. **"What is active learning and when would you use it?"**
-   - Model selects which examples to label next based on uncertainty
-   - Focuses human effort on hard/ambiguous examples
-   - Use when: limited labeling budget, model can provide predictions
-   - Typical savings: 2-10x fewer labels needed for same accuracy
-
-2. **"How does weak supervision differ from traditional labeling?"**
-   - Write labeling functions (code/heuristics) instead of manual labels
-   - Labels are noisy but you get many more of them
-   - Label model combines multiple noisy sources
-   - Trade-off: quantity over quality, but often wins with enough data
 
 ---
 
