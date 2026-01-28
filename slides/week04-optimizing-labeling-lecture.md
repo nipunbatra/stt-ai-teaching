@@ -202,11 +202,11 @@ reviews = [
 
 ---
 
-# Visualizing Uncertainty: 3-Class Simplex
+# Visualizing Uncertainty: 3-Class Case
 
-![w:900](images/week04/uncertainty_simplex.png)
+![w:850](images/week04/uncertainty_simplex.png)
 
-**★ Center** = All strategies agree: [0.33, 0.33, 0.33] is most uncertain
+Different strategies pick different examples — choose based on your task!
 
 ---
 
@@ -230,46 +230,54 @@ reviews = [
 
 ---
 
-# Active Learning with modAL
+# Active Learning: The Algorithm
 
-```python
-from modAL.models import ActiveLearner
-from modAL.uncertainty import uncertainty_sampling
-from sklearn.ensemble import RandomForestClassifier
+```
+INPUTS:
+  - Small labeled set: L = {(x₁,y₁), ..., (x₁₀,y₁₀)}
+  - Large unlabeled pool: U = {x₁, x₂, ..., x₁₀₀₀₀}
+  - Query budget: B = 100
 
-# Start with small seed set
-X_initial, y_initial = X_labeled[:10], y_labeled[:10]
-X_pool = X_unlabeled
-
-# Create active learner
-learner = ActiveLearner(
-    estimator=RandomForestClassifier(),
-    query_strategy=uncertainty_sampling,
-    X_training=X_initial,
-    y_training=y_initial
-)
+ALGORITHM:
+  1. Train model M on L
+  2. For i = 1 to B:
+       a. For each x in U: compute uncertainty(x)
+       b. Select x* = argmax uncertainty(x)
+       c. Get human label y* for x*
+       d. L = L ∪ {(x*, y*)}
+       e. U = U \ {x*}
+       f. Retrain M on L
+  3. Return M
 ```
 
 ---
 
-# Active Learning Loop in Practice
+# Active Learning: Python Pseudocode
 
 ```python
-for i in range(100):  # 100 queries
-    # 1. Query most uncertain example
-    query_idx, query_inst = learner.query(X_pool)
+# Initialize
+model = RandomForestClassifier()
+model.fit(X_labeled, y_labeled)
+pool = X_unlabeled.copy()
 
-    # 2. Get human label
-    y_new = get_human_label(query_inst)
+# Active learning loop
+for i in range(budget):
+    # 1. Get model's uncertainty on pool
+    probs = model.predict_proba(pool)
+    uncertainty = 1 - probs.max(axis=1)
 
-    # 3. Teach model & remove from pool
-    learner.teach(query_inst, y_new)
-    X_pool = np.delete(X_pool, query_idx, axis=0)
+    # 2. Select most uncertain example
+    query_idx = uncertainty.argmax()
 
-    print(f"Query {i+1}: Acc = {learner.score(X_test, y_test):.1%}")
+    # 3. Get human label (simulated or real)
+    y_new = get_human_label(pool[query_idx])
+
+    # 4. Add to training set & retrain
+    X_labeled = np.vstack([X_labeled, pool[query_idx]])
+    y_labeled = np.append(y_labeled, y_new)
+    pool = np.delete(pool, query_idx, axis=0)
+    model.fit(X_labeled, y_labeled)
 ```
-
-**Output**: Accuracy improves with each informative label!
 
 ---
 
@@ -1190,7 +1198,7 @@ model.fit(data, clean_labels)
 
 **Hands-on Practice:**
 
-1. **Active Learning with modAL**
+1. **Active Learning from scratch**
    - Implement uncertainty sampling
    - Compare to random sampling
    - Visualize learning curves
@@ -1211,15 +1219,14 @@ model.fit(data, clean_labels)
 
 ```bash
 # Install required packages
-pip install modAL-python
 pip install snorkel
 pip install cleanlab
-pip install openai
+pip install openai scikit-learn
 
 # Verify installations
-python -c "import modAL; print('modAL OK')"
 python -c "import snorkel; print('Snorkel OK')"
 python -c "import cleanlab; print('cleanlab OK')"
+python -c "import sklearn; print('sklearn OK')"
 ```
 
 **You'll implement a complete labeling optimization pipeline!**
