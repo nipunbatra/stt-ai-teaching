@@ -770,30 +770,33 @@ One equation, two unknowns (α₁, α₂). Need a 3rd LF!
 
 ---
 
-# Step 3e: Solving Iteratively (Python)
+# Step 3e: Solving with Gradient Descent (PyTorch)
 
 ```python
-import numpy as np
+import torch
 # Observed agreement rates
-agree_12, agree_13, agree_23 = 0.85, 0.80, 0.90
+obs = torch.tensor([0.85, 0.80, 0.90])  # LF pairs: (1,2), (1,3), (2,3)
 
-# Initialize randomly
-α1, α2, α3 = 0.7, 0.7, 0.7
+# Initialize α's as learnable parameters
+α = torch.tensor([0.7, 0.7, 0.7], requires_grad=True)
 
-for i in range(10):
-    # Update each α to minimize error
-    α1 = np.sqrt((agree_12 - (1-α2)**2) / (2*α2 - 1) + 0.5)  # simplified
-    α2 = np.sqrt((agree_23 - (1-α3)**2) / (2*α3 - 1) + 0.5)
-    α3 = np.sqrt((agree_13 - (1-α1)**2) / (2*α1 - 1) + 0.5)
-    α1, α2, α3 = np.clip([α1,α2,α3], 0.5, 1)  # keep valid
-    print(f"Iter {i+1}: α1={α1:.3f}, α2={α2:.3f}, α3={α3:.3f}")
+for i in range(100):
+    # Predicted agreement: αᵢαⱼ + (1-αᵢ)(1-αⱼ)
+    pred = torch.tensor([
+        α[0]*α[1] + (1-α[0])*(1-α[1]),  # LF1, LF2
+        α[0]*α[2] + (1-α[0])*(1-α[2]),  # LF1, LF3
+        α[1]*α[2] + (1-α[1])*(1-α[2])   # LF2, LF3
+    ])
+    loss = ((pred - obs)**2).sum()
+    loss.backward(); α.data -= 0.1 * α.grad; α.grad.zero_()
+    α.data.clamp_(0.5, 1.0)  # keep in valid range
 ```
 ```
-Iter 1: α1=0.789, α2=0.894, α3=0.841
-Iter 5: α1=0.800, α2=0.900, α3=0.850  ✓ Converged!
+Iter 10:  α=[0.798, 0.899, 0.849], loss=0.0001
+Iter 50:  α=[0.800, 0.900, 0.850], loss=0.0000 ✓
 ```
 
-📁 **Full demo**: `lecture-demos/week04/solve_lf_accuracy.py`
+📁 **Notebook**: `lecture-demos/week04/solve_lf_accuracy_torch.ipynb`
 
 ---
 
