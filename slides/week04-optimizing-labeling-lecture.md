@@ -770,6 +770,55 @@ One equation, two unknowns (α₁, α₂). Need a 3rd LF!
 
 ---
 
+# Generalizing: N Labeling Functions, K Examples
+
+**With N labeling functions:**
+
+| N (# LFs) | Pairwise Equations | Unknowns (α's) | Status |
+|-----------|-------------------|----------------|--------|
+| 2 | 1 | 2 | ❌ Underdetermined (can't solve) |
+| 3 | 3 | 3 | ✓ Exactly determined |
+| 4 | 6 | 4 | ✓ Overdetermined |
+| 5 | 10 | 5 | ✓ Overdetermined |
+| N | N(N-1)/2 | N | ✓ if N ≥ 3 |
+
+**Key insight**: We need **at least 3 LFs** to solve for accuracies!
+
+---
+
+# What Does "Overdetermined" Mean?
+
+| Term | Equations vs Unknowns | Example | Reliability |
+|------|----------------------|---------|-------------|
+| **Underdetermined** | Fewer equations | 1 eq, 2 unknowns | ❌ Infinite solutions |
+| **Exactly determined** | Equal | 3 eq, 3 unknowns | ⚠️ One solution (fragile) |
+| **Overdetermined** | More equations | 6 eq, 4 unknowns | ✅ Most reliable! |
+
+**Why is overdetermined better?**
+
+- Real data has **noise** (agreement rates aren't perfectly measured)
+- With exactly 3 equations: noise in any equation → wrong solution
+- With 6+ equations: find **best fit** that satisfies all (least squares)
+- Extra equations **cross-check** each other → robust to noise
+
+**Analogy**: Asking 3 witnesses vs 10 witnesses — more witnesses = more reliable!
+
+---
+
+# Effect of Dataset Size (K Examples)
+
+| K (# examples) | Agreement Estimate Quality | Solution Reliability |
+|----------------|---------------------------|---------------------|
+| 100 | Noisy (±5-10%) | ⚠️ Rough estimates |
+| 1,000 | Reasonable (±1-3%) | ✓ Good estimates |
+| 10,000+ | Very accurate (±0.5%) | ✅ Highly reliable |
+
+**Both matter for reliability:**
+- **More LFs (N)** → overdetermined system → robust to equation noise
+- **More examples (K)** → accurate agreement rates → less noise to begin with
+
+---
+
 # Step 3e: Solving with Gradient Descent (PyTorch)
 
 ```python
@@ -817,30 +866,51 @@ $$w = \log\frac{\alpha}{1-\alpha}$$
 
 # Step 5: Compute Final Probabilities
 
-**Review 1**: "good movie" (8.0) — LF₁=POS, LF₂=POS
+Using learned weights: **w₁ = 1.39** (α₁=0.80), **w₂ = 2.20** (α₂=0.90)
 
-| Class | Which LFs voted | Score |
-|-------|-----------------|-------|
-| POS | LF₁ + LF₂ | 1.39 + 2.20 = **3.59** |
-| NEG | (none) | **0** |
+**Formula**: $P(\text{POS}) = \text{softmax}\left(\sum_{\text{LFs voting POS}} w_i - \sum_{\text{LFs voting NEG}} w_i\right)$
 
-$$P(\text{POS}) = \frac{e^{3.59}}{e^{3.59} + e^{0}} = \frac{36.2}{37.2} = \textbf{97\%}$$
+| # | Review Text | LF₁ Vote | LF₂ Vote | Score POS | Score NEG |
+|---|-------------|----------|----------|-----------|-----------|
+| 1 | "good movie" (8.0) | ✓ POS | ✓ POS | 1.39+2.20=**3.59** | 0 |
+| 2 | "good but boring" (5.0) | ✓ POS | — | **1.39** | 0 |
+| 3 | "terrible" (2.0) | — | ✓ NEG | 0 | **2.20** |
+| 4 | "decent film" (7.5) | — | ✓ POS | **2.20** | 0 |
 
 ---
 
-# Step 5 (cont.): More Reviews
+# Step 5: Full Calculation Table
 
-**Review 2**: "good but boring" (5.0) — LF₁=POS, LF₂=abstain
+| # | Score POS | Score NEG | e^(POS) | e^(NEG) | Sum | **P(POS)** |
+|---|-----------|-----------|---------|---------|-----|------------|
+| 1 | 3.59 | 0 | 36.2 | 1.0 | 37.2 | **97.3%** |
+| 2 | 1.39 | 0 | 4.0 | 1.0 | 5.0 | **80.0%** |
+| 3 | 0 | 2.20 | 1.0 | 9.0 | 10.0 | **10.0%** |
+| 4 | 2.20 | 0 | 9.0 | 1.0 | 10.0 | **90.0%** |
 
-$$P(\text{POS}) = \frac{e^{1.39}}{e^{1.39} + e^{0}} = \frac{4.0}{5.0} = \textbf{80\%}$$
+<br>
 
-**Review 3**: "terrible" (2.0) — LF₁=abstain, LF₂=NEG
+**Interpretation:**
+- Review 1: Both LFs agree → very confident (97%)
+- Review 2: Only weaker LF₁ votes → moderately confident (80%)
+- Review 3: Strong LF₂ says NEG → confident negative (10% POS)
+- Review 4: Only strong LF₂ votes → confident (90%)
 
-$$P(\text{POS}) = \frac{e^{0}}{e^{0} + e^{2.20}} = \frac{1}{10} = \textbf{10\%}$$
+---
 
-**Review 4**: "decent film" (7.5) — LF₁=abstain, LF₂=POS → **90% POS**
+# Step 5: Conflicting Votes Example
 
-**Review 5**: "good but poor" (4.0) — LF₁=POS, LF₂=abstain → **80% POS**
+What if LFs **disagree**? The more accurate LF wins!
+
+| # | Review | LF₁ (w=1.39) | LF₂ (w=2.20) | Score POS | Score NEG | **P(POS)** |
+|---|--------|--------------|--------------|-----------|-----------|------------|
+| 5 | "good acting, bad plot" | ✓ POS | ✓ NEG | 1.39 | 2.20 | **31%** |
+| 6 | "poor quality, great story" | ✓ NEG | ✓ POS | 2.20 | 1.39 | **69%** |
+
+**Calculation for Review 5:**
+$$P(\text{POS}) = \frac{e^{1.39}}{e^{1.39} + e^{2.20}} = \frac{4.0}{4.0 + 9.0} = \frac{4.0}{13.0} = 31\%$$
+
+→ LF₂ has higher accuracy (α₂=0.90 > α₁=0.80), so its vote dominates!
 
 ---
 
