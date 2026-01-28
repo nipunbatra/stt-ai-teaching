@@ -303,9 +303,7 @@ Each example covers a **different confusion** — each label teaches something n
 
 # Diversity in Batch Selection
 
-![w:500](images/week04/diversity_clustering.png)
-
-**Algorithm**: Cluster uncertain samples → Pick one (★) from each cluster
+![w:750](images/week04/diversity_clustering.png)
 
 📖 **Further Reading**: BALD (Houlsby et al., 2011), BatchBALD (Kirsch et al., 2019)
 
