@@ -34,9 +34,8 @@ math: mathjax
 | Week 4 | Optimized with AL + weak supervision | Efficient labeling |
 
 **Current state:**
-- 5,000 labeled movies
-- Model accuracy: 82%
-- Netflix wants 90%+
+- 5,000 labeled movies → Model accuracy: 82%
+- Netflix wants 90%+ accuracy
 - Labeling budget exhausted!
 
 **Can we improve without more labeling?**
@@ -45,7 +44,7 @@ math: mathjax
 
 # The Data Hunger Problem
 
-**Deep learning models are hungry:**
+**Deep learning models are data-hungry:**
 
 | Model | Training Data |
 |-------|--------------|
@@ -58,54 +57,90 @@ math: mathjax
 - 1,000 text samples
 - 100 audio clips
 
-**Solution:** Create more data from existing data!
+---
+
+# The Solution: Data Augmentation
+
+**Create more training data from existing data!**
+
+| Original Data | Augmentation | Result |
+|--------------|--------------|--------|
+| 500 images | 10x augmentations | 5,000 training examples |
+| 1,000 texts | 5x paraphrases | 5,000 training examples |
+| 100 audio clips | 8x transforms | 800 training examples |
+
+**Key insight**: Transformations that preserve the label = FREE DATA!
 
 ---
 
 # What is Data Augmentation?
 
-**Data Augmentation**: Transform existing data to create new training examples
+**Data Augmentation**: Apply transformations to create new training examples
 
-**Key Insight**: Some transformations preserve the label
+**The Rule**: Only use transforms that **preserve the label**
 
 | Transform | Cat image | Still a cat? |
 |-----------|-----------|--------------|
-| Rotate 10° | Tilted cat | Yes! |
-| Flip horizontal | Mirror cat | Yes! |
-| Slightly darker | Dim cat | Yes! |
-| Add noise | Grainy cat | Yes! |
+| Rotate 10° | Tilted cat | ✓ Yes! |
+| Flip horizontal | Mirror cat | ✓ Yes! |
+| Slightly darker | Dim cat | ✓ Yes! |
+| Add noise | Grainy cat | ✓ Yes! |
 
 **Result**: 1 image → 10 training examples (for free!)
 
 ---
 
-# Cat Augmentation: Visual Example
+# Visual Example: Cat Augmentation
 
-![w:900](images/week05/cat_augmentation_example.png)
+![w:950](images/week05/cat_augmentation_example.png)
 
 All 8 versions are still clearly a cat!
+
+---
+
+# Why Does This Work? Your Brain Already Does It!
+
+![w:950](images/week05/brain_invariance.png)
+
+Neural networks need to **learn** what your brain does naturally.
 
 ---
 
 # The Photographer Analogy
 
 **Teaching someone "what is a cat" with ONE photo:**
-- They might think "cat" = this specific pose, lighting, angle
+- They might memorize: "cat = this exact pose, lighting, angle"
 
 **Teaching with MANY photos:**
-- They learn cats can be in different poses
-- Cats look similar in different lighting
-- Cats can appear anywhere in frame
+- Different poses → cats can sit, stand, lie down
+- Different lighting → cats look similar in bright/dim light
+- Different angles → cats can face any direction
 
 **Augmentation = Taking many "virtual photos" from one real photo**
 
 ---
 
-# Image Augmentation: Real Examples
+# Instagram Filters = Augmentation!
+
+![w:950](images/week05/instagram_augmentation.png)
+
+You already use augmentation every day on social media!
+
+---
+
+# MNIST: Same Digit, 10 Training Examples
 
 ![w:900](images/week05/digit_augmentation_examples.png)
 
 **Same digit "3" → 10 different training examples!**
+
+---
+
+# The Impact is HUGE
+
+![w:900](images/week05/augmentation_impact.png)
+
+Real results from CIFAR-10 image classification benchmark.
 
 ---
 
@@ -122,7 +157,19 @@ All 8 versions are still clearly a cat!
 
 # Part 2: Image Augmentation
 
-*Geometric and color transforms*
+*Geometric, color, and advanced transforms*
+
+---
+
+# Image Augmentation: The Big Picture
+
+| Category | Transforms | What it simulates |
+|----------|-----------|-------------------|
+| **Geometric** | Flip, rotate, scale, crop | Different viewpoints |
+| **Color** | Brightness, contrast, hue | Different lighting |
+| **Noise** | Gaussian, salt & pepper | Sensor noise |
+| **Occlusion** | Cutout, CutMix | Partial visibility |
+| **Weather** | Rain, fog, snow | Real-world conditions |
 
 ---
 
@@ -142,7 +189,23 @@ Brightness, contrast, inversion - simulates different lighting conditions
 
 ---
 
-# The "6 vs 9" Problem
+# Elastic Deformation
+
+![w:950](images/week05/elastic_deformation.png)
+
+**Simulates natural handwriting variation** - hugely effective for OCR!
+
+---
+
+# Weather Augmentation
+
+![w:950](images/week05/weather_augmentation.png)
+
+**Critical for autonomous vehicles** - must work in all weather!
+
+---
+
+# ⚠️ The "6 vs 9" Problem
 
 ![w:800](images/week05/bad_augmentation_6_vs_9.png)
 
@@ -155,6 +218,65 @@ Brightness, contrast, inversion - simulates different lighting conditions
 ![w:900](images/week05/good_vs_bad_augmentation.png)
 
 **Always ask**: Does this transformation change what the image represents?
+
+---
+
+# Noise Augmentation
+
+![w:900](images/week05/noise_augmentation.png)
+
+Trains model to be robust to sensor noise and image compression
+
+---
+
+# Blur Augmentation
+
+![w:900](images/week05/blur_augmentation.png)
+
+Light blur is OK, heavy blur loses information!
+
+---
+
+# Advanced: Cutout
+
+![w:850](images/week05/cutout_example.png)
+
+**Idea**: Randomly mask patches → forces model to use ALL features, not just one
+
+---
+
+# Advanced: Mixup
+
+![w:900](images/week05/mixup_example.png)
+
+**Idea**: Blend two images AND their labels → smoother decision boundaries
+
+---
+
+# Advanced: CutMix
+
+![w:900](images/week05/cutmix_example.png)
+
+**Idea**: Cut & paste regions + mix labels proportionally
+
+---
+
+# Mixup vs CutMix
+
+| Method | How it works | Best for |
+|--------|--------------|----------|
+| **Mixup** | Blend entire images | General classification |
+| **CutMix** | Cut & paste rectangles | When spatial info matters |
+
+```python
+# Mixup
+mixed_image = lambda_ * image_A + (1 - lambda_) * image_B
+mixed_label = lambda_ * label_A + (1 - lambda_) * label_B
+
+# CutMix
+mixed_image = paste_region(image_A, image_B, bbox)
+mixed_label = area_ratio * label_A + (1 - area_ratio) * label_B
+```
 
 ---
 
@@ -181,49 +303,60 @@ augmented = transform(image=image)['image']
 
 ---
 
-# Advanced: Cutout
+# The Augmentation Pipeline
 
-![w:800](images/week05/cutout_example.png)
+![w:1000](images/week05/augmentation_pipeline.png)
 
-**Idea**: Randomly remove patches → forces model to use all features
-
----
-
-# Advanced: Mixup
-
-![w:900](images/week05/mixup_example.png)
-
-**Idea**: Blend two images AND their labels → smoother decision boundaries
+Each transform is applied with probability `p` - stochastic augmentation!
 
 ---
 
-# Noise Augmentation
+# ⚠️ Medical Imaging: Be VERY Careful!
 
-![w:900](images/week05/noise_augmentation.png)
+![w:950](images/week05/medical_augmentation.png)
 
-Trains model to be robust to sensor noise and image compression
-
----
-
-# Blur Augmentation
-
-![w:900](images/week05/blur_augmentation.png)
-
-Light blur is OK, heavy blur loses information!
+**Flipping a chest X-ray puts the heart on the wrong side!**
 
 ---
 
-# When NOT to Augment
+# Domain-Specific Rules
 
-| Domain | Be Careful With |
-|--------|-----------------|
-| **Medical imaging** | Flips (anatomy matters) |
-| **OCR/Text** | Rotation (text unreadable) |
-| **Digits** | Vertical flip (6 ↔ 9) |
-| **Fine-grained** | Heavy blur (loses details) |
-| **Asymmetric objects** | Flips change meaning |
+| Domain | Safe Augmentations | Dangerous |
+|--------|-------------------|-----------|
+| **Natural images** | Flip, rotate, color jitter | - |
+| **Medical imaging** | Mild rotation, brightness | Flips! |
+| **Satellite imagery** | Any rotation, color shifts | - |
+| **Documents/OCR** | Perspective, shadows | Rotation > 5° |
+| **Facial recognition** | Limited rotation, brightness | Heavy distortion |
+| **Digits (0-9)** | Rotation < 15°, brightness | Vertical flip |
 
-**Rule of thumb**: If a human can't label the augmented image, don't use it!
+---
+
+# 🎯 Exercise 1: Good or Bad?
+
+**For a dog/cat classifier, which augmentations are safe?**
+
+| Augmentation | Safe? |
+|-------------|-------|
+| Horizontal flip | ? |
+| Vertical flip | ? |
+| 180° rotation | ? |
+| Color jitter | ? |
+| Grayscale | ? |
+
+*Think before looking at the answer on the next slide!*
+
+---
+
+# 🎯 Exercise 1: Answers
+
+| Augmentation | Safe? | Why? |
+|-------------|-------|------|
+| Horizontal flip | ✓ Yes | Dogs/cats can face either direction |
+| Vertical flip | ✗ No | Dogs/cats don't hang upside down |
+| 180° rotation | ✗ No | Same as vertical flip |
+| Color jitter | ✓ Yes | Dogs/cats exist in all lighting |
+| Grayscale | ✓ Yes | Shape matters more than color |
 
 ---
 
@@ -235,17 +368,15 @@ Light blur is OK, heavy blur loses information!
 
 ---
 
-# Text Augmentation Challenges
+# Text vs Image: Different Challenges
 
-**Images**: Continuous pixels, easy to transform
-**Text**: Discrete tokens, meaning matters!
+| Aspect | Images | Text |
+|--------|--------|------|
+| Data type | Continuous pixels | Discrete tokens |
+| Small change | Still recognizable | May break meaning |
+| Example | Rotate cat 5° → still cat | "not good" ≠ "good" |
 
-| Challenge | Why it's hard |
-|-----------|---------------|
-| Synonyms | "good" ≠ "great" in all contexts |
-| Grammar | Random swaps break sentences |
-| Sentiment | Must preserve positive/negative |
-| Context | Meaning depends on surrounding words |
+**Text augmentation must preserve MEANING, not just words!**
 
 ---
 
@@ -261,7 +392,7 @@ Light blur is OK, heavy blur loses information!
 
 | Operation | Example |
 |-----------|---------|
-| **Synonym Replace** | "The movie was great" → "The film was excellent" |
+| **Synonym Replace** | "great" → "excellent" |
 | **Random Insert** | "I love this" → "I really love this" |
 | **Random Swap** | "She likes pizza" → "She pizza likes" |
 | **Random Delete** | "This is very good" → "This very good" |
@@ -271,8 +402,7 @@ import nlpaug.augmenter.word as naw
 
 aug = naw.SynonymAug(aug_src='wordnet')
 text = "The movie was fantastic"
-augmented = aug.augment(text)
-# "The film was fantastic"
+augmented = aug.augment(text)  # "The film was fantastic"
 ```
 
 ---
@@ -286,13 +416,14 @@ English:  "I love machine learning"
     ↓
 German:   "Ich liebe maschinelles Lernen"
     ↓
-English:  "I love machine learning"  (or slight variation!)
+English:  "I love automated learning"  ← Natural variation!
 ```
 
 **Why it works**: Translation models rephrase naturally
 
 ```python
-# Using transformers
+from transformers import pipeline
+
 en_de = pipeline("translation", model="Helsinki-NLP/opus-mt-en-de")
 de_en = pipeline("translation", model="Helsinki-NLP/opus-mt-de-en")
 
@@ -304,11 +435,10 @@ back = de_en(german)[0]['translation_text']
 
 # LLM Paraphrasing
 
-**Use GPT/Claude to generate paraphrases:**
+**Use GPT/Claude to generate high-quality paraphrases:**
 
 ```python
-prompt = """
-Generate 3 paraphrases of this text. Keep the same meaning.
+prompt = """Generate 3 paraphrases. Keep the same meaning and sentiment.
 
 Text: "The model achieved 95% accuracy on the test set."
 """
@@ -319,8 +449,52 @@ Text: "The model achieved 95% accuracy on the test set."
 # 3. "Testing showed the model was 95% accurate."
 ```
 
-**Pros**: High quality, natural variations
-**Cons**: API cost, slower
+| Pros | Cons |
+|------|------|
+| High quality | API cost |
+| Natural variations | Slower |
+| Context-aware | Need prompt engineering |
+
+---
+
+# ⚠️ Text Augmentation Pitfalls
+
+| Problem | Example | Solution |
+|---------|---------|----------|
+| **Negation flip** | "not bad" → "bad" | Check for negations |
+| **Entity change** | "Apple stock" → "Banana stock" | Protect named entities |
+| **Context loss** | "bank" (river vs money) | Use contextual models |
+| **Sentiment flip** | "love" → "hate" | Verify label preservation |
+
+**Always validate augmented text preserves the label!**
+
+---
+
+# 🎯 Exercise 2: Sentiment Preservation
+
+**Original**: "This restaurant has amazing food!"  (POSITIVE)
+
+**Which augmentations preserve the positive sentiment?**
+
+| Augmented Text | Preserves? |
+|---------------|-----------|
+| "This restaurant has incredible food!" | ? |
+| "This restaurant has food!" | ? |
+| "This restaurant has mediocre food!" | ? |
+| "This eatery has amazing food!" | ? |
+
+---
+
+# 🎯 Exercise 2: Answers
+
+| Augmented Text | Preserves? | Why? |
+|---------------|-----------|------|
+| "This restaurant has incredible food!" | ✓ Yes | Synonym |
+| "This restaurant has food!" | ⚠️ Maybe | Lost emphasis |
+| "This restaurant has mediocre food!" | ✗ No | Sentiment changed! |
+| "This eatery has amazing food!" | ✓ Yes | Safe synonym |
+
+**Lesson**: Synonym replacement needs sentiment checking!
 
 ---
 
@@ -332,11 +506,66 @@ Text: "The model achieved 95% accuracy on the test set."
 
 ---
 
+# Audio Augmentation Overview
+
+| Domain | Type | Effect |
+|--------|------|--------|
+| **Time domain** | Noise, stretch, shift | Simulates recording conditions |
+| **Frequency domain** | Pitch shift, EQ | Changes voice characteristics |
+| **Spectrogram** | Masking (SpecAugment) | Forces robust features |
+
+---
+
+# Listen: Audio Augmentation Examples
+
+**Original speech sound:**
+<audio controls src="audio/week05/original.wav"></audio>
+
+**Pitch shifted UP (higher voice):**
+<audio controls src="audio/week05/pitch_up.wav"></audio>
+
+**Pitch shifted DOWN (lower voice):**
+<audio controls src="audio/week05/pitch_down.wav"></audio>
+
+---
+
+# Listen: More Audio Augmentations
+
+**Time stretched (slower):**
+<audio controls src="audio/week05/time_stretch.wav"></audio>
+
+**With background noise:**
+<audio controls src="audio/week05/with_noise.wav"></audio>
+
+**With room reverb:**
+<audio controls src="audio/week05/with_reverb.wav"></audio>
+
+---
+
 # SpecAugment: Masking Spectrograms
 
 ![w:900](images/week05/specaugment_example.png)
 
 **Used by Google's speech recognition and Wav2Vec**
+
+---
+
+# Why SpecAugment Works
+
+**Time masking**: Forces model to use context
+- Can't rely on a single word to classify
+
+**Frequency masking**: Forces robustness
+- Can't rely on specific frequency bands
+
+```python
+from torchaudio.transforms import FrequencyMasking, TimeMasking
+
+freq_mask = FrequencyMasking(freq_mask_param=30)
+time_mask = TimeMasking(time_mask_param=100)
+
+augmented_spec = time_mask(freq_mask(spectrogram))
+```
 
 ---
 
@@ -356,57 +585,115 @@ audio, sr = librosa.load('speech.wav', sr=16000)
 augmented = augment(samples=audio, sample_rate=sr)
 ```
 
-**Time domain**: noise, stretch, pitch shift, volume
-
 ---
 
-# SpecAugment Code
+# Audio Augmentation Safety Rules
 
-```python
-from torchaudio.transforms import FrequencyMasking, TimeMasking
+| Task | Safe | Dangerous |
+|------|------|-----------|
+| **Speech recognition** | Noise, reverb, speed | Heavy pitch shift |
+| **Speaker identification** | Noise, reverb | Pitch shift (changes voice!) |
+| **Music genre** | Time stretch, noise | Pitch shift (changes key) |
+| **Emotion recognition** | Noise, reverb | Speed (changes emotion!) |
 
-# Apply to spectrogram
-freq_mask = FrequencyMasking(freq_mask_param=30)
-time_mask = TimeMasking(time_mask_param=100)
-
-augmented_spec = time_mask(freq_mask(spectrogram))
-```
-
-**Intuition**: Force model to use context, not rely on single features
+**Always consider what defines your label!**
 
 ---
 
 <!-- _class: lead -->
 
-# Part 5: Practical Guidelines
+# Part 5: Video Augmentation
+
+*Spatial + temporal transforms*
+
+---
+
+# Video = Images + Time
+
+**Video augmentation combines:**
+1. **Spatial**: Apply image augmentations to each frame
+2. **Temporal**: Modify the time dimension
+
+| Spatial | Temporal |
+|---------|----------|
+| Flip, rotate, crop | Speed change |
+| Color jitter | Frame sampling |
+| Cutout | Temporal crop |
+
+---
+
+# Video-Specific Augmentations
+
+| Augmentation | What it does | Use case |
+|-------------|--------------|----------|
+| **Temporal crop** | Take random time segment | Long videos |
+| **Frame sampling** | Skip frames | Reduce computation |
+| **Speed perturbation** | Play faster/slower | Action recognition |
+| **Reverse** | Play backwards | Some actions are symmetric |
+
+```python
+# Random temporal crop
+start = random.randint(0, len(video) - clip_length)
+clip = video[start:start + clip_length]
+
+# Frame sampling (take every 2nd frame)
+sampled = video[::2]
+```
+
+---
+
+# Video Augmentation Caution
+
+**Actions that change with time reversal:**
+- "Picking up" vs "Putting down"
+- "Opening door" vs "Closing door"
+- "Standing up" vs "Sitting down"
+
+**Safe to reverse:**
+- "Walking" (symmetric)
+- "Waving" (symmetric)
+- "Jumping" (mostly symmetric)
+
+---
+
+<!-- _class: lead -->
+
+# Part 6: Practical Guidelines
 
 *Building your augmentation pipeline*
 
 ---
 
+# The Golden Rule
+
+> **If a human can't correctly label the augmented data, don't use that augmentation!**
+
+Test your augmentation pipeline:
+1. Generate 100 augmented samples
+2. Label them yourself (or have someone else)
+3. If accuracy < 95%, your augmentation is too strong
+
+---
+
 # Start Simple, Measure Impact
 
-**Step 1: Baseline** (no augmentation)
 ```python
-# Train and measure
+# Step 1: Baseline (no augmentation)
 baseline_acc = train_and_evaluate(augment=None)  # e.g., 75%
-```
 
-**Step 2: Add one augmentation**
-```python
+# Step 2: Add ONE augmentation
 transform = A.HorizontalFlip(p=0.5)
 acc_v1 = train_and_evaluate(augment=transform)  # e.g., 78%
-```
 
-**Step 3: Gradually add more**
-```python
+# Step 3: Gradually add more
 transform = A.Compose([
     A.HorizontalFlip(p=0.5),
     A.Rotate(limit=15, p=0.5),
-    A.RandomBrightnessContrast(p=0.3),
 ])
-acc_v2 = train_and_evaluate(augment=transform)  # e.g., 82%
+acc_v2 = train_and_evaluate(augment=transform)  # e.g., 81%
 ```
+
+**Add one at a time. Measure. Keep what helps.**
 
 ---
 
@@ -415,18 +702,17 @@ acc_v2 = train_and_evaluate(augment=transform)  # e.g., 82%
 | Parameter | What it controls | Starting point |
 |-----------|-----------------|----------------|
 | **Probability (p)** | How often to apply | 0.5 |
-| **Magnitude** | Strength of transform | Low → increase |
-| **Num augmentations** | How many at once | 2-3 |
+| **Magnitude** | Strength of transform | Start low |
+| **Number** | How many transforms | 2-3 |
 
-**Example tuning:**
 ```python
 # Start mild
 A.Rotate(limit=10, p=0.3)
 
-# Increase if underfitting
+# If underfitting, increase
 A.Rotate(limit=30, p=0.5)
 
-# Decrease if validation gets worse
+# If validation drops, decrease
 A.Rotate(limit=15, p=0.3)
 ```
 
@@ -436,7 +722,15 @@ A.Rotate(limit=15, p=0.3)
 
 ![w:850](images/week05/randaugment_example.png)
 
-Randomly pick N augmentations with magnitude M - simple and effective!
+**Idea**: Randomly pick N augmentations with magnitude M
+
+```python
+from torchvision.transforms import RandAugment
+
+transform = RandAugment(num_ops=2, magnitude=9)
+```
+
+Simple, effective, widely used!
 
 ---
 
@@ -455,14 +749,13 @@ def tta_predict(model, image, n_augments=5):
     return np.mean(predictions, axis=0)
 ```
 
-**Result**: Often +1-2% accuracy
-**Cost**: N× slower inference
+| Benefit | Cost |
+|---------|------|
+| +1-2% accuracy | N× slower inference |
 
 ---
 
-# Don't Augment Validation/Test!
-
-**Common mistake:**
+# ⚠️ Don't Augment Validation/Test!
 
 ```python
 # WRONG!
@@ -471,40 +764,42 @@ val_transform = A.Compose([
 ])
 ```
 
-**Correct:**
 ```python
-# Training: with augmentation
-train_transform = A.Compose([A.HorizontalFlip(p=0.5), ...])
+# CORRECT
+train_transform = A.Compose([
+    A.HorizontalFlip(p=0.5),
+    A.Rotate(limit=15, p=0.5),
+])
 
-# Validation/Test: NO augmentation
-val_transform = A.Compose([])  # Only normalization if needed
+val_transform = A.Compose([])  # No augmentation!
 ```
 
-**Why?** You want to measure performance on real distribution
+**Why?** Validation measures performance on REAL data distribution.
 
 ---
 
-# Domain-Specific Strategies
+# When to Use Each Augmentation
 
-| Domain | Recommended | Avoid |
-|--------|-------------|-------|
-| **Natural images** | Flip, rotate, color jitter | - |
-| **Medical** | Mild rotation, brightness | Heavy transforms |
-| **Satellite** | Any rotation, color shifts | - |
-| **Documents/OCR** | Perspective, shadows | Rotation, flip |
-| **Faces** | Limited rotation, brightness | Heavy distortion |
+| Data size | Recommended approach |
+|-----------|---------------------|
+| **< 1,000** | Heavy augmentation (10x) |
+| **1,000 - 10,000** | Moderate augmentation (5x) |
+| **10,000 - 100,000** | Light augmentation (2-3x) |
+| **> 100,000** | Minimal or no augmentation |
+
+**More data = less augmentation needed**
 
 ---
 
 <!-- _class: lead -->
 
-# Part 6: Tools & Libraries
+# Part 7: Tools & Libraries
 
 *Quick reference*
 
 ---
 
-# Libraries Summary
+# Libraries by Modality
 
 | Modality | Library | Key Features |
 |----------|---------|--------------|
@@ -513,6 +808,7 @@ val_transform = A.Compose([])  # Only normalization if needed
 | **Text** | nlpaug | Synonym, BERT, back-translation |
 | **Audio** | audiomentations | Time-domain transforms |
 | **Audio** | torchaudio | SpecAugment, frequency transforms |
+| **Video** | vidaug | Temporal + spatial |
 | **All** | Augly (Meta) | Unified API for all modalities |
 
 ---
@@ -527,12 +823,14 @@ train_transform = A.Compose([
     A.HorizontalFlip(p=0.5),
     A.Rotate(limit=15, p=0.5),
     A.RandomBrightnessContrast(p=0.3),
-    A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    A.Normalize(mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]),
     ToTensorV2(),
 ])
 
 val_transform = A.Compose([
-    A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    A.Normalize(mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]),
     ToTensorV2(),
 ])
 ```
@@ -544,10 +842,10 @@ val_transform = A.Compose([
 ```python
 import nlpaug.augmenter.word as naw
 
-# Option 1: Synonym replacement
+# Option 1: Synonym replacement (fast, simple)
 aug_syn = naw.SynonymAug(aug_src='wordnet')
 
-# Option 2: Contextual (BERT-based)
+# Option 2: Contextual (BERT-based, higher quality)
 aug_bert = naw.ContextualWordEmbsAug(
     model_path='bert-base-uncased',
     action="substitute"
@@ -560,6 +858,23 @@ augmented = aug_syn.augment(original)
 
 ---
 
+# Quick Start: Audio Classification
+
+```python
+from audiomentations import Compose, AddGaussianNoise, TimeStretch
+import librosa
+
+augment = Compose([
+    AddGaussianNoise(min_amplitude=0.001, max_amplitude=0.015, p=0.5),
+    TimeStretch(min_rate=0.8, max_rate=1.2, p=0.5),
+])
+
+audio, sr = librosa.load('audio.wav', sr=16000)
+augmented = augment(samples=audio, sample_rate=sr)
+```
+
+---
+
 # Resources
 
 **Papers:**
@@ -567,6 +882,7 @@ augmented = aug_syn.augment(original)
 - RandAugment (2020) - Simple random augmentation
 - SpecAugment (2019) - Audio augmentation
 - Mixup (2018) - Blending images and labels
+- CutMix (2019) - Cut and paste augmentation
 
 **Libraries:**
 - albumentations.ai
@@ -575,10 +891,24 @@ augmented = aug_syn.augment(original)
 
 ---
 
+# 🎯 Final Exercise: Design Your Pipeline
+
+**Task**: Design an augmentation pipeline for classifying food images (pizza, burger, sushi, etc.)
+
+**Consider:**
+1. Which geometric transforms are safe?
+2. Which color transforms make sense?
+3. What about Mixup/CutMix?
+4. Any transforms to avoid?
+
+*Discuss with your neighbor!*
+
+---
+
 # Key Takeaways
 
 1. **Augmentation = free training data**
-   - Same images, different views → better generalization
+   - Same data, different views → better generalization
 
 2. **Preserve the label**
    - Flip a cat? Still a cat. Flip a "6"? Now it's a "9"!
@@ -586,12 +916,12 @@ augmented = aug_syn.augment(original)
 3. **Domain-specific choices matter**
    - Images: geometric + color
    - Text: synonyms, paraphrasing
-   - Audio: time stretch, pitch shift
+   - Audio: time stretch, pitch shift, SpecAugment
 
 4. **Start simple, measure impact**
    - Baseline → add one → measure → iterate
 
-5. **Don't augment validation/test data**
+5. **Never augment validation/test data**
 
 ---
 
@@ -600,6 +930,8 @@ augmented = aug_syn.augment(original)
 
 # Questions?
 
-**Lab**: Implement augmentation pipeline
-Compare model performance with/without augmentation
+**Lab**: Implement augmentation pipeline for image classification
+- Train baseline model (no augmentation)
+- Add augmentations one by one
+- Compare accuracy and plot learning curves
 
