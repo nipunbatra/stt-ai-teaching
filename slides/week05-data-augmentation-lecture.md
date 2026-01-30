@@ -42,89 +42,45 @@ math: mathjax
 
 ---
 
-# The Data Hunger Problem
+# The Problem & Solution
 
-**Deep learning models are data-hungry:**
+| The Problem | The Solution |
+|-------------|--------------|
+| ResNet needs 1.2M images | **Data Augmentation**: |
+| GPT-3 needs 45TB text | Transform existing data |
+| You have 500 images | to create MORE training data |
 
-| Model | Training Data |
-|-------|--------------|
-| ResNet-50 | 1.2M images |
-| GPT-3 | 45TB of text |
-| AlphaGo | 30M game positions |
+| Your Data | + Augmentation | = Training Examples |
+|-----------|----------------|---------------------|
+| 500 images | 10x transforms | 5,000 examples |
+| 1,000 texts | 5x paraphrases | 5,000 examples |
 
-**Your reality:**
-- 500 labeled images
-- 1,000 text samples
-- 100 audio clips
-
----
-
-# The Solution: Data Augmentation
-
-**Create more training data from existing data!**
-
-| Original Data | Augmentation | Result |
-|--------------|--------------|--------|
-| 500 images | 10x augmentations | 5,000 training examples |
-| 1,000 texts | 5x paraphrases | 5,000 training examples |
-| 100 audio clips | 8x transforms | 800 training examples |
-
-**Key insight**: Transformations that preserve the label = FREE DATA!
+**Key Rule**: Only use transforms that **preserve the label**!
 
 ---
 
 # What is Data Augmentation?
 
-**Data Augmentation**: Apply transformations to create new training examples
-
-**The Rule**: Only use transforms that **preserve the label**
-
-| Transform | Cat image | Still a cat? |
-|-----------|-----------|--------------|
-| Rotate 10° | Tilted cat | ✓ Yes! |
-| Flip horizontal | Mirror cat | ✓ Yes! |
-| Slightly darker | Dim cat | ✓ Yes! |
-| Add noise | Grainy cat | ✓ Yes! |
-
-**Result**: 1 image → 10 training examples (for free!)
-
----
-
-# Visual Example: Cat Augmentation
-
 ![w:950](images/week05/cat_augmentation_example.png)
 
-All 8 versions are still clearly a cat!
+**1 image → 8 training examples** (all still clearly a cat!)
 
 ---
 
-# Why Does This Work? Your Brain Already Does It!
+# Why It Works: Your Brain Already Does This!
 
 ![w:950](images/week05/brain_invariance.png)
 
 Neural networks need to **learn** what your brain does naturally.
+**Augmentation = Teaching models to be invariant like humans.**
 
 ---
 
-# The Photographer Analogy
-
-**Teaching someone "what is a cat" with ONE photo:**
-- They might memorize: "cat = this exact pose, lighting, angle"
-
-**Teaching with MANY photos:**
-- Different poses → cats can sit, stand, lie down
-- Different lighting → cats look similar in bright/dim light
-- Different angles → cats can face any direction
-
-**Augmentation = Taking many "virtual photos" from one real photo**
-
----
-
-# Instagram Filters = Augmentation!
+# You Already Use Augmentation Daily!
 
 ![w:950](images/week05/instagram_augmentation.png)
 
-You already use augmentation every day on social media!
+Instagram filters = color augmentation. Your brain still recognizes it's a cat!
 
 ---
 
@@ -1024,40 +980,20 @@ val_transform = A.Compose([
 
 ---
 
-# Quick Start: Text Classification
+# Quick Start: Text & Audio
 
+**Text** (nlpaug):
 ```python
 import nlpaug.augmenter.word as naw
-
-# Option 1: Synonym replacement (fast, simple)
-aug_syn = naw.SynonymAug(aug_src='wordnet')
-
-# Option 2: Contextual (BERT-based, higher quality)
-aug_bert = naw.ContextualWordEmbsAug(
-    model_path='bert-base-uncased',
-    action="substitute"
-)
-
-# Apply
-original = "This movie was fantastic"
-augmented = aug_syn.augment(original)
+aug = naw.SynonymAug(aug_src='wordnet')
+augmented = aug.augment("This movie was fantastic")
 ```
 
----
-
-# Quick Start: Audio Classification
-
+**Audio** (audiomentations):
 ```python
 from audiomentations import Compose, AddGaussianNoise, TimeStretch
-import librosa
-
-augment = Compose([
-    AddGaussianNoise(min_amplitude=0.001, max_amplitude=0.015, p=0.5),
-    TimeStretch(min_rate=0.8, max_rate=1.2, p=0.5),
-])
-
-audio, sr = librosa.load('audio.wav', sr=16000)
-augmented = augment(samples=audio, sample_rate=sr)
+augment = Compose([AddGaussianNoise(p=0.5), TimeStretch(p=0.5)])
+augmented = augment(samples=audio, sample_rate=16000)
 ```
 
 ---
@@ -1117,8 +1053,10 @@ augmented = augment(samples=audio, sample_rate=sr)
 
 # Questions?
 
-**Lab**: Implement augmentation pipeline for image classification
-- Train baseline model (no augmentation)
-- Add augmentations one by one
-- Compare accuracy and plot learning curves
+**Lab Notebook**: `lecture-demos/week05/augmentation_impact_cifar10.ipynb`
+- Trains CNN on CIFAR-10 with and without augmentation
+- Shows ~10% accuracy improvement with augmentation
+- Visualizes overfitting reduction
+
+**Interactive Demo**: `python augmentation_demo_app.py`
 
