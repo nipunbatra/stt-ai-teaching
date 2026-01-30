@@ -280,6 +280,151 @@ mixed_label = area_ratio * label_A + (1 - area_ratio) * label_B
 
 ---
 
+<!-- _class: lead -->
+
+# Task-Specific Augmentation
+
+*Different tasks need different strategies*
+
+---
+
+# Augmentation by Task: Overview
+
+![w:950](images/week05/task_augmentation_overview.png)
+
+---
+
+# Object Detection: Transform BBoxes Too!
+
+![w:950](images/week05/object_detection_augmentation.png)
+
+**Critical**: Bounding box coordinates must transform with the image!
+
+---
+
+# Object Detection: Albumentations Code
+
+```python
+import albumentations as A
+
+transform = A.Compose([
+    A.HorizontalFlip(p=0.5),
+    A.Rotate(limit=15, p=0.5),
+    A.RandomBrightnessContrast(p=0.3),
+], bbox_params=A.BboxParams(
+    format='pascal_voc',  # [x_min, y_min, x_max, y_max]
+    label_fields=['class_labels']
+))
+
+# Apply - boxes transform automatically!
+augmented = transform(
+    image=image,
+    bboxes=[[30, 40, 170, 160]],
+    class_labels=['cat']
+)
+```
+
+**Albumentations handles bbox transformation automatically!**
+
+---
+
+# Segmentation: Transform Masks Too!
+
+![w:950](images/week05/segmentation_augmentation.png)
+
+**Rule**: Apply EXACT same transform to image AND mask!
+
+---
+
+# Segmentation: Albumentations Code
+
+```python
+import albumentations as A
+
+transform = A.Compose([
+    A.HorizontalFlip(p=0.5),
+    A.Rotate(limit=30, p=0.5),
+    A.RandomCrop(height=256, width=256, p=1.0),
+])
+
+# Apply - mask transforms with image!
+augmented = transform(image=image, mask=segmentation_mask)
+
+aug_image = augmented['image']
+aug_mask = augmented['mask']  # Same transform applied!
+```
+
+---
+
+# NER: Protect Entity Tokens!
+
+![w:950](images/week05/ner_augmentation.png)
+
+**Never replace or modify named entity tokens!**
+
+---
+
+# NER Augmentation: Code Example
+
+```python
+import nlpaug.augmenter.word as naw
+
+# Create augmenter that respects protected tokens
+aug = naw.SynonymAug(
+    aug_src='wordnet',
+    stopwords=['John', 'Smith', 'Google', 'New', 'York']  # Protect entities!
+)
+
+text = "John Smith works at Google in New York."
+augmented = aug.augment(text)
+# "John Smith is employed at Google in New York."  ← Entities preserved!
+```
+
+**Better approach**: Use span-aware augmentation libraries like `nlpaug` with entity protection.
+
+---
+
+# Pose Estimation: Transform Keypoints
+
+| Original | Flipped | What happens |
+|----------|---------|--------------|
+| Left hand at (50, 100) | Right hand at (150, 100) | Keypoint IDs swap! |
+| Left knee at (60, 200) | Right knee at (140, 200) | Must relabel! |
+
+```python
+transform = A.Compose([
+    A.HorizontalFlip(p=0.5),
+], keypoint_params=A.KeypointParams(
+    format='xy',
+    label_fields=['keypoint_labels'],
+    remove_invisible=False
+))
+```
+
+**Left/right keypoints must swap labels on horizontal flip!**
+
+---
+
+# OCR/Document: Be Conservative!
+
+| Safe | Dangerous | Why |
+|------|-----------|-----|
+| Slight perspective | Heavy rotation | Text unreadable |
+| Brightness change | Blur | Characters merge |
+| Add shadows | Stretch | Changes aspect ratio |
+| Mild noise | Invert colors | May flip meaning |
+
+```python
+# OCR-safe augmentation
+transform = A.Compose([
+    A.Perspective(scale=(0.02, 0.05), p=0.3),  # Very mild
+    A.RandomBrightnessContrast(brightness_limit=0.1, p=0.3),
+    A.GaussNoise(var_limit=(5, 15), p=0.2),  # Light noise
+])
+```
+
+---
+
 # Albumentations: The Go-To Library
 
 ```python
@@ -810,6 +955,48 @@ val_transform = A.Compose([])  # No augmentation!
 | **Audio** | torchaudio | SpecAugment, frequency transforms |
 | **Video** | vidaug | Temporal + spatial |
 | **All** | Augly (Meta) | Unified API for all modalities |
+
+---
+
+# 🎮 Try It Yourself: Interactive Demo
+
+**Gradio Demo** (recommended):
+```bash
+cd lecture-demos/week05
+pip install gradio
+python augmentation_demo_app.py
+# Open http://localhost:7860
+```
+
+**Streamlit Demo**:
+```bash
+pip install streamlit
+streamlit run augmentation_demo_streamlit.py
+```
+
+**Features:**
+- Upload any image and apply augmentations in real-time
+- Batch generation: see 9 random augmentations at once
+- "Dangerous augmentations" tab: see how labels can break!
+
+---
+
+# Demo Screenshot: Manual Controls
+
+The demo lets you adjust each augmentation parameter:
+
+| Control | What it does |
+|---------|-------------|
+| Horizontal Flip | Mirror left ↔ right |
+| Vertical Flip | Mirror top ↔ bottom (⚠️ dangerous!) |
+| Rotation | Rotate -45° to +45° |
+| Brightness | Darker ↔ Brighter |
+| Contrast | Flatten ↔ Enhance |
+| Noise | Add Gaussian noise |
+| Blur | Apply Gaussian blur |
+| Cutout | Remove random patch |
+
+**Try it**: Upload a digit "6" and flip vertically!
 
 ---
 
