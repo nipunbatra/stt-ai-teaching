@@ -67,12 +67,12 @@ math: mathjax
 
 ---
 
-# Why It Works: Your Brain Already Does This!
+# The Invariance Problem
 
 ![w:950](images/week05/brain_invariance.png)
 
-Neural networks need to **learn** what your brain does naturally.
-**Augmentation = Teaching models to be invariant like humans.**
+**Human vision** is naturally invariant to rotation, lighting, position.
+**Neural networks** must learn this invariance from data → augmentation helps!
 
 ---
 
@@ -84,19 +84,19 @@ Instagram filters = color augmentation. Your brain still recognizes it's a cat!
 
 ---
 
-# MNIST: Same Digit, 10 Training Examples
+# MNIST: 1 Digit → 10 Training Examples
 
-![w:900](images/week05/digit_augmentation_examples.png)
+![w:950](images/week05/digit_augmentation_examples.png)
 
-**Same digit "3" → 10 different training examples!**
+Each transform simulates real-world variation (tilted writing, different pens, lighting, etc.)
 
 ---
 
-# The Impact is HUGE
+# Published Results: Augmentation Works!
 
 ![w:900](images/week05/augmentation_impact.png)
 
-Real results from CIFAR-10 image classification benchmark.
+**Real paper results** on CIFAR-10 with Wide-ResNet-28-10 architecture.
 
 ---
 
