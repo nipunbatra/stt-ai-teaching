@@ -149,7 +149,7 @@ Brightness, contrast, inversion - simulates different lighting conditions
 
 ![w:950](images/week05/elastic_deformation.png)
 
-**Simulates natural handwriting variation** - hugely effective for OCR!
+**α** = displacement magnitude, **σ** = smoothness. From Simard et al. (2003).
 
 ---
 
@@ -161,7 +161,7 @@ Brightness, contrast, inversion - simulates different lighting conditions
 
 ---
 
-# ⚠️ The "6 vs 9" Problem
+# ⚠️ The "b vs d" Problem
 
 ![w:800](images/week05/bad_augmentation_6_vs_9.png)
 
@@ -246,7 +246,7 @@ mixed_label = area_ratio * label_A + (1 - area_ratio) * label_B
 
 # Augmentation by Task: Overview
 
-![w:950](images/week05/task_augmentation_overview.png)
+![w:1000](images/week05/task_augmentation_overview_gemini.png)
 
 ---
 
