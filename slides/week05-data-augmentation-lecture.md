@@ -79,6 +79,14 @@ math: mathjax
 
 ---
 
+# Cat Augmentation: Visual Example
+
+![w:900](images/week05/cat_augmentation_example.png)
+
+All 8 versions are still clearly a cat!
+
+---
+
 # The Photographer Analogy
 
 **Teaching someone "what is a cat" with ONE photo:**

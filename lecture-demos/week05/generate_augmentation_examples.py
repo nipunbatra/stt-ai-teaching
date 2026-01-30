@@ -1,67 +1,31 @@
 """
 Generate HIGH-RESOLUTION augmentation example images for week05 slides.
-Uses actual MNIST (28x28) instead of sklearn digits (8x8).
+Uses REAL MNIST (28x28) via sklearn.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image, ImageEnhance, ImageFilter
 import os
 from scipy.ndimage import rotate, zoom, gaussian_filter, map_coordinates
+from sklearn.datasets import fetch_openml
 
 # Create output directory
 os.makedirs('../../slides/images/week05', exist_ok=True)
 
-# Try to load MNIST, fall back to generating synthetic high-res digits
-try:
-    from torchvision.datasets import MNIST
-    import torchvision.transforms as T
+# Load REAL MNIST
+print("Loading MNIST from sklearn...")
+mnist = fetch_openml('mnist_784', version=1, as_frame=False, parser='auto')
+X = mnist.data.reshape(-1, 28, 28)
+y = mnist.target.astype(int)
+print(f"Loaded {len(X)} images")
 
-    mnist = MNIST(root='/tmp/mnist', train=True, download=True)
-
-    def get_digit(label, idx=0):
-        """Get a specific digit from MNIST."""
-        indices = np.where(np.array(mnist.targets) == label)[0]
-        img = np.array(mnist.data[indices[idx]])
-        return img.astype(float)
-
-    print("Using real MNIST (28x28)")
-except:
-    print("MNIST not available, generating synthetic digits")
-    # Generate synthetic high-res digits
-    def get_digit(label, idx=0):
-        np.random.seed(label * 10 + idx)
-        img = np.zeros((28, 28))
-        # Simple digit patterns
-        if label == 3:
-            img[5:8, 8:20] = 15
-            img[12:15, 8:20] = 15
-            img[21:24, 8:20] = 15
-            img[5:24, 17:20] = 15
-        elif label == 6:
-            img[4:8, 8:20] = 15
-            img[4:16, 8:11] = 15
-            img[13:16, 8:20] = 15
-            img[13:25, 17:20] = 15
-            img[22:25, 8:20] = 15
-        elif label == 9:
-            img[4:8, 8:20] = 15
-            img[4:16, 8:11] = 15
-            img[4:16, 17:20] = 15
-            img[13:16, 8:20] = 15
-            img[13:25, 17:20] = 15
-        elif label == 5:
-            img[4:8, 8:20] = 15
-            img[4:15, 8:11] = 15
-            img[12:15, 8:20] = 15
-            img[12:25, 17:20] = 15
-            img[22:25, 8:20] = 15
-        elif label == 7:
-            img[4:8, 8:20] = 15
-            img[4:25, 17:20] = 15
-        return img * 16
+def get_digit(label, idx=0):
+    """Get a specific digit from MNIST."""
+    indices = np.where(y == label)[0]
+    img = X[indices[idx]].astype(float)
+    return img
 
 # =============================================================================
-# 1. MNIST Digit Augmentation Examples (HIGH RES)
+# 1. MNIST Digit Augmentation Examples (REAL MNIST)
 # =============================================================================
 
 digit_img = get_digit(3, idx=5)
@@ -107,6 +71,7 @@ axes[1, 0].set_title('Shift Right', fontsize=13)
 axes[1, 0].axis('off')
 
 # Add noise
+np.random.seed(42)
 noisy = digit_img + np.random.normal(0, 30, digit_img.shape)
 noisy = np.clip(noisy, 0, 255)
 axes[1, 1].imshow(noisy, cmap='gray', interpolation='nearest')
@@ -131,8 +96,8 @@ def elastic_transform(image, alpha=3, sigma=0.5):
     shape = image.shape
     dx = gaussian_filter((random_state.rand(*shape) * 2 - 1), sigma) * alpha
     dy = gaussian_filter((random_state.rand(*shape) * 2 - 1), sigma) * alpha
-    x, y = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]))
-    indices = np.reshape(y + dy, (-1, 1)), np.reshape(x + dx, (-1, 1))
+    x, y_grid = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]))
+    indices = np.reshape(y_grid + dy, (-1, 1)), np.reshape(x + dx, (-1, 1))
     return map_coordinates(image, indices, order=1).reshape(shape)
 
 elastic = elastic_transform(digit_img)
@@ -148,7 +113,7 @@ plt.close()
 print("Saved: digit_augmentation_examples.png")
 
 # =============================================================================
-# 2. The "6 vs 9" Problem - BAD Augmentation (HIGH RES)
+# 2. The "6 vs 9" Problem - BAD Augmentation (REAL MNIST)
 # =============================================================================
 
 digit_6 = get_digit(6, idx=0)
@@ -181,10 +146,11 @@ plt.close()
 print("Saved: bad_augmentation_6_vs_9.png")
 
 # =============================================================================
-# 3. Good vs Bad Augmentation Table Visual (HIGH RES)
+# 3. Good vs Bad Augmentation Table Visual (REAL MNIST)
 # =============================================================================
 
 digit_5 = get_digit(5, idx=0)
+digit_6 = get_digit(6, idx=0)
 
 fig, axes = plt.subplots(2, 4, figsize=(14, 7))
 
@@ -279,7 +245,7 @@ plt.close()
 print("Saved: augmentation_overfitting.png")
 
 # =============================================================================
-# 5. Geometric Transforms Visual
+# 5. Geometric Transforms Visual (REAL MNIST)
 # =============================================================================
 
 digit = get_digit(3, idx=2)
@@ -317,7 +283,7 @@ axes[1, 1].imshow(zoomed_crop, cmap='gray', interpolation='nearest')
 axes[1, 1].set_title('Scaling (1.4x)', fontsize=14)
 axes[1, 1].axis('off')
 
-# Random Crop (simulated by showing a portion)
+# Random Crop (simulated)
 crop = digit[2:26, 4:28]
 crop_resized = zoom(crop, 28/24)[:28, :28]
 axes[1, 2].imshow(crop_resized, cmap='gray', interpolation='nearest')
@@ -332,7 +298,7 @@ plt.close()
 print("Saved: geometric_transforms.png")
 
 # =============================================================================
-# 6. Color Transforms Visual
+# 6. Color Transforms Visual (REAL MNIST)
 # =============================================================================
 
 digit = get_digit(7, idx=0)
@@ -383,7 +349,7 @@ plt.close()
 print("Saved: color_transforms.png")
 
 # =============================================================================
-# 7. Mixup Visualization (HIGH RES)
+# 7. Mixup Visualization (REAL MNIST)
 # =============================================================================
 
 digit_3 = get_digit(3, idx=0)
@@ -419,7 +385,7 @@ plt.close()
 print("Saved: mixup_example.png")
 
 # =============================================================================
-# 8. Cutout Visualization (HIGH RES)
+# 8. Cutout Visualization (REAL MNIST)
 # =============================================================================
 
 digit = get_digit(3, idx=3)
@@ -493,7 +459,7 @@ plt.close()
 print("Saved: text_augmentation_examples.png")
 
 # =============================================================================
-# 10. Noise Augmentation
+# 10. Noise Augmentation (REAL MNIST)
 # =============================================================================
 
 digit = get_digit(5, idx=2)
@@ -505,16 +471,18 @@ axes[0].set_title('Original', fontsize=14)
 axes[0].axis('off')
 
 # Gaussian noise
-noisy1 = digit + np.random.normal(0, 20, digit.shape)
+np.random.seed(123)
+noisy1 = digit + np.random.normal(0, 25, digit.shape)
 noisy1 = np.clip(noisy1, 0, 255)
 axes[1].imshow(noisy1, cmap='gray', interpolation='nearest')
 axes[1].set_title('Gaussian Noise', fontsize=14)
 axes[1].axis('off')
 
 # Salt and pepper
+np.random.seed(456)
 noisy2 = digit.copy()
-salt = np.random.random(digit.shape) < 0.02
-pepper = np.random.random(digit.shape) < 0.02
+salt = np.random.random(digit.shape) < 0.03
+pepper = np.random.random(digit.shape) < 0.03
 noisy2[salt] = 255
 noisy2[pepper] = 0
 axes[2].imshow(noisy2, cmap='gray', interpolation='nearest')
@@ -522,7 +490,8 @@ axes[2].set_title('Salt & Pepper', fontsize=14)
 axes[2].axis('off')
 
 # Speckle noise
-noisy3 = digit + digit * np.random.normal(0, 0.2, digit.shape)
+np.random.seed(789)
+noisy3 = digit + digit * np.random.normal(0, 0.3, digit.shape)
 noisy3 = np.clip(noisy3, 0, 255)
 axes[3].imshow(noisy3, cmap='gray', interpolation='nearest')
 axes[3].set_title('Speckle Noise', fontsize=14)
@@ -536,7 +505,7 @@ plt.close()
 print("Saved: noise_augmentation.png")
 
 # =============================================================================
-# 11. Blur Augmentation
+# 11. Blur Augmentation (REAL MNIST)
 # =============================================================================
 
 digit = get_digit(8, idx=0)
@@ -576,7 +545,7 @@ print("Saved: blur_augmentation.png")
 # 12. Audio Spectrogram Augmentation (Simulated)
 # =============================================================================
 
-# Create a fake spectrogram
+# Create a realistic-looking spectrogram
 np.random.seed(42)
 t = np.linspace(0, 2, 100)
 f = np.linspace(0, 8000, 80)
@@ -623,7 +592,7 @@ plt.close()
 print("Saved: specaugment_example.png")
 
 # =============================================================================
-# 13. RandAugment Visualization
+# 13. RandAugment Visualization (REAL MNIST)
 # =============================================================================
 
 digit = get_digit(4, idx=0)
@@ -670,4 +639,82 @@ plt.savefig('../../slides/images/week05/randaugment_example.png', dpi=200, bbox_
 plt.close()
 print("Saved: randaugment_example.png")
 
-print("\n✓ All high-resolution images generated successfully!")
+# =============================================================================
+# 14. Cat Augmentation Example (Real Photo from skimage)
+# =============================================================================
+
+from PIL import Image
+
+try:
+    from skimage import data as skdata
+    print("Loading cat from skimage...")
+    cat_np = skdata.chelsea()  # Real cat photo included in skimage
+    cat_np = np.array(Image.fromarray(cat_np).resize((256, 256)))
+
+    fig, axes = plt.subplots(2, 4, figsize=(14, 7))
+
+    # Original
+    axes[0, 0].imshow(cat_np)
+    axes[0, 0].set_title('Original Cat', fontsize=13, fontweight='bold')
+    axes[0, 0].axis('off')
+
+    # Rotated
+    from scipy.ndimage import rotate as nd_rotate
+    rotated_cat = nd_rotate(cat_np, 15, reshape=False, mode='reflect')
+    axes[0, 1].imshow(rotated_cat)
+    axes[0, 1].set_title('Rotated +15°', fontsize=13)
+    axes[0, 1].axis('off')
+
+    # Horizontal flip
+    flipped_cat = np.fliplr(cat_np)
+    axes[0, 2].imshow(flipped_cat)
+    axes[0, 2].set_title('Horizontal Flip', fontsize=13)
+    axes[0, 2].axis('off')
+
+    # Darker
+    darker_cat = (cat_np * 0.6).astype(np.uint8)
+    axes[0, 3].imshow(darker_cat)
+    axes[0, 3].set_title('Darker (-40%)', fontsize=13)
+    axes[0, 3].axis('off')
+
+    # Brighter
+    brighter_cat = np.clip(cat_np * 1.4, 0, 255).astype(np.uint8)
+    axes[1, 0].imshow(brighter_cat)
+    axes[1, 0].set_title('Brighter (+40%)', fontsize=13)
+    axes[1, 0].axis('off')
+
+    # Noise
+    np.random.seed(42)
+    noisy_cat = cat_np.astype(float) + np.random.normal(0, 20, cat_np.shape)
+    noisy_cat = np.clip(noisy_cat, 0, 255).astype(np.uint8)
+    axes[1, 1].imshow(noisy_cat)
+    axes[1, 1].set_title('+ Gaussian Noise', fontsize=13)
+    axes[1, 1].axis('off')
+
+    # Zoom/Crop
+    h, w = cat_np.shape[:2]
+    crop_size = int(h * 0.7)
+    start = (h - crop_size) // 2
+    cropped = cat_np[start:start+crop_size, start:start+crop_size]
+    cropped_resized = np.array(Image.fromarray(cropped).resize((256, 256)))
+    axes[1, 2].imshow(cropped_resized)
+    axes[1, 2].set_title('Center Crop + Resize', fontsize=13)
+    axes[1, 2].axis('off')
+
+    # Blur
+    from scipy.ndimage import gaussian_filter as gf
+    blurred_cat = np.stack([gf(cat_np[:,:,c], sigma=2) for c in range(3)], axis=2)
+    axes[1, 3].imshow(blurred_cat.astype(np.uint8))
+    axes[1, 3].set_title('Gaussian Blur', fontsize=13)
+    axes[1, 3].axis('off')
+
+    plt.suptitle('Image Augmentation on Real Photos: All Still a Cat!', fontsize=18, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig('../../slides/images/week05/cat_augmentation_example.png', dpi=200, bbox_inches='tight',
+                facecolor='white', edgecolor='none')
+    plt.close()
+    print("Saved: cat_augmentation_example.png")
+except Exception as e:
+    print(f"Could not download cat image: {e}")
+
+print("\n✓ All images generated with REAL MNIST!")
