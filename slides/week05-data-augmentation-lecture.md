@@ -120,41 +120,17 @@ math: mathjax
 
 # Geometric Transforms
 
-| Transform | What it does | When to use |
-|-----------|--------------|-------------|
-| **Rotation** | Rotate ±15-30° | Most images |
-| **Horizontal Flip** | Mirror left-right | Symmetric objects |
-| **Vertical Flip** | Mirror top-bottom | Satellite, microscopy |
-| **Translation** | Shift by pixels | Object detection |
-| **Scaling** | Zoom in/out | Varying object sizes |
-| **Cropping** | Random crops | General purpose |
+![w:900](images/week05/geometric_transforms.png)
 
-```python
-from PIL import Image
-
-img = Image.open('cat.jpg')
-rotated = img.rotate(15)
-flipped = img.transpose(Image.FLIP_LEFT_RIGHT)
-```
+Rotation, flip, translation, scaling, cropping - all preserve the label!
 
 ---
 
-# Color Transforms
+# Color/Intensity Transforms
 
-| Transform | What it does | Use case |
-|-----------|--------------|----------|
-| **Brightness** | Lighter/darker | Lighting variations |
-| **Contrast** | More/less contrast | Camera differences |
-| **Saturation** | Color intensity | Weather conditions |
-| **Hue** | Shift colors | Artistic variation |
-| **Grayscale** | Remove color | Color-invariant tasks |
+![w:900](images/week05/color_transforms.png)
 
-```python
-from PIL import ImageEnhance
-
-enhancer = ImageEnhance.Brightness(img)
-brighter = enhancer.enhance(1.5)  # 50% brighter
-```
+Brightness, contrast, inversion - simulates different lighting conditions
 
 ---
 
@@ -209,9 +185,23 @@ augmented = transform(image=image)['image']
 
 ![w:900](images/week05/mixup_example.png)
 
-**Idea**: Blend two images AND their labels
-- Creates smoother decision boundaries
-- Reduces overconfident predictions
+**Idea**: Blend two images AND their labels → smoother decision boundaries
+
+---
+
+# Noise Augmentation
+
+![w:900](images/week05/noise_augmentation.png)
+
+Trains model to be robust to sensor noise and image compression
+
+---
+
+# Blur Augmentation
+
+![w:900](images/week05/blur_augmentation.png)
+
+Light blur is OK, heavy blur loses information!
 
 ---
 
@@ -334,20 +324,11 @@ Text: "The model achieved 95% accuracy on the test set."
 
 ---
 
-# Audio Augmentation Overview
+# SpecAugment: Masking Spectrograms
 
-**Time Domain:**
-| Transform | Effect |
-|-----------|--------|
-| Time stretch | Faster/slower |
-| Pitch shift | Higher/lower pitch |
-| Add noise | Background noise |
-| Volume | Louder/quieter |
+![w:900](images/week05/specaugment_example.png)
 
-**Frequency Domain:**
-| Transform | Effect |
-|-----------|--------|
-| SpecAugment | Mask time/frequency bands |
+**Used by Google's speech recognition and Wav2Vec**
 
 ---
 
@@ -357,28 +338,21 @@ Text: "The model achieved 95% accuracy on the test set."
 from audiomentations import Compose, AddGaussianNoise, TimeStretch, PitchShift
 import librosa
 
-# Define augmentation pipeline
 augment = Compose([
     AddGaussianNoise(min_amplitude=0.001, max_amplitude=0.015, p=0.5),
     TimeStretch(min_rate=0.8, max_rate=1.25, p=0.5),
     PitchShift(min_semitones=-4, max_semitones=4, p=0.5),
 ])
 
-# Load and augment
 audio, sr = librosa.load('speech.wav', sr=16000)
 augmented = augment(samples=audio, sample_rate=sr)
 ```
 
+**Time domain**: noise, stretch, pitch shift, volume
+
 ---
 
-# SpecAugment: Masking Spectrograms
-
-**Used by Google's speech recognition and Wav2Vec:**
-
-| Operation | What it does |
-|-----------|--------------|
-| Time Masking | Block out time segments |
-| Frequency Masking | Block out frequency bands |
+# SpecAugment Code
 
 ```python
 from torchaudio.transforms import FrequencyMasking, TimeMasking
@@ -452,22 +426,9 @@ A.Rotate(limit=15, p=0.3)
 
 # RandAugment: Automatic Selection
 
-**Problem**: Too many augmentation choices!
+![w:850](images/week05/randaugment_example.png)
 
-**Solution**: Randomly pick N augmentations with magnitude M
-
-```python
-from torchvision.transforms import RandAugment
-
-transform = RandAugment(
-    num_ops=2,      # Apply 2 random augmentations
-    magnitude=9     # Strength 0-30
-)
-
-augmented = transform(image)
-```
-
-**Benefit**: Simple, works well across datasets
+Randomly pick N augmentations with magnitude M - simple and effective!
 
 ---
 
