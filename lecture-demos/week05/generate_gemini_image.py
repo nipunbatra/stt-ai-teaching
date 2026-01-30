@@ -57,11 +57,15 @@ def generate_image(prompt: str, output_filename: str):
 
     client = genai.Client(api_key=api_key)
 
+    # Use 1080p (Full HD) - good quality for slides without being excessive
     response = client.models.generate_content(
-        model='gemini-2.0-flash-exp-image-generation',
+        model='models/gemini-3-pro-image-preview',
         contents=prompt,
         config=types.GenerateContentConfig(
-            response_modalities=['IMAGE', 'TEXT'],
+            image_config=types.ImageConfig(
+                aspect_ratio="16:9",
+                image_size="1080p"  # Full HD - 1920x1080, plenty for slides
+            )
         )
     )
 

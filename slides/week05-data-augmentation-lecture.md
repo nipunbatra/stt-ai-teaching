@@ -69,7 +69,7 @@ math: mathjax
 
 # The Invariance Problem
 
-![w:950](images/week05/brain_invariance.png)
+![w:950](images/week05/brain_invariance_gemini.png)
 
 **Human vision** is naturally invariant to rotation, lighting, position.
 **Neural networks** must learn this invariance from data → augmentation helps!
@@ -155,7 +155,7 @@ Brightness, contrast, inversion - simulates different lighting conditions
 
 # Weather Augmentation
 
-![w:950](images/week05/weather_augmentation.png)
+![w:950](images/week05/weather_augmentation_gemini.png)
 
 **Critical for autonomous vehicles** - must work in all weather!
 
@@ -406,7 +406,7 @@ augmented = transform(image=image)['image']
 
 # The Augmentation Pipeline
 
-![w:1000](images/week05/augmentation_pipeline.png)
+![w:1000](images/week05/augmentation_pipeline_gemini.png)
 
 Each transform is applied with probability `p` - stochastic augmentation!
 
@@ -619,27 +619,17 @@ Text: "The model achieved 95% accuracy on the test set."
 
 # Listen: Audio Augmentation Examples
 
-**Original speech sound:**
-<audio controls src="audio/week05/original.wav"></audio>
-
-**Pitch shifted UP (higher voice):**
-<audio controls src="audio/week05/pitch_up.wav"></audio>
-
-**Pitch shifted DOWN (lower voice):**
-<audio controls src="audio/week05/pitch_down.wav"></audio>
+| Original | Pitch UP | Pitch DOWN |
+|----------|----------|------------|
+| <audio controls><source src="audio/week05/original.mp3" type="audio/mpeg"><source src="audio/week05/original.wav" type="audio/wav"></audio> | <audio controls><source src="audio/week05/pitch_up.mp3" type="audio/mpeg"><source src="audio/week05/pitch_up.wav" type="audio/wav"></audio> | <audio controls><source src="audio/week05/pitch_down.mp3" type="audio/mpeg"><source src="audio/week05/pitch_down.wav" type="audio/wav"></audio> |
 
 ---
 
 # Listen: More Audio Augmentations
 
-**Time stretched (slower):**
-<audio controls src="audio/week05/time_stretch.wav"></audio>
-
-**With background noise:**
-<audio controls src="audio/week05/with_noise.wav"></audio>
-
-**With room reverb:**
-<audio controls src="audio/week05/with_reverb.wav"></audio>
+| Time Stretch | + Noise | + Reverb |
+|--------------|---------|----------|
+| <audio controls><source src="audio/week05/time_stretch.mp3" type="audio/mpeg"><source src="audio/week05/time_stretch.wav" type="audio/wav"></audio> | <audio controls><source src="audio/week05/with_noise.mp3" type="audio/mpeg"><source src="audio/week05/with_noise.wav" type="audio/wav"></audio> | <audio controls><source src="audio/week05/with_reverb.mp3" type="audio/mpeg"><source src="audio/week05/with_reverb.wav" type="audio/wav"></audio> |
 
 ---
 
