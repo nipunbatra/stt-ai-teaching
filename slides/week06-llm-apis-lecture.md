@@ -42,61 +42,48 @@ math: mathjax
 </div>
 </div>
 
-<img src="images/week06/foundation_model_paradigm.png" width="700" style="display: block; margin: 0 auto;">
+<img src="images/week06/foundation_model_paradigm.png" width="650" style="display: block; margin: 0 auto;">
 
 ---
 
 # Today: Hands-On with Gemini API
 
-**Main Resource**: [Gemini API Multimodal Tutorial](https://nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal.html)
+**Tutorial**: [nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal](https://nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal.html)
 
-We'll explore:
-
-| Capability | What You'll Do |
-|------------|----------------|
+| Capability | Examples |
+|------------|----------|
 | **Text** | Sentiment, NER, summarization |
-| **Vision** | Object detection, OCR, VQA |
-| **Audio** | Speech transcription |
+| **Vision** | Object detection, OCR |
+| **Audio** | Transcription |
 | **Video** | Scene understanding |
 | **Documents** | PDF extraction |
 
-**Get your API key**: [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+**Get API key**: [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
 ---
 
-# Setup: 3 Lines of Code
+# Setup
 
 ```python
 from google import genai
 import os
 
-# Initialize client
 client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
-
-# That's it! Now you can use any Gemini model
 MODEL = "gemini-2.0-flash"
 ```
 
 ```bash
-pip install google-genai pillow matplotlib
+pip install google-genai pillow
 export GEMINI_API_KEY='your-key-here'
 ```
 
----
-
-# Your First API Call
-
+**First call:**
 ```python
 response = client.models.generate_content(
-    model="gemini-2.0-flash",
-    contents="What is the capital of France?"
+    model=MODEL, contents="What is the capital of France?"
 )
-
-print(response.text)
-# "The capital of France is Paris."
+print(response.text)  # "Paris"
 ```
-
-**That's all it takes.** No training, no datasets, no infrastructure.
 
 ---
 
@@ -106,32 +93,19 @@ print(response.text)
 
 ---
 
-# Zero-Shot Sentiment Analysis
+# Zero-Shot Classification
 
 ```python
-texts = [
-    "This product is absolutely amazing!",
-    "Terrible experience. Waste of money.",
-    "It's okay. Nothing special."
-]
-
 prompt = """Classify sentiment: Positive, Negative, or Neutral.
 Reply with ONLY the label.
 
-Text: {text}"""
+Text: "This product is absolutely amazing!" """
 
-for text in texts:
-    response = client.models.generate_content(
-        model=MODEL, contents=prompt.format(text=text)
-    )
-    print(f"{text[:40]}... → {response.text.strip()}")
+response = client.models.generate_content(model=MODEL, contents=prompt)
+print(response.text)  # "Positive"
 ```
 
-```
-This product is absolutely amazing!... → Positive
-Terrible experience. Waste of money... → Negative
-It's okay. Nothing special... → Neutral
-```
+**Zero-shot**: No examples needed, just describe the task.
 
 ---
 
@@ -144,38 +118,32 @@ prompt = """Classify customer queries:
 "I was charged twice" → Billing
 "What are your hours?" → General Inquiry
 
-Query: "My app keeps crashing when I upload photos"
+Query: "My app keeps crashing"
 Category:"""
 
 response = client.models.generate_content(model=MODEL, contents=prompt)
 print(response.text)  # "Technical Support"
 ```
 
-**Few-shot learning**: Provide examples, model learns the pattern.
+**Few-shot**: Provide examples, model learns the pattern.
 
 ---
 
 # Named Entity Recognition
 
 ```python
-text = """Apple CEO Tim Cook announced a $500M investment
-in California on December 15, 2024."""
+text = "Apple CEO Tim Cook announced $500M investment in California."
 
-prompt = f"""Extract entities as JSON:
-PERSON, ORGANIZATION, LOCATION, MONEY, DATE
-
-Text: {text}"""
-
+prompt = f"Extract entities as JSON (PERSON, ORG, LOCATION, MONEY): {text}"
 response = client.models.generate_content(model=MODEL, contents=prompt)
 ```
 
 ```json
 {
   "PERSON": ["Tim Cook"],
-  "ORGANIZATION": ["Apple"],
+  "ORG": ["Apple"],
   "LOCATION": ["California"],
-  "MONEY": ["$500M"],
-  "DATE": ["December 15, 2024"]
+  "MONEY": ["$500M"]
 }
 ```
 
@@ -183,7 +151,7 @@ response = client.models.generate_content(model=MODEL, contents=prompt)
 
 <!-- _class: section-slide -->
 
-# Vision: Beyond Text
+# Vision
 
 ---
 
@@ -192,142 +160,87 @@ response = client.models.generate_content(model=MODEL, contents=prompt)
 ```python
 from PIL import Image
 
-image = Image.open("cat.jpg")
-
-response = client.models.generate_content(
-    model="gemini-2.0-flash",
-    contents=["Describe this image in detail.", image]
-)
-
-print(response.text)
-# "The image shows a grey tabby cat sitting on a windowsill..."
-```
-
-<img src="images/week06/vision_capabilities.png" width="650" style="display: block; margin: 0 auto;">
-
----
-
-# Object Detection with Bounding Boxes
-
-```python
-prompt = """Detect objects and return bounding boxes as JSON:
-[{"label": "cat", "box_2d": [y0, x0, y1, x1]}]
-Coordinates in range [0, 1000]."""
+image = Image.open("photo.jpg")
 
 response = client.models.generate_content(
     model=MODEL,
-    contents=[prompt, image]
+    contents=["Describe this image.", image]
+)
+print(response.text)
+```
+
+<img src="images/week06/vision_capabilities.png" width="600" style="display: block; margin: 0 auto;">
+
+---
+
+# Object Detection
+
+```python
+prompt = """Detect objects. Return JSON:
+[{"label": "cat", "box_2d": [y0, x0, y1, x1]}]"""
+
+response = client.models.generate_content(
+    model=MODEL, contents=[prompt, image]
 )
 ```
 
 ```json
 [
-  {"label": "left eye", "box_2d": [519, 625, 615, 713]},
-  {"label": "right eye", "box_2d": [426, 400, 526, 510]},
-  {"label": "cat", "box_2d": [116, 85, 1000, 885]}
+  {"label": "cat", "box_2d": [116, 85, 1000, 885]},
+  {"label": "left eye", "box_2d": [519, 625, 615, 713]}
 ]
 ```
 
-**Demo**: See notebook for visualization with `supervision` library.
+Coordinates normalized to 0-1000. See notebook for visualization.
 
 ---
 
-# OCR and Document Understanding
+# OCR and Math
 
+**Receipt OCR:**
 ```python
-receipt_image = Image.open("receipt.jpg")
-
-prompt = """Extract from this receipt:
-- Store name
-- Items with prices
-- Total amount
-Return as JSON."""
-
+prompt = "Extract store name, items, total as JSON."
 response = client.models.generate_content(
     model=MODEL, contents=[prompt, receipt_image]
 )
 ```
 
-```json
-{
-  "store": "ACME STORE",
-  "items": [{"name": "Coffee Beans", "price": 24.99}, ...],
-  "total": 47.49
-}
-```
-
----
-
-# Solving Math from Images
-
+**Solve Math from Image:**
 ```python
-math_image = Image.open("equation.jpg")
-
 response = client.models.generate_content(
-    model=MODEL,
-    contents=["Solve this step by step.", math_image]
+    model=MODEL, contents=["Solve step by step.", equation_image]
 )
 ```
 
-The model can:
-- Read handwritten equations
-- Show step-by-step solutions
-- Explain each step
-- Handle calculus, linear algebra, statistics
-
-**Demo**: See notebook for least-squares derivation example.
+Works with handwritten equations, calculus, linear algebra.
 
 ---
 
 <!-- _class: section-slide -->
 
-# Audio & Video
+# Audio and Video
 
 ---
 
-# Audio Transcription
+# Audio and Video
 
+**Audio Transcription:**
 ```python
-# Upload audio file
-audio_file = client.files.upload(file="interview.mp3")
-
-# Wait for processing
-while audio_file.state == 'PROCESSING':
-    time.sleep(1)
-    audio_file = client.files.get(name=audio_file.name)
-
-# Transcribe
+audio = client.files.upload(file="speech.mp3")
 response = client.models.generate_content(
-    model=MODEL,
-    contents=["Transcribe this audio.", audio_file]
-)
-
-print(response.text)
-# "Gemini is Google's latest multimodal AI model..."
-```
-
----
-
-# Video Understanding
-
-```python
-# Upload video
-video_file = client.files.upload(file="scene.mp4")
-
-# Wait for processing...
-
-# Analyze
-response = client.models.generate_content(
-    model=MODEL,
-    contents=["Describe what happens in this video.", video_file]
+    model=MODEL, contents=["Transcribe this.", audio]
 )
 ```
 
-The model can:
-- Describe scenes and actions
-- Identify objects and people
-- Answer questions about video content
-- Extract temporal information
+**Video Understanding:**
+```python
+video = client.files.upload(file="scene.mp4")
+response = client.models.generate_content(
+    model=MODEL, contents=["What happens in this video?", video]
+)
+```
+
+Files need processing time. See notebook for wait loop.
 
 ---
 
@@ -337,25 +250,27 @@ The model can:
 
 ---
 
-# Temperature: Controlling Randomness
-
-<img src="images/week06/temperature_sampling.png" width="700" style="display: block; margin: 0 auto;">
+# Temperature
 
 ```python
-# Deterministic (same output every time)
+# Deterministic - same output every time
 config = {"temperature": 0}
 
-# Creative (varied outputs)
+# Creative - varied outputs
 config = {"temperature": 1.0}
 ```
 
-| T = 0 | Factual answers, code |
-| T = 0.7 | General conversation |
-| T = 1.0+ | Creative writing |
+| Temperature | Use Case |
+|-------------|----------|
+| 0 | Facts, code, classification |
+| 0.7 | General tasks |
+| 1.0+ | Creative writing |
+
+<img src="images/week06/temperature_sampling.png" width="550" style="display: block; margin: 0 auto;">
 
 ---
 
-# Structured Output with JSON
+# Structured JSON Output
 
 ```python
 from pydantic import BaseModel
@@ -363,139 +278,100 @@ from pydantic import BaseModel
 class Person(BaseModel):
     name: str
     age: int
-    skills: list[str]
 
 response = client.models.generate_content(
     model=MODEL,
-    contents="Extract: Sarah, 34, knows Python and SQL",
+    contents="Extract: Sarah is 34 years old",
     config={
         "response_mime_type": "application/json",
         "response_schema": Person
     }
 )
-
-person = Person.model_validate_json(response.text)
-print(person.name)  # "Sarah"
+# Guaranteed valid JSON matching schema
 ```
-
-**Guaranteed valid JSON output.**
 
 ---
 
-# Prompt Engineering Tips
-
-<img src="images/week06/prompt_engineering_concept.png" width="600" style="display: block; margin: 0 auto;">
+# Prompt Engineering
 
 1. **Be specific**: "Classify as Positive/Negative" not "What do you think?"
-2. **Show examples**: Few-shot beats zero-shot for complex tasks
-3. **Specify format**: "Return JSON" or "Reply with one word"
-4. **Think step-by-step**: Add "Let's solve this step by step"
+
+2. **Show examples**: Few-shot works better for complex tasks
+
+3. **Specify format**: "Return JSON" or "One word only"
+
+4. **Chain of thought**: "Let's solve step by step"
+
+<img src="images/week06/prompt_engineering_concept.png" width="500" style="display: block; margin: 0 auto;">
 
 ---
 
 <!-- _class: section-slide -->
 
-# Connecting to Your ML Pipeline
-
----
-
 # LLMs in Your ML Pipeline
 
-| Week | Task | How LLMs Help |
-|------|------|---------------|
-| 1 | Data Collection | Parse unstructured pages |
-| 2 | Data Validation | Fix malformed data |
-| 3-4 | **Data Labeling** | Auto-label at 10-100x speed |
-| 5 | **Augmentation** | Generate paraphrases |
-| 6 | Feature Extraction | Embeddings, classification |
-
-<img src="images/week06/llm_pipeline_integration.png" width="800" style="display: block; margin: 0 auto;">
-
 ---
 
-# Example: Batch Labeling
+# Connecting to Previous Weeks
 
+| Week | Task | LLM Application |
+|------|------|-----------------|
+| 3-4 | Data Labeling | Auto-label 10-100x faster |
+| 5 | Augmentation | Generate paraphrases |
+
+**Batch labeling** - 50 items in one API call:
 ```python
-def label_batch(reviews: list[str]) -> list[dict]:
-    prompt = f"""Classify each review as Positive/Negative/Neutral.
-Return JSON: [{{"text": "...", "sentiment": "..."}}]
+prompt = f"""Classify each as Positive/Negative/Neutral:
+1. {reviews[0]}
+2. {reviews[1]}
+...
+Return JSON array."""
+```
 
-Reviews:
-{chr(10).join(f'{i+1}. {r}' for i, r in enumerate(reviews))}"""
-
-    response = client.models.generate_content(
-        model=MODEL, contents=prompt,
-        config={"response_mime_type": "application/json"}
-    )
-    return json.loads(response.text)
-
-# Label 50 reviews in ONE API call
-results = label_batch(reviews[:50])
+**Text augmentation** - generate variations:
+```python
+prompt = f'Generate 3 paraphrases of: "{text}"'
 ```
 
 ---
 
-# Example: Text Augmentation
+# Cost and Rate Limits
 
-```python
-def augment(text: str, n: int = 3) -> list[str]:
-    prompt = f"""Generate {n} paraphrases. Same meaning, different words.
-Return as JSON array.
+**Free tier**: 15 requests/minute, 1M tokens/day
 
-Text: "{text}" """
+**Cost tips:**
+- Use `gemini-2.0-flash` (fast, cheap) vs `gemini-2.0-pro`
+- Batch multiple items per request
+- Keep prompts concise
+- Cache identical requests
 
-    response = client.models.generate_content(
-        model=MODEL, contents=prompt,
-        config={"response_mime_type": "application/json"}
-    )
-    return json.loads(response.text)
-
-augment("The movie was fantastic!")
-# ["The film was excellent!",
-#  "What a wonderful movie!",
-#  "I really loved this film!"]
-```
-
----
-
-# Cost Optimization
-
-<img src="images/week06/cost_optimization.png" width="650" style="display: block; margin: 0 auto;">
-
-1. **Use smaller models**: `gemini-2.0-flash` vs `gemini-2.0-pro`
-2. **Batch requests**: 50 items in one call, not 50 calls
-3. **Shorter prompts**: "Sentiment:" not "Please classify the sentiment..."
-4. **Cache responses**: Same input = same output (at T=0)
+**Tokens**: ~4 characters = 1 token, ~75 words = 100 tokens
 
 ---
 
 # Summary
 
-**What we covered:**
-
 | Topic | Key Takeaway |
 |-------|--------------|
-| Text | Zero-shot & few-shot classification |
+| Text | Zero-shot and few-shot classification |
 | Vision | Object detection, OCR, VQA |
-| Audio | Transcription with speaker labels |
-| Video | Scene understanding |
-| Documents | PDF extraction with structure |
+| Audio/Video | Transcription, scene understanding |
+| Structured | Pydantic schemas for JSON |
+| Pipeline | Labeling and augmentation at scale |
 
-**Main Resource**: [nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal.html](https://nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal.html)
+**Tutorial**: [nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal](https://nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal.html)
 
 ---
 
-# Lab: Hands-On with the Notebook
+# Lab
 
-**What you'll do:**
+1. **Setup** (10 min) - Get API key, run first cells
+2. **Text** (20 min) - Sentiment, NER, summarization
+3. **Vision** (30 min) - Detection, OCR, charts
+4. **Audio/Video** (20 min) - Transcription
+5. **Your App** (40 min) - Build something!
 
-1. **Setup** (10 min): Get API key, run setup cells
-2. **Text Tasks** (20 min): Sentiment, NER, summarization
-3. **Vision Tasks** (30 min): Object detection, OCR, chart analysis
-4. **Audio/Video** (20 min): Transcription, video understanding
-5. **Build Your Own** (40 min): Create an application
-
-**Get your key now**: [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+**Start now**: [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
 ---
 
@@ -503,7 +379,5 @@ augment("The movie was fantastic!")
 <!-- _paginate: false -->
 
 # Let's Code!
-
-Open the notebook and follow along
 
 [Tutorial Notebook](https://nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal.html)
