@@ -2,448 +2,96 @@
 marp: true
 theme: iitgn-modern
 paginate: true
+math: mathjax
 ---
 
 <!-- _class: title-slide -->
+<!-- _paginate: false -->
 
-# Building Your First ML Models
+# AutoML and Transfer Learning
 
-## Week 7 · CS 203: Software Tools and Techniques for AI
+## Week 7: CS 203 - Software Tools and Techniques for AI
 
 **Prof. Nipun Batra**
 *IIT Gandhinagar*
 
 ---
 
-<!-- _class: lead -->
+# Three Ways to Build ML Models
 
-# Part 1: The Big Picture
+| Approach | When to Use | Effort |
+|----------|-------------|--------|
+| **Traditional ML** | Tabular data, need interpretability | Medium |
+| **AutoML** | Tabular data, want best accuracy | Low |
+| **Transfer Learning** | Images, text, audio | Low |
 
-*What does it mean to "build" an ML model?*
+<div class="columns">
+<div>
 
----
-
-# Remember Our Netflix Journey?
-
-```
-Week 1: Collected movie data (APIs, scraping)
-Week 2: Cleaned and organized it (Pandas)
-Week 3: Labeled movie success/failure (annotation)
-Week 4: Made labeling efficient (active learning)
-Week 5: Got more data (augmentation)
-Week 6: Used LLMs to help (APIs)
-        ↓
-Week 7: NOW WE BUILD THE MODEL! 🎉
-```
-
-**We finally have good data. Time to predict!**
-
----
-
-# What Are We Predicting?
-
-**Our Netflix Problem**:
-Given movie features → Predict if it will be successful
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  INPUT (What we know)           OUTPUT (What we predict)        │
-│  ─────────────────────          ────────────────────────        │
-│  • Genre: Action                                                │
-│  • Budget: $150M                 → SUCCESS or FAILURE?          │
-│  • Director: Nolan                                              │
-│  • Runtime: 148 mins                                            │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-This is called **Classification** (putting things in categories)
-
----
-
-# Two Types of Predictions
-
-```
-┌─────────────────────────────────┐  ┌─────────────────────────────────┐
-│       CLASSIFICATION            │  │         REGRESSION              │
-│                                 │  │                                 │
-│   Predict a CATEGORY            │  │   Predict a NUMBER              │
-│                                 │  │                                 │
-│   • Success / Failure           │  │   • $500M revenue               │
-│   • Spam / Not Spam             │  │   • 7.5 rating                  │
-│   • Cat / Dog / Bird            │  │   • 25°C temperature            │
-│                                 │  │                                 │
-│   "Which box does this go in?"  │  │   "How much / How many?"        │
-└─────────────────────────────────┘  └─────────────────────────────────┘
-```
-
-**Today**: We'll focus on classification (predicting movie success)
-
----
-
-# The ML Workflow (Simple Version)
-
-```
-    ┌──────────────┐
-    │  Your Data   │
-    │  (movies.csv)│
-    └──────┬───────┘
-           │
-           ▼
-    ┌──────────────┐
-    │ Split Data   │  ←── Training set + Test set
-    └──────┬───────┘
-           │
-           ▼
-    ┌──────────────┐
-    │ Train Model  │  ←── Model learns patterns
-    └──────┬───────┘
-           │
-           ▼
-    ┌──────────────┐
-    │ Evaluate     │  ←── How good is it?
-    └──────────────┘
-```
-
-**Simple!** But the devil is in the details...
-
----
-
-<!-- _class: lead -->
-
-# Part 2: Starting Simple - Baseline Models
-
-*Why you should never start with deep learning*
-
----
-
-# The Temptation
-
-**You**: "I want to predict movie success!"
-
-**Internet**: "Use a 175-billion parameter neural network!"
-
-**You**: "Sounds cool! Let me try..."
-
-**3 hours later**: Nothing works. GPU out of memory. Confused.
-
-**Lesson**: Don't start with the fanciest tool. Start simple!
-
----
-
-# What is a Baseline?
-
-A **baseline** is the simplest possible solution that works.
-
-```
-┌───────────────────────────────────────────────────────────────┐
-│                    BASELINE EXAMPLES                          │
-├───────────────────────────────────────────────────────────────┤
-│                                                               │
-│  Task: Predict if movie succeeds                              │
-│                                                               │
-│  Dumb Baseline: "Just predict the most common outcome"        │
-│                 If 70% of movies succeed → always say SUCCESS │
-│                 Accuracy: 70% (for free!)                     │
-│                                                               │
-│  Simple Model:  Logistic Regression                           │
-│                 (One line of code, 80% accuracy?)             │
-│                                                               │
-│  Complex Model: Deep Neural Network                           │
-│                 (1000 lines of code, 82% accuracy?)           │
-│                                                               │
-└───────────────────────────────────────────────────────────────┘
-```
-
-**Is that 2% worth 100x complexity?**
-
----
-
-# Why Baselines Matter
-
-**Scenario 1**: You build a fancy model, get 85% accuracy.
-- "Wow, my model is amazing!"
-- Reality: A baseline gets 84% → you only improved by 1%
-- All that complexity for almost nothing
-
-**Scenario 2**: You build a fancy model, get 85% accuracy.
-- Baseline gets 60% → you improved by 25%!
-- That complexity was worth it!
-
-**Baselines give you a reference point.** Without one, you can't know if your model is actually good.
-
----
-
-# The Complexity Ladder
-
-<div class="insight">
-
-**Always climb the complexity ladder one step at a time.** Start with the simplest model. Only move up if it doesn't meet your needs. Each step adds complexity, debugging time, and potential failure points.
+**This week:**
+- Cross-validation
+- Bias-variance tradeoff
+- AutoML with AutoGluon
+- Transfer learning (vision + text)
 
 </div>
+<div>
 
-```
-Complexity Ladder:
+**Connection to pipeline:**
+- Week 3-4: Labeled data
+- Week 5: Augmented data
+- Week 6: LLM features
+- **Week 7: Train models!**
 
-     5. Deep Neural Network  ←── Only if you REALLY need it
-     4. Gradient Boosting (XGBoost)
-     3. Random Forest
-     2. Logistic Regression  ←── Start here!
-     1. Majority Class       ←── Your baseline floor
-
-Time to implement:  1 hour → 1 day → 1 week → 1 month
-Explainability:     High   ←──────────────────→  Low
-```
-
-**Most real-world problems are solved on steps 2-3, not step 5.**
+</div>
+</div>
 
 ---
 
-# The Simplest Baseline: "Just Guess"
+<!-- _class: section-slide -->
 
-```python
-# The dumbest model possible
-def dumb_predictor(movie):
-    return "SUCCESS"  # Always predict success
-
-# If 70% of movies succeed, this gets 70% accuracy!
-```
-
-**This is called a "Majority Class Classifier"**
-
-```python
-from sklearn.dummy import DummyClassifier
-
-# Create the dumbest possible classifier
-baseline = DummyClassifier(strategy='most_frequent')
-baseline.fit(X_train, y_train)
-
-accuracy = baseline.score(X_test, y_test)
-print(f"Dumb baseline accuracy: {accuracy:.1%}")
-```
-
-**Any real model must beat this!**
-
----
-
-# Baseline Model 1: Logistic Regression
-
-**Think of it as**: A weighing scale for features
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   Feature             Weight      Value       Contribution      │
-│   ─────────────────   ──────      ─────       ────────────      │
-│   Budget ($M)         +0.3        150         +45               │
-│   Star Power          +0.5        8           +4                │
-│   Is Sequel           +0.2        1           +0.2              │
-│   Is January Release  -0.4        0           0                 │
-│                                               ─────             │
-│                                   Total:      +49.2             │
-│                                                                 │
-│   If Total > 0 → Predict SUCCESS                                │
-│   If Total < 0 → Predict FAILURE                                │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**It just adds up weighted features!**
-
----
-
-# Logistic Regression in Code
-
-```python
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-
-# Split data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(
-    features, labels, test_size=0.2, random_state=42
-)
-
-# Create and train the model (2 lines!)
-model = LogisticRegression()
-model.fit(X_train, y_train)
-
-# Evaluate
-accuracy = model.score(X_test, y_test)
-print(f"Logistic Regression accuracy: {accuracy:.1%}")
-```
-
-**That's it! A working ML model in 4 lines.**
-
----
-
-# Baseline Model 2: Decision Tree
-
-**Think of it as**: A flowchart of yes/no questions
-
-```
-                         Is Budget > $100M?
-                        /                  \
-                      YES                   NO
-                      /                      \
-               Is Sequel?              Has Star Actor?
-               /        \               /          \
-             YES        NO            YES          NO
-             /           \            /             \
-         SUCCESS      Is Summer?   FAILURE      SUCCESS
-                       /     \
-                     YES     NO
-                     /        \
-                SUCCESS    FAILURE
-```
-
-**Humans can actually read and understand this!**
-
----
-
-# Decision Tree in Code
-
-```python
-from sklearn.tree import DecisionTreeClassifier
-
-# Create and train
-tree = DecisionTreeClassifier(max_depth=5)  # Don't go too deep!
-tree.fit(X_train, y_train)
-
-# Evaluate
-accuracy = tree.score(X_test, y_test)
-print(f"Decision Tree accuracy: {accuracy:.1%}")
-```
-
-**You can even visualize it:**
-
-```python
-from sklearn.tree import plot_tree
-import matplotlib.pyplot as plt
-
-plt.figure(figsize=(20, 10))
-plot_tree(tree, feature_names=feature_names, filled=True)
-plt.show()
-```
-
----
-
-# Which Baseline to Use?
-
-| Your Situation | Recommended Baseline |
-|----------------|---------------------|
-| Just starting | **Logistic Regression** - fast, simple, often works well |
-| Need to explain to your boss | **Decision Tree** - you can see the rules |
-| Mixed data (numbers + categories) | **Random Forest** - handles everything |
-| Want best performance | **AutoML** - we'll learn this soon! |
-
----
-
-# Baseline Model 3: Random Forest
-
-**Think of it as**: Asking 100 decision trees and taking a vote
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   Tree 1: "I think SUCCESS"  ──┐                                │
-│   Tree 2: "I think FAILURE"    │                                │
-│   Tree 3: "I think SUCCESS"    │                                │
-│   Tree 4: "I think SUCCESS"    ├──►  VOTE: SUCCESS wins!        │
-│   Tree 5: "I think FAILURE"    │           (3 vs 2)             │
-│   ...                          │                                │
-│   Tree 100: "I think SUCCESS"──┘                                │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Wisdom of crowds**: Many weak learners → One strong learner
-
----
-
-# Random Forest in Code
-
-```python
-from sklearn.ensemble import RandomForestClassifier
-
-# Create and train
-forest = RandomForestClassifier(n_estimators=100, random_state=42)
-forest.fit(X_train, y_train)
-
-# Evaluate
-accuracy = forest.score(X_test, y_test)
-print(f"Random Forest accuracy: {accuracy:.1%}")
-```
-
-**Often the best simple model!** Very hard to beat.
-
----
-
-<!-- _class: lead -->
-
-# Part 3: Cross-Validation
-
-*How to really know if your model is good*
+# Part 1: Evaluation Fundamentals
 
 ---
 
 # The Problem with One Test Set
 
-You split your data once: **80% training, 20% test**
+```python
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+model.fit(X_train, y_train)
+accuracy = model.score(X_test, y_test)  # 85%
+```
 
-Your model gets 85% on the test set. Great... right?
+**Is 85% reliable?**
+- What if we got "lucky" with that split?
+- What if test set was unusually easy?
+- Different random seed → different accuracy
 
-**But wait:**
-- What if you got "lucky" with that split?
-- What if the test set happened to be easy?
-- What if all the hard examples ended up in training?
-
-**One test set = one roll of the dice.** We need something more reliable.
+**One test set = one coin flip.** We need something more reliable.
 
 ---
 
-# The Solution: Cross-Validation
+# K-Fold Cross-Validation
 
-**Idea**: Test on EVERY part of your data (not just 20%)
+<img src="images/week07/cross_validation_kfold.png" width="750" style="display: block; margin: 0 auto;">
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     5-FOLD CROSS-VALIDATION                     │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Fold 1: [TEST][Train][Train][Train][Train]  → Accuracy: 82%    │
-│  Fold 2: [Train][TEST][Train][Train][Train]  → Accuracy: 85%    │
-│  Fold 3: [Train][Train][TEST][Train][Train]  → Accuracy: 84%    │
-│  Fold 4: [Train][Train][Train][TEST][Train]  → Accuracy: 81%    │
-│  Fold 5: [Train][Train][Train][Train][TEST]  → Accuracy: 83%    │
-│                                                                 │
-│  Average: 83% ± 1.5%                                            │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Now we know**: "My model gets ~83% accuracy, give or take 1.5%"
+**Each data point is tested exactly once.**
 
 ---
 
-# Cross-Validation: Visual Intuition
+# Cross-Validation: The Math
 
-Think of it like a **rotating exam schedule**:
+For K-fold CV, the estimated performance is:
 
-```
-          Split 1        Split 2        Split 3        Split 4        Split 5
-        ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-Student │ █ █ █ █ │    │ ░ █ █ █ │    │ ░ ░ █ █ │    │ ░ ░ ░ █ │    │ ░ ░ ░ ░ │
-  A     │(exam)   │    │(study)  │    │(study)  │    │(study)  │    │(study)  │
-        └─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+$$\text{CV Score} = \frac{1}{K} \sum_{k=1}^{K} \text{Score}_k$$
 
-        ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-Student │ ░ ░ ░ ░ │    │ █ █ █ █ │    │ ░ ░ ░ ░ │    │ ░ ░ ░ ░ │    │ ░ ░ ░ ░ │
-  B     │(study)  │    │(exam)   │    │(study)  │    │(study)  │    │(study)  │
-        └─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+**Standard error** of the estimate:
 
-█ = Test (exam)    ░ = Train (study)
-```
+$$SE = \frac{\sigma}{\sqrt{K}}$$
 
-**Every data point gets tested exactly once!**
+where $\sigma$ is the standard deviation of fold scores.
+
+**Typical choice**: K = 5 or K = 10
 
 ---
 
@@ -452,546 +100,669 @@ Student │ ░ ░ ░ ░ │    │ █ █ █ █ │    │ ░ ░ ░ �
 ```python
 from sklearn.model_selection import cross_val_score
 
-# Create model
 model = RandomForestClassifier(n_estimators=100)
 
 # Run 5-fold cross-validation
 scores = cross_val_score(model, X, y, cv=5)
 
-print(f"Scores for each fold: {scores}")
-print(f"Average accuracy: {scores.mean():.1%}")
-print(f"Standard deviation: {scores.std():.1%}")
+print(f"Fold scores: {scores}")
+print(f"Mean: {scores.mean():.3f}")
+print(f"Std:  {scores.std():.3f}")
 ```
 
-**Output:**
 ```
-Scores for each fold: [0.82, 0.85, 0.84, 0.81, 0.83]
-Average accuracy: 83.0%
-Standard deviation: 1.5%
+Fold scores: [0.82, 0.85, 0.84, 0.81, 0.83]
+Mean: 0.830
+Std:  0.015
 ```
+
+**Report as**: 83.0% ± 1.5%
 
 ---
 
-# Why Cross-Validation Matters
+# Stratified K-Fold
 
-| Model | Single Test | 5-Fold CV |
-|-------|-------------|-----------|
-| Logistic Regression | 78% | 76% ± 2% |
-| Decision Tree | 82% | 75% ± 5% ← High variance! |
-| Random Forest | 84% | 83% ± 1% ← Most stable! |
+**Problem**: If classes are imbalanced, random folds may have different class ratios.
 
-**Insights**:
-- Decision Tree looked good on one test, but it's unstable (±5%!)
-- Random Forest is not only accurate but **consistent**
-- Cross-validation reveals the truth!
-
----
-
-<!-- _class: lead -->
-
-# Part 4: Hyperparameter Tuning
-
-*Making your model better with the right settings*
-
----
-
-# What Are Hyperparameters?
-
-**Parameters**: Values the model learns from data (weights, biases)
-
-**Hyperparameters**: Values YOU choose before training
-
-**Example - Random Forest**:
-- `n_estimators`: How many trees? (10? 100? 500?)
-- `max_depth`: How deep can each tree grow? (3? 10? unlimited?)
-- `min_samples_split`: Minimum samples to split a node?
+**Solution**: Stratified K-Fold ensures each fold has same class distribution.
 
 ```python
-# These are hyperparameters - YOU choose them
-model = RandomForestClassifier(
-    n_estimators=100,    # ← hyperparameter
-    max_depth=10,        # ← hyperparameter
-    min_samples_split=5  # ← hyperparameter
-)
+from sklearn.model_selection import StratifiedKFold
+
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+for train_idx, test_idx in skf.split(X, y):
+    X_train, X_test = X[train_idx], X[test_idx]
+    y_train, y_test = y[train_idx], y[test_idx]
+    # Each fold has same % of positive/negative
 ```
 
----
-
-# Why Hyperparameters Matter
-
-Same model, different hyperparameters → **very different results**
-
-| n_estimators | max_depth | Accuracy |
-|-------------|-----------|----------|
-| 10 | 3 | 72% |
-| 100 | 5 | 79% |
-| 100 | 10 | 82% |
-| 500 | None | 84% |
-
-**The right hyperparameters can improve your model by 10%+**
-
-But how do you find the right values?
+**Use stratified CV for classification problems.**
 
 ---
 
-# Strategy 1: Grid Search
+# When NOT to Use Standard K-Fold
 
-**Idea**: Try every combination and pick the best
+| Data Type | Problem | Solution |
+|-----------|---------|----------|
+| **Time series** | Future data leaks into past | TimeSeriesSplit |
+| **Grouped data** | Same patient in train & test | GroupKFold |
+| **Very small data** | K folds too small | Leave-One-Out CV |
 
 ```python
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import TimeSeriesSplit
 
-# Define what to try
-param_grid = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [5, 10, 20, None]
-}
-
-# Try all combinations with cross-validation
-grid_search = GridSearchCV(
-    RandomForestClassifier(),
-    param_grid,
-    cv=5  # Use 5-fold CV for each combination
-)
-grid_search.fit(X, y)
-
-print(f"Best params: {grid_search.best_params_}")
-print(f"Best score: {grid_search.best_score_:.1%}")
+tscv = TimeSeriesSplit(n_splits=5)
+# Split 1: Train on [1], Test on [2]
+# Split 2: Train on [1,2], Test on [3]
+# Split 3: Train on [1,2,3], Test on [4]
+# ...
 ```
 
 ---
 
-# Grid Search: The Problem
+<!-- _class: section-slide -->
 
-**3 hyperparameters × 4 values each = 64 combinations**
-
-Each combination needs 5-fold CV = **320 model trainings!**
-
-| Hyperparameters | Values each | Combinations |
-|-----------------|-------------|--------------|
-| 2 | 3 | 9 |
-| 3 | 4 | 64 |
-| 4 | 5 | 625 |
-| 5 | 5 | 3,125 |
-
-**Grid search doesn't scale well.**
+# Part 2: Bias-Variance Tradeoff
 
 ---
 
-# Strategy 2: Random Search
+# The Fundamental Tradeoff
 
-**Idea**: Don't try everything - randomly sample combinations
+<img src="images/week07/bias_variance_tradeoff.png" width="700" style="display: block; margin: 0 auto;">
+
+**Total Error = Bias² + Variance + Irreducible Noise**
+
+---
+
+# Understanding Bias and Variance
+
+| | **High Bias** | **High Variance** |
+|---|---------------|-------------------|
+| **Meaning** | Model too simple | Model too complex |
+| **Symptom** | Underfitting | Overfitting |
+| **Train error** | High | Low |
+| **Test error** | High | High |
+| **Example** | Linear model on curved data | Deep tree on small data |
+
+<div class="insight">
+
+**Key insight**: You cannot minimize both simultaneously. The goal is to find the sweet spot.
+
+</div>
+
+---
+
+# Overfitting vs Underfitting
+
+<img src="images/week07/overfitting_underfitting.png" width="750" style="display: block; margin: 0 auto;">
+
+---
+
+# Diagnosing Your Model
 
 ```python
-from sklearn.model_selection import RandomizedSearchCV
-from scipy.stats import randint
+train_acc = model.score(X_train, y_train)
+test_acc = model.score(X_test, y_test)
 
-# Define ranges to sample from
-param_dist = {
-    'n_estimators': randint(50, 500),
-    'max_depth': randint(3, 30),
-    'min_samples_split': randint(2, 20)
-}
-
-# Try 20 random combinations
-random_search = RandomizedSearchCV(
-    RandomForestClassifier(),
-    param_dist,
-    n_iter=20,  # Only try 20 combinations
-    cv=5
-)
-random_search.fit(X, y)
+print(f"Train: {train_acc:.1%}, Test: {test_acc:.1%}")
 ```
 
-**Surprisingly effective!** Often finds good solutions faster than grid search.
+| Train Acc | Test Acc | Diagnosis | Fix |
+|-----------|----------|-----------|-----|
+| 70% | 68% | **Underfitting** | More complex model |
+| 99% | 75% | **Overfitting** | Regularization, more data |
+| 85% | 83% | **Good fit** | You're done! |
+
+**Gap between train and test indicates overfitting.**
 
 ---
 
-# Hyperparameter Tuning Tips
+# Reducing Overfitting
 
-**Start with defaults** - sklearn's defaults are usually reasonable
+1. **More training data** - Best solution if available
 
-**Tune the important ones first**:
-- Random Forest: `n_estimators`, `max_depth`
-- Decision Tree: `max_depth`, `min_samples_split`
-- Logistic Regression: `C` (regularization strength)
+2. **Regularization** - Penalize complexity
+   ```python
+   LogisticRegression(C=0.1)  # Smaller C = more regularization
+   ```
 
-**Use cross-validation** - always! Never tune on test set.
+3. **Simpler model** - Fewer parameters
+   ```python
+   DecisionTreeClassifier(max_depth=5)  # Limit tree depth
+   ```
 
-**Don't over-tune** - spending days for +0.5% accuracy is usually not worth it
+4. **Early stopping** - Stop before overfitting
+   ```python
+   model.fit(X, y, early_stopping_rounds=10)
+   ```
 
-**Or... just use AutoML** (coming up next!)
+5. **Dropout** (neural networks) - Randomly drop neurons
 
 ---
 
-<!-- _class: lead -->
+# Reducing Underfitting
 
-# Part 5: AutoML - Let the Computer Do It
+1. **More complex model**
+   ```python
+   # From linear to polynomial
+   PolynomialFeatures(degree=3)
+   ```
 
-*The lazy (smart) way to build models*
+2. **More features** - Engineer better inputs
+
+3. **Less regularization**
+   ```python
+   LogisticRegression(C=10)  # Larger C = less regularization
+   ```
+
+4. **Train longer** (neural networks)
+
+5. **Remove noise from data**
+
+---
+
+<!-- _class: section-slide -->
+
+# Part 3: Baseline Models
+
+---
+
+# The Complexity Ladder
+
+```
+Complexity vs Accuracy:
+
+     5. Deep Neural Network     ← Only if data is huge
+     4. Gradient Boosting       ← Often best for tabular
+     3. Random Forest           ← Great default
+     2. Logistic Regression     ← Start here
+     1. Majority Class          ← Your baseline floor
+```
+
+**Rule**: Climb one step at a time. Only go up if the improvement justifies complexity.
+
+---
+
+# Baseline 0: Dummy Classifier
+
+```python
+from sklearn.dummy import DummyClassifier
+
+# Always predict most common class
+dummy = DummyClassifier(strategy='most_frequent')
+dummy.fit(X_train, y_train)
+print(f"Baseline: {dummy.score(X_test, y_test):.1%}")
+```
+
+**If 70% of movies succeed**, predicting "success" always = 70% accuracy.
+
+**Any real model must beat this!**
+
+---
+
+# Baseline 1: Logistic Regression
+
+**Idea**: Weighted sum of features → probability
+
+$$P(y=1|x) = \sigma(w_0 + w_1 x_1 + w_2 x_2 + \ldots) = \frac{1}{1 + e^{-(w^T x)}}$$
+
+```python
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+print(f"Accuracy: {model.score(X_test, y_test):.1%}")
+
+# Interpretable: see feature weights
+print(f"Weights: {model.coef_}")
+```
+
+**Pros**: Fast, interpretable, works well for linearly separable data
+
+---
+
+# Baseline 2: Decision Tree
+
+**Idea**: Sequence of if-else rules
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+
+tree = DecisionTreeClassifier(max_depth=5)
+tree.fit(X_train, y_train)
+```
+
+**Visualization**:
+```python
+from sklearn.tree import plot_tree
+plot_tree(tree, feature_names=feature_names, filled=True)
+```
+
+**Pros**: Interpretable, handles non-linear relationships
+**Cons**: High variance (overfits easily)
+
+---
+
+# Baseline 3: Random Forest
+
+<img src="images/week07/random_forest_ensemble.png" width="700" style="display: block; margin: 0 auto;">
+
+**Ensemble**: Train many trees, take majority vote.
+
+---
+
+# Random Forest: Key Concepts
+
+**Bagging** (Bootstrap Aggregating):
+- Train each tree on random subset of data (with replacement)
+- Each tree sees different examples
+
+**Feature randomness**:
+- At each split, consider random subset of features
+- Trees become decorrelated
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+
+rf = RandomForestClassifier(
+    n_estimators=100,    # Number of trees
+    max_depth=10,        # Limit tree depth
+    random_state=42
+)
+rf.fit(X_train, y_train)
+```
+
+---
+
+# Feature Importance
+
+```python
+# Which features matter most?
+importances = rf.feature_importances_
+
+for name, imp in sorted(zip(feature_names, importances),
+                        key=lambda x: -x[1])[:5]:
+    print(f"{name}: {imp:.3f}")
+```
+
+```
+budget:        0.25
+star_power:    0.18
+genre_action:  0.12
+runtime:       0.10
+is_sequel:     0.08
+```
+
+**Useful for**: Feature selection, model interpretation, debugging
+
+---
+
+<!-- _class: section-slide -->
+
+# Part 4: AutoML
 
 ---
 
 # The Problem with Manual ML
 
-The typical manual workflow:
-
+```
 1. Try Logistic Regression... okay
-2. Try Decision Tree... not great
-3. Try Random Forest... better
-4. Try XGBoost... hmm, similar
-5. Try Neural Network... takes forever
-6. Tune hyperparameters for each one...
-7. Try different feature combinations...
-8. Repeat steps 1-7 many times...
+2. Try Random Forest... better
+3. Try XGBoost... similar
+4. Try different hyperparameters...
+5. Try feature engineering...
+6. Repeat for days...
+```
 
-**Time spent: 3 days. Hair remaining: None.**
-
-There has to be a better way!
+**AutoML automates this entire process.**
 
 ---
 
-# Enter AutoML
+# What AutoML Does
 
-**AutoML** = Automatic Machine Learning
+<img src="images/week07/automl_search_space.png" width="700" style="display: block; margin: 0 auto;">
 
-**You**: "Here's my data. Give me the best model."
-
-**AutoML**: "On it! Let me try 50 different models, tune their parameters, combine the best ones, and give you a super-ensemble."
-
-**You**: *goes to get coffee*
-
-**AutoML**: "Done! Here's a model with 87% accuracy."
-
-**This is not magic.** It just automates what experts do manually.
+Automatically searches through models, hyperparameters, and ensembles.
 
 ---
 
-# AutoGluon: AutoML Made Easy
-
-**AutoGluon** (by Amazon) is one of the best AutoML tools.
-
-**What it does automatically:**
-1. Handles missing values
-2. Encodes categorical features
-3. Trains multiple model types (Random Forest, XGBoost, LightGBM, Neural Nets...)
-4. Tunes hyperparameters
-5. Creates an ensemble of the best models
-6. Uses cross-validation internally
-
-**All with 3 lines of code!**
-
----
-
-# AutoGluon in 3 Lines of Code
+# AutoGluon: 3 Lines of Code
 
 ```python
 from autogluon.tabular import TabularPredictor
 
-# Step 1: Create the predictor
-predictor = TabularPredictor(label='success')
-
-# Step 2: Train on your data (that's it!)
+# Just point to your data
+predictor = TabularPredictor(label='target_column')
 predictor.fit(train_data)
 
-# Step 3: Make predictions
+# Predict
 predictions = predictor.predict(test_data)
 ```
 
-**Seriously. That's the entire code.**
-
----
-
-# What Happens Inside AutoGluon?
-
-**Input**: Your CSV file
-
-↓ **Step 1**: Analyze data types (numbers, text, dates)
-
-↓ **Step 2**: Preprocess features automatically
-
-↓ **Step 3**: Train 10+ different model types
-
-↓ **Step 4**: Cross-validate each model
-
-↓ **Step 5**: Stack models together (ensemble)
-
-**Output**: One super-model that combines the best of all
+**What happens inside**:
+1. Auto-detect feature types
+2. Train 10+ model types
+3. Tune hyperparameters
+4. Create stacked ensemble
 
 ---
 
 # AutoGluon Leaderboard
-
-After training, you can see how each model performed:
 
 ```python
 predictor.leaderboard(test_data)
 ```
 
 ```
-                model  score_val  fit_time
-0   WeightedEnsemble_L2     0.87      120s
-1             CatBoost     0.85       45s
-2             LightGBM     0.84       30s
-3              XGBoost     0.83       50s
-4         RandomForest     0.82       25s
-5   NeuralNetFastAI     0.80       90s
-6     LogisticRegression  0.76        5s
+                   model  score_val  fit_time
+0    WeightedEnsemble_L2     0.873      180s
+1              CatBoost     0.856       60s
+2              LightGBM     0.851       40s
+3               XGBoost     0.848       55s
+4          RandomForest     0.832       30s
+5    LogisticRegression     0.789       10s
 ```
 
 **The ensemble combines the best models!**
 
 ---
 
-# When to Use AutoML
-
-**Great for:**
-- Quick prototyping ("Is ML even useful for this?")
-- Competitions (Kaggle)
-- When you don't have ML expertise
-- Setting a strong baseline to beat
-
-**Be careful:**
-- Takes a long time to train (10 mins to hours)
-- Uses lots of memory
-- Hard to explain ("Why did it predict this?")
-- Model might be too big for production
-
----
-
-# AutoGluon with Time Limit
-
-**Don't have all day?** Set a time limit:
+# AutoGluon with Time Budget
 
 ```python
-predictor = TabularPredictor(label='success')
+# Quick run (5 minutes)
+predictor.fit(train_data, time_limit=300)
 
-# Only train for 5 minutes
-predictor.fit(train_data, time_limit=300)  # 300 seconds = 5 mins
+# Full run (1 hour)
+predictor.fit(train_data, time_limit=3600)
 ```
 
-**More time = Better models** (usually)
-
-| Time Limit | What AutoGluon Can Do |
-|-----------|----------------------|
-| 1 minute | Quick baselines (RF, LR) |
-| 5 minutes | Good models (+ XGBoost, LightGBM) |
-| 30 minutes | Great models (+ Neural Nets, tuning) |
-| 2+ hours | Best possible (full tuning, stacking) |
+| Time | What AutoGluon Does |
+|------|---------------------|
+| 1 min | Basic models (LR, RF) |
+| 5 min | + XGBoost, LightGBM |
+| 30 min | + Neural nets, tuning |
+| 2+ hours | Full tuning, multi-layer stacking |
 
 ---
 
-<!-- _class: lead -->
+# AutoGluon Presets
 
-# Part 6: Transfer Learning
-
-*Standing on the shoulders of giants*
-
----
-
-# The Problem with Training from Scratch
-
-**Scenario**: You want to classify movie posters (images)
-
-| | Train from Scratch | Use Pretrained Model |
-|---|-------------------|---------------------|
-| **Data needed** | 1 million images | 1,000 images |
-| **Hardware** | 10 GPUs for a week | 1 GPU for an hour |
-| **Expertise** | ML PhD | Basic Python |
-| **Cost** | $10,000+ | ~$1 |
-
-**The choice is obvious!**
-
----
-
-# Transfer Learning: The Analogy
-
-**Someone who has never played any sport:**
-- Learning tennis takes 6 months
-- Starts from zero
-
-**Someone who plays badminton:**
-- Learning tennis takes 2 months
-- Already knows: hand-eye coordination, racket grip, court movement
-- Just needs to learn: different swing, ball bounce
-
-**The badminton player transfers their skills!**
-
-Same idea in ML: Use knowledge from one task for another.
-
----
-
-# How Transfer Learning Works for Images
-
-Google trained a model on **14 MILLION images** (ImageNet).
-
-What it learned (from simple to complex):
-
-| Layer | What it Learned | Examples |
-|-------|----------------|----------|
-| 1 (bottom) | Edges, lines | horizontal, vertical, diagonal |
-| 2 | Textures | fur, metal, wood |
-| 3 | Shapes | circles, squares, curves |
-| 4 | Parts | eyes, wheels, leaves |
-| 5 (top) | Objects | cats, cars, trees |
-
-**Lower layers = Universal** (useful for any image task)
-**Higher layers = Task-specific** (cats vs dogs vs cars)
-
----
-
-# Transfer Learning Strategy
-
-**Step 1**: Take a pretrained model (trained on millions of images)
-
-**Step 2**: Remove the last layer (the "head")
-- Original: predicts 1000 ImageNet categories
-- We don't need "cat", "dog", "airplane"
-
-**Step 3**: Add our own head
-- New layer: predicts OUR categories
-- Movie poster → "Action", "Comedy", "Drama"
-
-**Step 4**: Train only the new head (freeze everything else)
-- Very fast! (minutes instead of days)
-
----
-
-# Transfer Learning Visualized
-
-```
-PRETRAINED MODEL               YOUR NEW MODEL
-(from Google)                  (for movies)
-
-┌─────────────┐                ┌──────────────┐
-│ Cat/Dog/Car │  ──REMOVE──►   │ Action/Comedy│  ← NEW (train this)
-│   (1000)    │                │    /Drama    │
-└─────────────┘                └──────────────┘
-      ↑                              ↑
-┌─────────────┐                ┌──────────────┐
-│   Shapes    │  ───KEEP────►  │    Shapes    │  ← FROZEN
-└─────────────┘                └──────────────┘
-      ↑                              ↑
-┌─────────────┐                ┌──────────────┐
-│    Edges    │  ───KEEP────►  │    Edges     │  ← FROZEN
-└─────────────┘                └──────────────┘
+```python
+# Different quality levels
+predictor.fit(train_data, presets='medium_quality')
 ```
 
-Only train the top layer. Keep everything else frozen.
+| Preset | Speed | Accuracy | Use Case |
+|--------|-------|----------|----------|
+| `best_quality` | Slow | Highest | Competitions |
+| `high_quality` | Medium | High | Production |
+| `good_quality` | Fast | Good | Prototyping |
+| `medium_quality` | Faster | Decent | Quick tests |
 
 ---
 
-# Transfer Learning for Text (LLMs)
+# When to Use AutoML
 
-Same idea works for text!
+**Good for:**
+- Tabular data (spreadsheets, CSVs)
+- Quick prototyping
+- Kaggle competitions
+- When you don't have ML expertise
 
-**BERT** (by Google) was trained on ALL of Wikipedia + Books.
-
-**What it learned:**
-- Grammar and syntax
-- Word meanings and relationships
-- Common knowledge ("Paris is in France")
-- Context understanding
-
-**Your task**: Classify movie reviews as Positive/Negative
-
-**Transfer**: Use BERT's language understanding, just teach it your specific task.
+**Be careful:**
+- Slow training (minutes to hours)
+- Large model files
+- Hard to interpret
+- May not fit in production
 
 ---
 
-# Fine-Tuning: A Deeper Transfer
+<!-- _class: section-slide -->
 
-**Feature Extraction**: Freeze pretrained layers, only train new head
+# Part 5: Transfer Learning
 
-**Fine-Tuning**: Also slightly update the pretrained layers
+---
+
+# Why Train From Scratch?
+
+| | Train from Scratch | Transfer Learning |
+|---|-------------------|-------------------|
+| **Data needed** | Millions | Hundreds |
+| **Training time** | Days/weeks | Minutes/hours |
+| **Hardware** | Multiple GPUs | 1 GPU or CPU |
+| **Expertise** | High | Low |
+
+**Key insight**: Someone already trained on massive data. Use their work!
+
+---
+
+# Transfer Learning Concept
+
+<img src="images/week07/transfer_learning_architecture.png" width="750" style="display: block; margin: 0 auto;">
+
+---
+
+# What Pretrained Models Learn
+
+**For Images (ResNet, ViT)**:
+
+| Layer | What It Learns |
+|-------|----------------|
+| Early | Edges, textures |
+| Middle | Shapes, parts |
+| Late | Objects, scenes |
+
+**For Text (BERT, RoBERTa)**:
+
+| Layer | What It Learns |
+|-------|----------------|
+| Early | Word meanings |
+| Middle | Syntax, grammar |
+| Late | Context, semantics |
+
+**Lower layers = General (reusable)**
+**Higher layers = Task-specific (replace)**
+
+---
+
+# Transfer Learning: Two Strategies
 
 | | Feature Extraction | Fine-Tuning |
 |---|-------------------|-------------|
-| **Head** | Train | Train |
-| **Top layers** | Frozen | Train slowly |
-| **Bottom layers** | Frozen | Frozen |
+| **Pretrained layers** | Frozen | Trained (slowly) |
+| **New head** | Trained | Trained |
 | **Speed** | Fast | Slower |
 | **Data needed** | Less | More |
 | **Accuracy** | Good | Better |
 
-**Start with feature extraction.** Fine-tune only if you need more accuracy and have enough data.
+**Start with feature extraction. Fine-tune if you need more accuracy.**
 
 ---
 
-# When to Use Transfer Learning
+<!-- _class: section-slide -->
 
-| Data Type | Use Transfer Learning? | Recommended Models |
-|-----------|----------------------|-------------------|
-| **Images** | Yes! | ResNet, EfficientNet, ViT |
-| **Text** | Yes! | BERT, RoBERTa, or LLM APIs |
-| **Audio** | Yes! | Whisper, Wav2Vec |
-| **Tabular** | Rarely | Use AutoML instead |
-
-**Rule of thumb:**
-- Images, text, audio → **Transfer learning**
-- Tabular data (spreadsheets) → **AutoML (AutoGluon)**
+# Part 6: Transfer Learning for Vision
 
 ---
 
-# Transfer Learning Example Code
+# Image Classification with timm
+
+```python
+import timm
+import torch
+
+# Load pretrained model
+model = timm.create_model('resnet50', pretrained=True, num_classes=10)
+
+# Freeze all layers except the head
+for param in model.parameters():
+    param.requires_grad = False
+for param in model.fc.parameters():
+    param.requires_grad = True
+
+# Now train only the final layer
+```
+
+**timm** has 700+ pretrained models!
+
+---
+
+# Popular Vision Models
+
+| Model | Size | Accuracy (ImageNet) | Speed |
+|-------|------|---------------------|-------|
+| ResNet-50 | 25M | 76% | Fast |
+| EfficientNet-B0 | 5M | 77% | Fast |
+| ViT-B/16 | 86M | 81% | Medium |
+| ConvNeXt-Base | 89M | 84% | Medium |
+
+**Recommendation**:
+- Quick prototype → ResNet-50 or EfficientNet-B0
+- Best accuracy → ViT or ConvNeXt
+
+---
+
+# Vision Example: Movie Posters
+
+```python
+from torchvision import transforms, datasets
+import timm
+
+# Load pretrained model
+model = timm.create_model('efficientnet_b0', pretrained=True, num_classes=5)
+
+# Data transforms
+transform = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225])
+])
+
+# Load your data
+dataset = datasets.ImageFolder('movie_posters/', transform=transform)
+```
+
+---
+
+<!-- _class: section-slide -->
+
+# Part 7: Transfer Learning for Text
+
+---
+
+# Text Classification with Transformers
 
 ```python
 from transformers import pipeline
 
-# Load a pretrained sentiment classifier
+# Load pretrained sentiment classifier
 classifier = pipeline("sentiment-analysis")
 
-# Use it immediately - no training needed!
-reviews = [
-    "This movie was absolutely fantastic!",
-    "Worst film I've ever seen.",
-    "It was okay, nothing special."
-]
-
-for review in reviews:
-    result = classifier(review)
-    print(f"{review[:30]}... → {result[0]['label']}")
+# Use immediately - no training!
+result = classifier("This movie was fantastic!")
+print(result)
+# [{'label': 'POSITIVE', 'score': 0.9998}]
 ```
 
-**Output:**
-```
-This movie was absolutely fant... → POSITIVE
-Worst film I've ever seen.... → NEGATIVE
-It was okay, nothing special.... → NEGATIVE
+**Zero training required** for many tasks!
+
+---
+
+# Fine-Tuning BERT
+
+```python
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments
+)
+
+# Load pretrained model
+model = AutoModelForSequenceClassification.from_pretrained(
+    "bert-base-uncased",
+    num_labels=2
+)
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+# Fine-tune on your data
+trainer = Trainer(
+    model=model,
+    args=TrainingArguments(output_dir="./results", num_train_epochs=3),
+    train_dataset=train_dataset,
+)
+trainer.train()
 ```
 
 ---
 
-<!-- _class: lead -->
+# Popular Text Models
 
-# Part 7: Putting It All Together
+| Model | Size | Best For |
+|-------|------|----------|
+| BERT-base | 110M | General NLP tasks |
+| DistilBERT | 66M | Faster, 97% of BERT quality |
+| RoBERTa | 125M | Better than BERT |
+| DeBERTa | 140M | State-of-the-art |
 
-*A complete workflow*
-
----
-
-# The Complete Workflow
-
-**Step 1: Understand your data**
-- What type? (tabular, images, text)
-- How much? (100 samples vs 1 million)
-
-**Step 2: Create a baseline**
-- Tabular → Logistic Regression or Random Forest
-- Images/Text → Pretrained model (transfer learning)
-
-**Step 3: Evaluate with cross-validation**
-- Get reliable accuracy estimates
-- Understand variance in performance
-
-**Step 4: Improve**
-- Tune hyperparameters
-- Try AutoML (AutoGluon)
-- Compare to your baseline
+**Recommendation**:
+- Quick start → DistilBERT
+- Best accuracy → DeBERTa
 
 ---
 
-# Netflix Movie Prediction: Full Example
+# Zero-Shot Classification
+
+**No training at all** - just describe your classes!
+
+```python
+from transformers import pipeline
+
+classifier = pipeline("zero-shot-classification")
+
+text = "The new iPhone has amazing battery life"
+labels = ["technology", "sports", "politics", "entertainment"]
+
+result = classifier(text, labels)
+print(result['labels'][0])  # "technology"
+```
+
+**Connection to Week 6**: Similar to LLM classification, but smaller/faster models.
+
+---
+
+<!-- _class: section-slide -->
+
+# Part 8: Putting It Together
+
+---
+
+# Decision Flowchart
+
+```
+What type of data?
+    │
+    ├── Tabular (spreadsheet) ──► AutoML (AutoGluon)
+    │
+    ├── Images ──► Transfer Learning (timm, ResNet, ViT)
+    │
+    ├── Text ──► Transfer Learning (HuggingFace, BERT)
+    │
+    └── Audio ──► Transfer Learning (Whisper, Wav2Vec)
+```
+
+**Always**:
+1. Start with a baseline
+2. Use cross-validation
+3. Watch for overfitting
+
+---
+
+# Complete Example: Movie Success
 
 ```python
 import pandas as pd
@@ -999,15 +770,15 @@ from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 from autogluon.tabular import TabularPredictor
 
-# Load our movie data
+# Load data
 movies = pd.read_csv('movies.csv')
 
-# Baseline: Random Forest with cross-validation
+# Baseline with cross-validation
 rf = RandomForestClassifier(n_estimators=100)
-baseline_scores = cross_val_score(rf, X, y, cv=5)
-print(f"Baseline (RF): {baseline_scores.mean():.1%} ± {baseline_scores.std():.1%}")
+scores = cross_val_score(rf, X, y, cv=5)
+print(f"RF Baseline: {scores.mean():.1%} ± {scores.std():.1%}")
 
-# AutoML: Let AutoGluon do its magic
+# AutoML
 predictor = TabularPredictor(label='success')
 predictor.fit(movies, time_limit=300)
 print(predictor.leaderboard())
@@ -1015,111 +786,64 @@ print(predictor.leaderboard())
 
 ---
 
-# What Good Accuracy Looks Like
-
-| Model | Accuracy |
-|-------|----------|
-| Random guessing | 50% |
-| Majority class baseline | 60% |
-| Simple model (Logistic Reg) | 72% |
-| Better model (Random Forest) | 78% |
-| AutoML (AutoGluon) | 82% |
-| State-of-the-art | 85% |
-
-**Key questions to ask:**
-- Did you beat random guessing?
-- Did you beat majority class?
-- Is the improvement worth the complexity?
-
-**Note**: 82% might be amazing for some problems and terrible for others. Context matters!
-
----
-
 # Key Takeaways
 
-1. **Always start with a baseline**
-   - Simple models are your reference point
-   - You can't know if fancy is better without simple first
-
-2. **Use cross-validation**
-   - One test set can be misleading
-   - 5-fold CV gives reliable estimates
-
-3. **Tune hyperparameters** (or use AutoML)
-   - Grid search, random search, or AutoGluon
-   - Can improve accuracy by 10%+
-
-4. **Use transfer learning for images/text**
-   - Don't train from scratch
-   - Pretrained models save time and work better
+| Concept | Key Point |
+|---------|-----------|
+| **Cross-validation** | Always use K-fold, never single split |
+| **Bias-variance** | Underfitting vs overfitting |
+| **Baselines** | Start simple before complex |
+| **AutoML** | Automates model selection for tabular |
+| **Transfer learning** | Use pretrained for images/text |
+| **Overfitting** | Train acc >> Test acc = problem |
 
 ---
 
-# Common Mistakes to Avoid
+# Common Exam Questions
 
-- Starting with deep learning before trying simple models
-- Evaluating on only one train/test split
-- Tuning hyperparameters on the test set (this is cheating!)
-- Training image/text models from scratch with small data
-- Ignoring the baseline ("My model gets 80%!" ...vs what?)
-- Over-engineering for tiny improvements (+0.5% isn't worth 10x complexity)
+1. **Why use cross-validation instead of single train/test split?**
+   - Single split can be lucky/unlucky; CV averages over K splits
 
----
+2. **High train accuracy, low test accuracy - what's wrong?**
+   - Overfitting; model memorized training data
 
-# Next Week Preview
+3. **When would you NOT use standard K-fold CV?**
+   - Time series (use TimeSeriesSplit), grouped data (use GroupKFold)
 
-**Week 8: Model Evaluation & Deployment**
-
-- Confusion matrices (understanding errors)
-- Precision, Recall, F1 (beyond accuracy)
-- When accuracy is misleading
-- Deploying your model to production
-
-You've built the model. Now how do you know it's REALLY good?
+4. **What's the difference between feature extraction and fine-tuning?**
+   - Feature extraction freezes pretrained weights; fine-tuning updates them
 
 ---
 
-# Lab Preview
+# Lab: Hands-On
 
-**This week's hands-on exercises:**
+1. **Cross-validation** (20 min)
+   - Compare single split vs 5-fold CV
+   - Use StratifiedKFold for imbalanced data
 
-1. **Build baselines**: Compare Logistic Regression, Decision Tree, Random Forest
-2. **Cross-validate**: Use 5-fold CV to get reliable estimates
-3. **Tune hyperparameters**: Use GridSearchCV and RandomizedSearchCV
-4. **Try AutoGluon**: Let it find the best model for Netflix data
-5. **Transfer learning demo**: Use a pretrained model for text classification
+2. **Baseline models** (20 min)
+   - Train LR, DT, RF on movie data
+   - Compare with cross-validation
 
-**All code will be provided. Focus on understanding!**
+3. **AutoGluon** (30 min)
+   - Run with different time limits
+   - Analyze leaderboard
 
----
-
-# Interview Questions
-
-**Common interview questions on model development:**
-
-1. **"Why is cross-validation important?"**
-   - Single train/test split can be lucky or unlucky
-   - CV gives average performance over multiple splits
-   - Tells you both mean AND variance of your model
-   - Standard: 5-fold or 10-fold for most problems
-
-2. **"When would you use Random Forest vs Gradient Boosting?"**
-   - Random Forest: Faster training, parallelizable, good baseline
-   - Gradient Boosting: Often more accurate, but slower and easier to overfit
-   - RF for quick prototypes; GB when squeezing last % of accuracy
-   - Both: Handle missing values poorly without preprocessing
+4. **Transfer learning** (30 min)
+   - Text: Sentiment with HuggingFace
+   - Vision: Image classification with timm
 
 ---
 
 <!-- _class: lead -->
+<!-- _paginate: false -->
 
 # Questions?
 
-**Today's key concepts:**
-- Baseline models (start simple!)
-- Cross-validation (reliable evaluation)
-- Hyperparameter tuning (GridSearch, RandomSearch)
+**Key concepts:**
+- Cross-validation (K-fold, stratified)
+- Bias-variance tradeoff
 - AutoML (AutoGluon)
-- Transfer learning (for images/text)
+- Transfer learning (vision + text)
 
 **Remember**: Simple first, complex only if needed!
