@@ -44,16 +44,7 @@ math: mathjax
 
 # The Problem & Solution
 
-| The Problem | The Solution |
-|-------------|--------------|
-| ResNet needs 1.2M images | **Data Augmentation**: |
-| GPT-3 needs 45TB text | Transform existing data |
-| You have 500 images | to create MORE training data |
-
-| Your Data | + Augmentation | = Training Examples |
-|-----------|----------------|---------------------|
-| 500 images | 10x transforms | 5,000 examples |
-| 1,000 texts | 5x paraphrases | 5,000 examples |
+![w:750](images/week05/data_multiplier_effect.png)
 
 **Key Rule**: Only use transforms that **preserve the label**!
 
@@ -61,7 +52,7 @@ math: mathjax
 
 # What is Data Augmentation?
 
-![w:950](images/week05/cat_augmentation_example.png)
+![w:750](images/week05/cat_augmentation_example.png)
 
 **1 image → 8 training examples** (all still clearly a cat!)
 
@@ -69,7 +60,7 @@ math: mathjax
 
 # The Invariance Problem
 
-![w:950](images/week05/brain_invariance_gemini.png)
+![w:750](images/week05/brain_invariance_gemini.png)
 
 **Human vision** is naturally invariant to rotation, lighting, position.
 **Neural networks** must learn this invariance from data → augmentation helps!
@@ -78,15 +69,15 @@ math: mathjax
 
 # You Already Use Augmentation Daily!
 
-![w:950](images/week05/instagram_augmentation.png)
+![w:750](images/week05/instagram_filters_analogy.png)
 
-Instagram filters = color augmentation. Your brain still recognizes it's a cat!
+Instagram filters = color augmentation. Your brain still recognizes the scene!
 
 ---
 
 # MNIST: 1 Digit → 10 Training Examples
 
-![w:950](images/week05/digit_augmentation_examples.png)
+![w:750](images/week05/digit_augmentation_examples.png)
 
 Each transform simulates real-world variation (tilted writing, different pens, lighting, etc.)
 
@@ -94,7 +85,7 @@ Each transform simulates real-world variation (tilted writing, different pens, l
 
 # Published Results: Augmentation Works!
 
-![w:900](images/week05/augmentation_impact.png)
+![w:750](images/week05/augmentation_impact.png)
 
 **Real paper results** on CIFAR-10 with Wide-ResNet-28-10 architecture.
 
@@ -102,10 +93,10 @@ Each transform simulates real-world variation (tilted writing, different pens, l
 
 # Why Augmentation Reduces Overfitting
 
-![w:900](images/week05/augmentation_overfitting.png)
+![w:750](images/week05/overfitting_decision_boundary.png)
 
-**Without augmentation**: Model memorizes exact pixels
-**With augmentation**: Model learns general patterns
+**Without augmentation**: Complex boundary fits training data tightly (memorization)
+**With augmentation**: Smooth boundary generalizes better
 
 ---
 
@@ -131,7 +122,7 @@ Each transform simulates real-world variation (tilted writing, different pens, l
 
 # Geometric Transforms
 
-![w:900](images/week05/geometric_transforms.png)
+![w:750](images/week05/geometric_transforms.png)
 
 Rotation, flip, translation, scaling, cropping - all preserve the label!
 
@@ -139,7 +130,7 @@ Rotation, flip, translation, scaling, cropping - all preserve the label!
 
 # Color/Intensity Transforms
 
-![w:900](images/week05/color_transforms.png)
+![w:750](images/week05/color_transforms.png)
 
 Brightness, contrast, inversion - simulates different lighting conditions
 
@@ -147,31 +138,31 @@ Brightness, contrast, inversion - simulates different lighting conditions
 
 # Elastic Deformation
 
-![w:950](images/week05/elastic_deformation.png)
+![w:750](images/week05/elastic_deformation_explained.png)
 
-**α** = displacement magnitude, **σ** = smoothness. From Simard et al. (2003).
+**How it works**: Apply smooth random displacement to a grid overlay. From Simard et al. (2003).
 
 ---
 
 # Weather Augmentation
 
-![w:950](images/week05/weather_augmentation_gemini.png)
+![w:750](images/week05/weather_augmentation_gemini.png)
 
 **Critical for autonomous vehicles** - must work in all weather!
 
 ---
 
-# ⚠️ The "b vs d" Problem
+# The "b vs d" Problem
 
-![w:800](images/week05/bad_augmentation_6_vs_9.png)
+![w:700](images/week05/bad_augmentation_6_vs_9.png)
 
-**Critical Rule**: Only augment if transformation preserves the label!
+**Critical Rule**: Only augment if the transformation preserves the label!
 
 ---
 
 # Good vs Bad Augmentation
 
-![w:900](images/week05/good_vs_bad_augmentation.png)
+![w:750](images/week05/good_vs_bad_augmentation.png)
 
 **Always ask**: Does this transformation change what the image represents?
 
@@ -179,7 +170,7 @@ Brightness, contrast, inversion - simulates different lighting conditions
 
 # Noise Augmentation
 
-![w:900](images/week05/noise_augmentation.png)
+![w:750](images/week05/noise_augmentation.png)
 
 Trains model to be robust to sensor noise and image compression
 
@@ -187,7 +178,7 @@ Trains model to be robust to sensor noise and image compression
 
 # Blur Augmentation
 
-![w:900](images/week05/blur_augmentation.png)
+![w:750](images/week05/blur_augmentation.png)
 
 Light blur is OK, heavy blur loses information!
 
@@ -195,7 +186,7 @@ Light blur is OK, heavy blur loses information!
 
 # Advanced: Cutout
 
-![w:850](images/week05/cutout_example.png)
+![w:700](images/week05/cutout_example.png)
 
 **Idea**: Randomly mask patches → forces model to use ALL features, not just one
 
@@ -203,7 +194,7 @@ Light blur is OK, heavy blur loses information!
 
 # Advanced: Mixup
 
-![w:900](images/week05/mixup_example.png)
+![w:750](images/week05/mixup_example.png)
 
 **Idea**: Blend two images AND their labels → smoother decision boundaries
 
@@ -211,9 +202,9 @@ Light blur is OK, heavy blur loses information!
 
 # Advanced: CutMix
 
-![w:900](images/week05/cutmix_example.png)
+![w:750](images/week05/cutmix_explained.png)
 
-**Idea**: Cut & paste regions + mix labels proportionally
+**Idea**: Cut & paste regions + mix labels proportionally to area
 
 ---
 
@@ -246,13 +237,13 @@ mixed_label = area_ratio * label_A + (1 - area_ratio) * label_B
 
 # Augmentation by Task: Overview
 
-![w:1000](images/week05/task_augmentation_overview_gemini.png)
+![w:800](images/week05/task_augmentation_grid.png)
 
 ---
 
 # Object Detection: Transform BBoxes Too!
 
-![w:950](images/week05/object_detection_augmentation.png)
+![w:750](images/week05/object_detection_augmentation.png)
 
 **Critical**: Bounding box coordinates must transform with the image!
 
@@ -286,7 +277,7 @@ augmented = transform(
 
 # Segmentation: Transform Masks Too!
 
-![w:950](images/week05/segmentation_augmentation.png)
+![w:750](images/week05/segmentation_augmentation.png)
 
 **Rule**: Apply EXACT same transform to image AND mask!
 
@@ -314,7 +305,7 @@ aug_mask = augmented['mask']  # Same transform applied!
 
 # NER: Protect Entity Tokens!
 
-![w:950](images/week05/ner_augmentation.png)
+![w:750](images/week05/ner_augmentation.png)
 
 **Never replace or modify named entity tokens!**
 
@@ -342,10 +333,13 @@ augmented = aug.augment(text)
 
 # Pose Estimation: Transform Keypoints
 
-| Original | Flipped | What happens |
-|----------|---------|--------------|
-| Left hand at (50, 100) | Right hand at (150, 100) | Keypoint IDs swap! |
-| Left knee at (60, 200) | Right knee at (140, 200) | Must relabel! |
+![w:750](images/week05/pose_estimation_keypoints.png)
+
+**Left/right keypoints must swap labels on horizontal flip!**
+
+---
+
+# Pose Estimation: Albumentations Code
 
 ```python
 transform = A.Compose([
@@ -357,7 +351,7 @@ transform = A.Compose([
 ))
 ```
 
-**Left/right keypoints must swap labels on horizontal flip!**
+Albumentations handles keypoint transformation, but you must relabel left/right!
 
 ---
 
@@ -406,15 +400,15 @@ augmented = transform(image=image)['image']
 
 # The Augmentation Pipeline
 
-![w:1000](images/week05/augmentation_pipeline_gemini.png)
+![w:800](images/week05/augmentation_pipeline_gemini.png)
 
 Each transform is applied with probability `p` - stochastic augmentation!
 
 ---
 
-# ⚠️ Medical Imaging: Be VERY Careful!
+# Medical Imaging: Be VERY Careful!
 
-![w:950](images/week05/medical_augmentation.png)
+![w:750](images/week05/medical_chest_xray_danger.png)
 
 **Flipping a chest X-ray puts the heart on the wrong side!**
 
@@ -433,7 +427,7 @@ Each transform is applied with probability `p` - stochastic augmentation!
 
 ---
 
-# 🎯 Exercise 1: Good or Bad?
+# Exercise 1: Good or Bad?
 
 **For a dog/cat classifier, which augmentations are safe?**
 
@@ -449,7 +443,7 @@ Each transform is applied with probability `p` - stochastic augmentation!
 
 ---
 
-# 🎯 Exercise 1: Answers
+# Exercise 1: Answers
 
 | Augmentation | Safe? | Why? |
 |-------------|-------|------|
@@ -483,7 +477,7 @@ Each transform is applied with probability `p` - stochastic augmentation!
 
 # Text Augmentation Examples
 
-![w:900](images/week05/text_augmentation_examples.png)
+![w:750](images/week05/text_augmentation_examples.png)
 
 ---
 
@@ -558,7 +552,7 @@ Text: "The model achieved 95% accuracy on the test set."
 
 ---
 
-# ⚠️ Text Augmentation Pitfalls
+# Text Augmentation Pitfalls
 
 | Problem | Example | Solution |
 |---------|---------|----------|
@@ -571,7 +565,7 @@ Text: "The model achieved 95% accuracy on the test set."
 
 ---
 
-# 🎯 Exercise 2: Sentiment Preservation
+# Exercise 2: Sentiment Preservation
 
 **Original**: "This restaurant has amazing food!"  (POSITIVE)
 
@@ -586,12 +580,12 @@ Text: "The model achieved 95% accuracy on the test set."
 
 ---
 
-# 🎯 Exercise 2: Answers
+# Exercise 2: Answers
 
 | Augmented Text | Preserves? | Why? |
 |---------------|-----------|------|
 | "This restaurant has incredible food!" | ✓ Yes | Synonym |
-| "This restaurant has food!" | ⚠️ Maybe | Lost emphasis |
+| "This restaurant has food!" | Maybe | Lost emphasis |
 | "This restaurant has mediocre food!" | ✗ No | Sentiment changed! |
 | "This eatery has amazing food!" | ✓ Yes | Safe synonym |
 
@@ -617,27 +611,37 @@ Text: "The model achieved 95% accuracy on the test set."
 
 ---
 
-# Listen: Audio Augmentation Examples
+# Audio Representations: Waveform vs Spectrogram
+
+<audio controls><source src="audio/week05/original.mp3" type="audio/mpeg"></audio> *"The quick brown fox jumps over the lazy dog"*
+
+![w:700](images/week05/spectrogram_explainer.png)
+
+**Left**: Waveform (amplitude vs time) | **Right**: Spectrogram (frequency vs time, brightness = loudness)
+
+---
+
+# Listen & See: Audio Augmentation
 
 | Original | Pitch UP | Pitch DOWN |
-|----------|----------|------------|
-| <audio controls><source src="audio/week05/original.mp3" type="audio/mpeg"><source src="audio/week05/original.wav" type="audio/wav"></audio> | <audio controls><source src="audio/week05/pitch_up.mp3" type="audio/mpeg"><source src="audio/week05/pitch_up.wav" type="audio/wav"></audio> | <audio controls><source src="audio/week05/pitch_down.mp3" type="audio/mpeg"><source src="audio/week05/pitch_down.wav" type="audio/wav"></audio> |
-
----
-
-# Listen: More Audio Augmentations
+|:--------:|:--------:|:----------:|
+| <audio controls><source src="audio/week05/original.mp3" type="audio/mpeg"></audio> | <audio controls><source src="audio/week05/pitch_up.mp3" type="audio/mpeg"></audio> | <audio controls><source src="audio/week05/pitch_down.mp3" type="audio/mpeg"></audio> |
+| ![w:200](images/week05/spec_original.png) | ![w:200](images/week05/spec_pitch_up.png) | ![w:200](images/week05/spec_pitch_down.png) |
 
 | Time Stretch | + Noise | + Reverb |
-|--------------|---------|----------|
-| <audio controls><source src="audio/week05/time_stretch.mp3" type="audio/mpeg"><source src="audio/week05/time_stretch.wav" type="audio/wav"></audio> | <audio controls><source src="audio/week05/with_noise.mp3" type="audio/mpeg"><source src="audio/week05/with_noise.wav" type="audio/wav"></audio> | <audio controls><source src="audio/week05/with_reverb.mp3" type="audio/mpeg"><source src="audio/week05/with_reverb.wav" type="audio/wav"></audio> |
+|:------------:|:-------:|:--------:|
+| <audio controls><source src="audio/week05/time_stretch.mp3" type="audio/mpeg"></audio> | <audio controls><source src="audio/week05/with_noise.mp3" type="audio/mpeg"></audio> | <audio controls><source src="audio/week05/with_reverb.mp3" type="audio/mpeg"></audio> |
+| ![w:200](images/week05/spec_time_stretch.png) | ![w:200](images/week05/spec_with_noise.png) | ![w:200](images/week05/spec_with_reverb.png) |
 
 ---
 
-# SpecAugment: Masking Spectrograms
+# What is SpecAugment?
 
-![w:900](images/week05/specaugment_example.png)
+**SpecAugment** masks parts of the spectrogram during training:
 
-**Used by Google's speech recognition and Wav2Vec**
+![w:750](images/week05/specaugment_example.png)
+
+**Used by Google's speech recognition and Wav2Vec** - simple but very effective!
 
 ---
 
@@ -693,63 +697,7 @@ augmented = augment(samples=audio, sample_rate=sr)
 
 <!-- _class: lead -->
 
-# Part 5: Video Augmentation
-
-*Spatial + temporal transforms*
-
----
-
-# Video = Images + Time
-
-**Video augmentation combines:**
-1. **Spatial**: Apply image augmentations to each frame
-2. **Temporal**: Modify the time dimension
-
-| Spatial | Temporal |
-|---------|----------|
-| Flip, rotate, crop | Speed change |
-| Color jitter | Frame sampling |
-| Cutout | Temporal crop |
-
----
-
-# Video-Specific Augmentations
-
-| Augmentation | What it does | Use case |
-|-------------|--------------|----------|
-| **Temporal crop** | Take random time segment | Long videos |
-| **Frame sampling** | Skip frames | Reduce computation |
-| **Speed perturbation** | Play faster/slower | Action recognition |
-| **Reverse** | Play backwards | Some actions are symmetric |
-
-```python
-# Random temporal crop
-start = random.randint(0, len(video) - clip_length)
-clip = video[start:start + clip_length]
-
-# Frame sampling (take every 2nd frame)
-sampled = video[::2]
-```
-
----
-
-# Video Augmentation Caution
-
-**Actions that change with time reversal:**
-- "Picking up" vs "Putting down"
-- "Opening door" vs "Closing door"
-- "Standing up" vs "Sitting down"
-
-**Safe to reverse:**
-- "Walking" (symmetric)
-- "Waving" (symmetric)
-- "Jumping" (mostly symmetric)
-
----
-
-<!-- _class: lead -->
-
-# Part 6: Practical Guidelines
+# Part 5: Practical Guidelines
 
 *Building your augmentation pipeline*
 
@@ -757,12 +705,9 @@ sampled = video[::2]
 
 # The Golden Rule
 
-> **If a human can't correctly label the augmented data, don't use that augmentation!**
+![w:750](images/week05/golden_rule_augmentation.png)
 
-Test your augmentation pipeline:
-1. Generate 100 augmented samples
-2. Label them yourself (or have someone else)
-3. If accuracy < 95%, your augmentation is too strong
+Test your pipeline: Generate 100 samples, label them yourself. If accuracy < 95%, too strong!
 
 ---
 
@@ -811,7 +756,7 @@ A.Rotate(limit=15, p=0.3)
 
 # RandAugment: Automatic Selection
 
-![w:850](images/week05/randaugment_example.png)
+![w:700](images/week05/randaugment_example.png)
 
 **Idea**: Randomly pick N augmentations with magnitude M
 
@@ -827,7 +772,13 @@ Simple, effective, widely used!
 
 # Test-Time Augmentation (TTA)
 
-**Idea**: Augment at inference time, average predictions
+![w:750](images/week05/tta_diagram.png)
+
+**Benefit**: +1-2% accuracy | **Cost**: N× slower inference
+
+---
+
+# TTA: Code Example
 
 ```python
 def tta_predict(model, image, n_augments=5):
@@ -840,32 +791,25 @@ def tta_predict(model, image, n_augments=5):
     return np.mean(predictions, axis=0)
 ```
 
-| Benefit | Cost |
-|---------|------|
-| +1-2% accuracy | N× slower inference |
+Average predictions from multiple augmented versions for more robust results.
 
 ---
 
-# ⚠️ Don't Augment Validation/Test!
+# Don't Augment Validation During Training!
 
 ```python
-# WRONG!
+# WRONG - Don't randomly augment validation data
 val_transform = A.Compose([
     A.HorizontalFlip(p=0.5),  # Don't do this!
 ])
+
+# CORRECT - Clean validation data
+val_transform = A.Compose([])  # No random augmentation!
 ```
 
-```python
-# CORRECT
-train_transform = A.Compose([
-    A.HorizontalFlip(p=0.5),
-    A.Rotate(limit=15, p=0.5),
-])
+**Why?** Validation must measure performance on the REAL data distribution.
 
-val_transform = A.Compose([])  # No augmentation!
-```
-
-**Why?** Validation measures performance on REAL data distribution.
+**Note**: TTA is different - it's a deliberate inference technique where you average predictions from multiple augmented views of the SAME image.
 
 ---
 
@@ -884,7 +828,7 @@ val_transform = A.Compose([])  # No augmentation!
 
 <!-- _class: lead -->
 
-# Part 7: Tools & Libraries
+# Part 6: Tools & Libraries
 
 *Quick reference*
 
@@ -904,45 +848,33 @@ val_transform = A.Compose([])  # No augmentation!
 
 ---
 
-# 🎮 Try It Yourself: Interactive Demo
+# Demo Notebooks
 
-**Gradio Demo** (recommended):
-```bash
-cd lecture-demos/week05
-pip install gradio
-python augmentation_demo_app.py
-# Open http://localhost:7860
-```
+| Notebook | Topic | Key Learning |
+|----------|-------|--------------|
+| `augmentation_impact_cifar10_mlx.ipynb` | Image Classification | See 10%+ accuracy gain (fast on Mac!) |
+| `text_augmentation_demo.ipynb` | NLP | EDA, back-translation |
+| `audio_augmentation_demo.ipynb` | Speech/Audio | SpecAugment visualization |
+| `object_detection_augmentation_demo.ipynb` | Object Detection | Bbox transformation |
 
-**Streamlit Demo**:
-```bash
-pip install streamlit
-streamlit run augmentation_demo_streamlit.py
-```
-
-**Features:**
-- Upload any image and apply augmentations in real-time
-- Batch generation: see 9 random augmentations at once
-- "Dangerous augmentations" tab: see how labels can break!
+All in `lecture-demos/week05/`. **MLX version runs 5-10× faster on Apple Silicon!**
 
 ---
 
-# Demo Screenshot: Manual Controls
+# Interactive Demo
 
-The demo lets you adjust each augmentation parameter:
+```bash
+cd lecture-demos/week05
+pip install gradio scipy pillow scikit-image scikit-learn
+python augmentation_demo_app.py
+# Opens at http://localhost:7860
+```
 
-| Control | What it does |
-|---------|-------------|
-| Horizontal Flip | Mirror left ↔ right |
-| Vertical Flip | Mirror top ↔ bottom (⚠️ dangerous!) |
-| Rotation | Rotate -45° to +45° |
-| Brightness | Darker ↔ Brighter |
-| Contrast | Flatten ↔ Enhance |
-| Noise | Add Gaussian noise |
-| Blur | Apply Gaussian blur |
-| Cutout | Remove random patch |
-
-**Try it**: Upload a digit "6" and flip vertically!
+**Features**:
+- Sample images pre-loaded (cat, MNIST digit, shapes)
+- Interactive sliders for all augmentation types
+- Batch mode: generate 9 random augmentations
+- Dangerous transforms demo (flip digit 6 → 9)
 
 ---
 
@@ -1004,7 +936,7 @@ augmented = augment(samples=audio, sample_rate=16000)
 
 ---
 
-# 🎯 Final Exercise: Design Your Pipeline
+# Final Exercise: Design Your Pipeline
 
 **Task**: Design an augmentation pipeline for classifying food images (pizza, burger, sushi, etc.)
 
@@ -1043,10 +975,14 @@ augmented = augment(samples=audio, sample_rate=16000)
 
 # Questions?
 
-**Lab Notebook**: `lecture-demos/week05/augmentation_impact_cifar10.ipynb`
-- Trains CNN on CIFAR-10 with and without augmentation
-- Shows ~10% accuracy improvement with augmentation
-- Visualizes overfitting reduction
+**Notebooks** (in `lecture-demos/week05/`):
 
-**Interactive Demo**: `python augmentation_demo_app.py`
+| Notebook | What it covers |
+|----------|---------------|
+| `augmentation_impact_cifar10_mlx.ipynb` | Fast training comparison (MLX) |
+| `text_augmentation_demo.ipynb` | EDA, back-translation, NER-safe augmentation |
+| `audio_augmentation_demo.ipynb` | Time/frequency transforms, SpecAugment |
+| `object_detection_augmentation_demo.ipynb` | Bbox transformation with Albumentations |
+
+**Interactive App**: `python augmentation_demo_app.py`
 
