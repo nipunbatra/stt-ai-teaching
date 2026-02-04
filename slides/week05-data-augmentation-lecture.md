@@ -85,9 +85,19 @@ Each transform simulates real-world variation (tilted writing, different pens, l
 
 # Published Results: Augmentation Works!
 
-![w:750](images/week05/augmentation_impact.png)
+**CIFAR-10 Test Error Rates** (lower is better):
 
-**Real paper results** on CIFAR-10 with Wide-ResNet-28-10 architecture.
+| Method | Error Rate | Improvement |
+|--------|-----------|-------------|
+| Baseline (no augmentation) | ~6.3% | - |
+| + Basic augmentation (flip, crop) | ~4.5% | 1.8% |
+| + Cutout | 2.56% | 3.7% |
+| + AutoAugment | 1.48% | 4.8% |
+| + RICAP | **2.19%** | 4.1% |
+
+**ImageNet Top-1 Error**: AutoAugment achieves 16.5% (vs ~23% baseline)
+
+Source: [Shorten & Khoshgoftaar, "A Survey on Image Data Augmentation" (2019)](https://link.springer.com/article/10.1186/s40537-019-0197-0)
 
 ---
 
