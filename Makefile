@@ -22,12 +22,15 @@ HTML_TARGETS := $(patsubst $(SLIDES_DIR)/%.md, $(HTML_DIR)/%.html, $(SLIDES_MD))
 all: dirs $(PDF_TARGETS) $(HTML_TARGETS)
 	@echo "✓ All slides built successfully"
 
-# Create output directories and copy images
+# Create output directories and copy images and audio
 dirs:
 	@mkdir -p $(PDF_DIR)
 	@mkdir -p $(HTML_DIR)
 	@if [ -d "$(SLIDES_DIR)/images" ]; then \
 		cp -r $(SLIDES_DIR)/images $(HTML_DIR)/; \
+	fi
+	@if [ -d "$(SLIDES_DIR)/audio" ]; then \
+		cp -r $(SLIDES_DIR)/audio $(HTML_DIR)/; \
 	fi
 
 # Pattern rule for PDF
