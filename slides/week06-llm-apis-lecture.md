@@ -17,48 +17,137 @@ math: mathjax
 
 ---
 
-# The Paradigm Shift
+# Previously on CS 203...
 
-<div class="columns">
-<div>
+| Week | What We Built | Tools |
+|------|---------------|-------|
+| Week 1 | Collected 10,000 movie records | `requests`, `BeautifulSoup`, APIs |
+| Week 2 | Validated and cleaned the data | `pandas`, `great_expectations` |
+| Week 3 | Labeled movies for success/failure | Label Studio, annotation guides |
+| Week 4 | Optimized labeling (AL + weak supervision) | `modAL`, Snorkel |
+| Week 5 | Augmented the dataset | `imgaug`, `nlpaug`, `audiomentations` |
 
-**Before (2010s)**
+**5 weeks. 6+ libraries. Thousands of lines of code.**
 
-- One model per task
-- Weeks of training
-- Thousands of labels needed
-- Single modality
+---
 
-</div>
-<div>
+# The Effort Report Card
 
-**Now (2020s)**
+Think about what it took to build **one classifier** for **one task**:
 
-- One model, many tasks
-- Ready to use via API
-- Zero-shot or few examples
-- Text + Image + Audio + Video
+- Data collection scripts, API rate limiting, deduplication
+- Schema validation, null handling, type coercion
+- Labeling guidelines, inter-annotator agreement, quality control
+- Active learning loops, weak supervision rules
+- Augmentation pipelines tuned per modality
 
-</div>
-</div>
+All of that -- and we haven't even trained a model yet.
 
-<img src="images/week06/foundation_model_paradigm.png" width="650" style="display: block; margin: 0 auto;">
+**Now imagine your boss says**: *"Great. Now also detect objects in movie posters, transcribe trailer audio, and extract info from contract PDFs."*
+
+---
+
+# The Old Way: One Pipeline Per Task
+
+You'd need to build **separate pipelines** for each:
+
+| Task | Data | Model | Training |
+|------|------|-------|----------|
+| Movie success prediction | Tabular features | Random Forest | Label 5,000 examples |
+| Poster object detection | Bounding box annotations | YOLO / Faster R-CNN | Label 10,000 boxes |
+| Trailer transcription | Audio + transcripts | Whisper fine-tune | Collect 100h audio |
+| Contract extraction | PDF + structured labels | LayoutLM fine-tune | Annotate 2,000 docs |
+
+**4 tasks = 4 datasets, 4 models, 4 training pipelines, months of work.**
+
+---
+
+# What If...
+
+```python
+from google import genai
+client = genai.Client(api_key="...")
+
+# Task 1: Movie success prediction
+client.models.generate_content(model=MODEL,
+    contents="Will this movie succeed? Budget: $200M, Genre: Action, Stars: A-list")
+
+# Task 2: Poster object detection
+client.models.generate_content(model=MODEL,
+    contents=["Detect all objects in this poster.", poster_image])
+
+# Task 3: Trailer transcription
+client.models.generate_content(model=MODEL,
+    contents=["Transcribe this.", trailer_audio])
+
+# Task 4: Contract extraction
+client.models.generate_content(model=MODEL,
+    contents=["Extract parties, dates, amounts as JSON.", contract_pdf])
+```
+
+**Same model. Same API. Same 3 lines. All four tasks.**
+
+---
+
+# What Changed?
+
+![w:850](images/week06/effort_vs_foundation.png)
+
+---
+
+# Foundation Models: Why This Works
+
+**Scale changes everything.**
+
+| Property | Traditional ML | Foundation Model |
+|----------|---------------|-----------------|
+| Training data | Your dataset (thousands) | The internet (trillions of tokens) |
+| Modalities | One (text OR image OR audio) | All at once |
+| Task specification | Labeled examples | Natural language instructions |
+| New task | Collect data, retrain | Change the prompt |
+
+These models have seen so much data that they develop **general capabilities** -- reasoning, pattern recognition, visual understanding -- that transfer to tasks they were never explicitly trained on.
+
+---
+
+# One Model, Many Modalities
+
+<img src="images/week06/multimodal_capabilities.png" width="700" style="display: block; margin: 0 auto;">
+
+Text, images, audio, video, code -- **a single model** understands and generates across all of them.
+
+---
+
+# Does This Make Weeks 1-5 Useless?
+
+**No.** Foundation models are powerful but not magic:
+
+- They hallucinate. Your **data validation** skills catch that.
+- They need good prompts. Your **labeling guideline** instincts help write them.
+- They're expensive at scale. Your **active learning** intuition -- knowing when a few examples beat brute force -- applies directly.
+- They work best combined with your data. **Augmentation** + LLMs = even better.
+
+<img src="images/week06/llm_pipeline_integration.png" width="650" style="display: block; margin: 0 auto;">
+
+The pipeline skills you built are **more relevant than ever** -- the tools just got more powerful.
 
 ---
 
 # Today: Hands-On with Gemini API
 
-**Tutorial**: [nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal](https://nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal.html)
+We'll use Google's **Gemini 2.0 Flash** -- a multimodal model you can call for free.
 
-| Capability | Examples |
-|------------|----------|
-| **Text** | Sentiment, NER, summarization |
-| **Vision** | Object detection, OCR |
+| Capability | What We'll Do |
+|------------|---------------|
+| **Text** | Sentiment, NER, classification |
+| **Vision** | Object detection, OCR, chart reading |
 | **Audio** | Transcription |
 | **Video** | Scene understanding |
-| **Documents** | PDF extraction |
+| **Structured output** | Guaranteed JSON with Pydantic |
 
-**Get API key**: [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+**Tutorial**: [nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal](https://nipunbatra.github.io/blog/posts/2025-12-01-gemini-api-multimodal.html)
+
+**Get API key now**: [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
 ---
 
