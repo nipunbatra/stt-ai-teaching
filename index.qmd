@@ -36,9 +36,10 @@ By the end of this course, you will:
 |--------|------------|
 | **Data Engineering** | APIs, web scraping, data validation, annotation pipelines |
 | **Labeling at Scale** | Active learning, weak supervision, LLM-based labeling |
-| **Model Development** | AutoML, transfer learning, LLM fine-tuning |
-| **Deployment** | Docker, FastAPI, Streamlit, CI/CD |
-| **Production** | Model optimization, profiling, drift monitoring |
+| **Model Development** | LLM APIs, AutoML, transfer learning, fine-tuning |
+| **Engineering** | Git, reproducibility, experiment tracking, CI/CD |
+| **Deployment** | FastAPI, Gradio, Streamlit, Docker |
+| **Optimization** | Profiling, quantization, ONNX, pruning |
 
 ---
 
@@ -54,23 +55,28 @@ By the end of this course, you will:
 | 4 | [Optimizing Labeling](#week-4-optimizing-labeling) | [PDF](pdf/week04-optimizing-labeling-lecture.pdf) ∙ [HTML](html/week04-optimizing-labeling-lecture.html) | [Notebook](labs/week04-optimizing-labeling-lab.html) |
 | 5 | [Data Augmentation](#week-5-data-augmentation) | [PDF](pdf/week05-data-augmentation-lecture.pdf) ∙ [HTML](html/week05-data-augmentation-lecture.html) | [Notebook](labs/week05-data-augmentation-lab.html) |
 
-**Part II — Model Development & Deployment (Weeks 6-11)**
+**Part II — Model Development (Weeks 6-7)**
 
 | Week | Topic | Lecture | Lab |
 |:----:|-------|:-------:|:---:|
 | 6 | [LLM APIs](#week-6-llm-apis--multimodal-ai) | [PDF](pdf/week06-llm-apis-lecture.pdf) ∙ [HTML](html/week06-llm-apis-lecture.html) | [Notebook](labs/week06-llm-apis-lab.html) |
 | 7 | [Model Development](#week-7-model-development--training) | [PDF](pdf/week07-model-development-lecture.pdf) ∙ [HTML](html/week07-model-development-lecture.html) | [Slides](html/week07-model-development-lab.html) |
-| 8 | [Reproducibility](#week-8-reproducibility--environments) | [PDF](pdf/week08-reproducibility-lecture.pdf) ∙ [HTML](html/week08-reproducibility-lecture.html) | [Slides](html/week08-reproducibility-lab.html) |
-| 9 | [Interactive Demos](#week-9-interactive-ai-demos) | [PDF](pdf/week09-interactive-demos-lecture.pdf) ∙ [HTML](html/week09-interactive-demos-lecture.html) | [Slides](html/week09-interactive-demos-lab.html) |
-| 10 | [HTTP & APIs](#week-10-http-apis--fastapi) | [PDF](pdf/week10-http-apis-lecture.pdf) ∙ [HTML](html/week10-http-apis-lecture.html) | [Slides](html/week10-http-apis-lab.html) |
-| 11 | [Git & CI/CD](#week-11-git-github-actions--cicd) | [PDF](pdf/week11-git-cicd-lecture.pdf) ∙ [HTML](html/week11-git-cicd-lecture.html) | [Slides](html/week11-git-cicd-lab.html) |
 
-**Part III — Production & Optimization (Weeks 12-15)**
+**Part III — Engineering & Deployment (Weeks 8-13)**
+
+| Week | Topic | Lecture | Follow-Along |
+|:----:|-------|:-------:|:---:|
+| 8 | [Git](#week-8-git) | [HTML](html/week08-git-lecture.html) | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week08/git_followalong.sh) ∙ [PDF](lecture-demos/week08/git_followalong.pdf) |
+| 9 | [Reproducibility](#week-9-reproducibility--environments) | [HTML](html/week09-reproducibility-lecture.html) | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week09/reproducibility_followalong.sh) ∙ [PDF](lecture-demos/week09/reproducibility_followalong.pdf) |
+| 10 | [Experiment Tracking](#week-10-experiment-tracking--reproducibility) | [HTML](html/week10-experiments-lecture.html) | [Notebook](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week10/experiments_notebook.ipynb) ∙ [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week10/experiments_followalong.sh) |
+| 11 | [Testing & CI/CD](#week-11-testing--cicd) | [HTML](html/week11-cicd-lecture.html) | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/cicd_followalong.sh) ∙ [PDF](lecture-demos/week11/cicd_followalong.pdf) |
+| 12 | [APIs & Demos](#week-12-apis--demos) | [HTML](html/week12-apis-lecture.html) | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) ∙ [PDF](lecture-demos/week12/apis_followalong.pdf) |
+| 13 | [Profiling & Quantization](#week-13-profiling--quantization) | [HTML](html/week13-profiling-lecture.html) | [Notebook](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_notebook.ipynb) ∙ [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_followalong.sh) |
+
+**Part IV — Production (Weeks 14-15)**
 
 | Week | Topic | Lecture | Lab |
 |:----:|-------|:-------:|:---:|
-| 12 | [Edge Deployment](#week-12-deployment-on-constrained-devices) | [PDF](pdf/week12-deployment-constrained-lecture.pdf) ∙ [HTML](html/week12-deployment-constrained-lecture.html) | [Slides](html/week12-deployment-constrained-lab.html) |
-| 13 | [Profiling](#week-13-profiling--optimization) | [PDF](pdf/week13-profiling-optimization-lecture.pdf) ∙ [HTML](html/week13-profiling-optimization-lecture.html) | [Slides](html/week13-profiling-optimization-lab.html) |
 | 14 | [Monitoring](#week-14-model-monitoring--observability) | [PDF](pdf/week14-model-monitoring-lecture.pdf) ∙ [HTML](html/week14-model-monitoring-lecture.html) | [Slides](html/week14-model-monitoring-lab.html) |
 | 15 | [Summary](#week-15-course-summary--future-trends) | [PDF](pdf/week15-course-summary-lecture.pdf) ∙ [HTML](html/week15-course-summary-lecture.html) | — |
 
@@ -183,10 +189,10 @@ Expand training datasets through synthetic transformations.
 
 ---
 
-## Part II: Model Development & Deployment (Weeks 6-11)
+## Part II: Model Development (Weeks 6-7)
 
 ::: {.callout-note appearance="minimal"}
-**Learning Goal:** Build, train, and deploy ML models as production-ready applications.
+**Learning Goal:** Build and train ML models using APIs, AutoML, and fine-tuning.
 :::
 
 ### Week 6: LLM APIs & Multimodal AI
@@ -229,129 +235,142 @@ Train and evaluate machine learning models effectively.
 
 ---
 
-### Week 8: Reproducibility & Environments
+## Part III: Engineering & Deployment (Weeks 8-13)
 
-Ensure experiments are reproducible and shareable.
+::: {.callout-note appearance="minimal"}
+**Learning Goal:** Version code & environments, track experiments, automate with CI/CD, and ship models as APIs.
+:::
 
-**Key Tools:** Docker, DVC, MLflow, Weights & Biases
+### Week 8: Git
 
-| | PDF | HTML | Source |
-|--|:--:|:--:|:--:|
-| **Lecture** | [Download](pdf/week08-reproducibility-lecture.pdf) | [View](html/week08-reproducibility-lecture.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week08-reproducibility-lecture.md) |
-| **Lab** | [Download](pdf/week08-reproducibility-lab.pdf) | [View](html/week08-reproducibility-lab.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week08-reproducibility-lab.md) |
+Version control fundamentals and collaborative workflows.
 
-**Topics Covered:**
+**Key Tools:** Git, GitHub, SSH keys
 
-- Virtual environments and dependency management
-- Docker containers for ML
-- Data versioning with DVC
-- Experiment tracking with MLflow
-
----
-
-### Week 9: Interactive AI Demos
-
-Build and deploy interactive AI applications.
-
-**Key Tools:** Streamlit, Gradio, Hugging Face Spaces
-
-| | PDF | HTML | Source |
-|--|:--:|:--:|:--:|
-| **Lecture** | [Download](pdf/week09-interactive-demos-lecture.pdf) | [View](html/week09-interactive-demos-lecture.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week09-interactive-demos-lecture.md) |
-| **Lab** | [Download](pdf/week09-interactive-demos-lab.pdf) | [View](html/week09-interactive-demos-lab.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week09-interactive-demos-lab.md) |
+| | Materials |
+|--|:--|
+| **Lecture** | [HTML](html/week08-git-lecture.html) ∙ [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week08-git-lecture.md) |
+| **Follow-Along** | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week08/git_followalong.sh) ∙ [PDF](lecture-demos/week08/git_followalong.pdf) |
 
 **Topics Covered:**
 
-- Streamlit app development
-- Gradio interfaces
-- State management and callbacks
-- Deployment to Hugging Face Spaces
+- Git internals (blobs, trees, commits, refs)
+- Branching, merging, and rebasing
+- Collaborative workflows (PRs, code review)
+- .gitignore and best practices
 
 ---
 
-### Week 10: HTTP, APIs & FastAPI
+### Week 9: Reproducibility & Environments
 
-Develop production-grade ML APIs.
+Version your environment so code runs the same everywhere.
 
-**Key Tools:** FastAPI, curl, Pydantic
+**Key Tools:** venv, pip, conda, Docker, Docker Compose
 
-| | PDF | HTML | Source |
-|--|:--:|:--:|:--:|
-| **Lecture** | [Download](pdf/week10-http-apis-lecture.pdf) | [View](html/week10-http-apis-lecture.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week10-http-apis-lecture.md) |
-| **Lab** | [Download](pdf/week10-http-apis-lab.pdf) | [View](html/week10-http-apis-lab.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week10-http-apis-lab.md) |
+| | Materials |
+|--|:--|
+| **Lecture** | [HTML](html/week09-reproducibility-lecture.html) ∙ [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week09-reproducibility-lecture.md) |
+| **Follow-Along** | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week09/reproducibility_followalong.sh) ∙ [PDF](lecture-demos/week09/reproducibility_followalong.pdf) |
 
 **Topics Covered:**
 
-- REST API design principles
-- FastAPI basics and async programming
-- Request validation with Pydantic
-- Serving ML models as APIs
+- Virtual environments and `requirements.txt`
+- Version pinning and dependency management
+- Random seeds for reproducibility
+- Docker containers and Docker Compose
+- Project structure best practices
 
 ---
 
-### Week 11: Git, GitHub Actions & CI/CD
+### Week 10: Experiment Tracking & Reproducibility
+
+Track hyperparameters, compare runs, and ensure reproducible results.
+
+**Key Tools:** scikit-learn, Optuna, PyTorch, W&B, MLflow
+
+| | Materials |
+|--|:--|
+| **Lecture** | [HTML](html/week10-experiments-lecture.html) ∙ [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week10-experiments-lecture.md) |
+| **Notebook** | [View .ipynb](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week10/experiments_notebook.ipynb) |
+| **Follow-Along** | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week10/experiments_followalong.sh) ∙ [PDF](lecture-demos/week10/experiments_followalong.pdf) |
+
+**Topics Covered:**
+
+- Grid search vs random search vs Bayesian optimization (Optuna)
+- Cross-validation variants (K-Fold, Stratified, Group)
+- PyTorch reproducibility (seeds, deterministic algorithms, DataLoader)
+- Multi-seed reporting
+- W&B experiment tracking and sweeps
+
+---
+
+### Week 11: Testing & CI/CD
 
 Automate testing and deployment with CI/CD pipelines.
 
-**Key Tools:** PyGithub, GitHub Actions, pytest
+**Key Tools:** pytest, pre-commit, Ruff, GitHub Actions
 
-| | PDF | HTML | Source |
-|--|:--:|:--:|:--:|
-| **Lecture** | [Download](pdf/week11-git-cicd-lecture.pdf) | [View](html/week11-git-cicd-lecture.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week11-git-cicd-lecture.md) |
-| **Lab** | [Download](pdf/week11-git-cicd-lab.pdf) | [View](html/week11-git-cicd-lab.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week11-git-cicd-lab.md) |
+| | Materials |
+|--|:--|
+| **Lecture** | [HTML](html/week11-cicd-lecture.html) ∙ [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week11-cicd-lecture.md) |
+| **Follow-Along** | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/cicd_followalong.sh) ∙ [PDF](lecture-demos/week11/cicd_followalong.pdf) |
 
 **Topics Covered:**
 
-- Git automation and hooks
-- GitHub API with PyGithub
-- CI/CD workflow design
-- Automated testing for ML
+- Testing pyramid (unit, integration, end-to-end)
+- pytest (fixtures, parametrize, coverage)
+- Pre-commit hooks and Ruff linting
+- GitHub Actions (workflows, matrix builds, caching, artifacts)
+- Branch protection and PR workflows
 
 ---
 
-## Part III: Production & Optimization (Weeks 12-15)
+## Part IV: Shipping & Optimization (Weeks 12-15)
 
 ::: {.callout-note appearance="minimal"}
-**Learning Goal:** Optimize, deploy, and monitor ML systems in production environments.
+**Learning Goal:** Ship models as APIs/demos and optimize for production.
 :::
 
-### Week 12: Deployment on Constrained Devices
+### Week 12: APIs & Demos
 
-Optimize models for edge devices and mobile.
+Serve ML models as APIs and build interactive demos.
 
-**Key Tools:** ONNX, Quantization, Pruning
+**Key Tools:** FastAPI, Pydantic, Gradio, Streamlit
 
-| | PDF | HTML | Source |
-|--|:--:|:--:|:--:|
-| **Lecture** | [Download](pdf/week12-deployment-constrained-lecture.pdf) | [View](html/week12-deployment-constrained-lecture.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week12-deployment-constrained-lecture.md) |
-| **Lab** | [Download](pdf/week12-deployment-constrained-lab.pdf) | [View](html/week12-deployment-constrained-lab.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week12-deployment-constrained-lab.md) |
+| | Materials |
+|--|:--|
+| **Lecture** | [HTML](html/week12-apis-lecture.html) ∙ [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week12-apis-lecture.md) |
+| **Follow-Along** | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) ∙ [PDF](lecture-demos/week12/apis_followalong.pdf) |
 
 **Topics Covered:**
 
-- Model compression techniques
-- Quantization (INT8, FP16)
-- Pruning and distillation
-- ONNX Runtime deployment
+- REST API fundamentals (HTTP methods, status codes)
+- FastAPI with Pydantic validation
+- Model serialization (joblib, torch.save, ONNX)
+- Gradio and Streamlit for interactive demos
+- Dockerizing ML services
 
 ---
 
-### Week 13: Profiling & Optimization
+### Week 13: Profiling & Quantization
 
-Identify and fix performance bottlenecks.
+Profile performance bottlenecks and optimize model size/speed.
 
-**Key Tools:** PyTorch Profiler, NVIDIA Nsight, AMP
+**Key Tools:** torch.profiler, cProfile, ONNX Runtime, quantization
 
-| | PDF | HTML | Source |
-|--|:--:|:--:|:--:|
-| **Lecture** | [Download](pdf/week13-profiling-optimization-lecture.pdf) | [View](html/week13-profiling-optimization-lecture.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week13-profiling-optimization-lecture.md) |
-| **Lab** | [Download](pdf/week13-profiling-optimization-lab.pdf) | [View](html/week13-profiling-optimization-lab.html) | [GitHub](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week13-profiling-optimization-lab.md) |
+| | Materials |
+|--|:--|
+| **Lecture** | [HTML](html/week13-profiling-lecture.html) ∙ [Source](https://github.com/nipunbatra/stt-ai-teaching/blob/master/slides/week13-profiling-lecture.md) |
+| **Notebook** | [View .ipynb](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_notebook.ipynb) |
+| **Follow-Along** | [Script](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_followalong.sh) ∙ [PDF](lecture-demos/week13/profiling_followalong.pdf) |
 
 **Topics Covered:**
 
-- GPU profiling and bottleneck analysis
-- Mixed precision training (AMP)
-- Knowledge distillation
-- Memory optimization
+- Number formats (FP32, FP16, BF16, INT8)
+- Quantization (dynamic, static PTQ, QAT)
+- ONNX export and runtime optimization
+- Profiling with torch.profiler and cProfile
+- Pruning and knowledge distillation
 
 ---
 
@@ -414,13 +433,15 @@ Review the ML pipeline and explore emerging topics.
 | **Labeling** | Label Studio, modAL, Snorkel |
 | **LLM APIs** | Gemini API, OpenAI API |
 | **Model Training** | scikit-learn, AutoGluon, PyTorch |
-| **Deployment** | FastAPI, Streamlit, Docker |
-| **Testing & CI** | pytest, GitHub Actions |
-| **Monitoring** | Evidently AI, Prometheus |
+| **Version Control** | Git, GitHub, Docker |
+| **Experiment Tracking** | Optuna, W&B, MLflow |
+| **Testing & CI** | pytest, pre-commit, Ruff, GitHub Actions |
+| **Deployment** | FastAPI, Gradio, Streamlit |
+| **Optimization** | torch.profiler, ONNX Runtime, quantization |
 
 ---
 
 <div style="text-align: center; margin-top: 2em; padding: 1em; background-color: #f8f9fa; border-radius: 8px;">
   <p><strong>Course Materials by Prof. Nipun Batra</strong> | IIT Gandhinagar</p>
-  <p style="font-size: 0.9em;">Last updated: December 2024</p>
+  <p style="font-size: 0.9em;">Last updated: March 2026</p>
 </div>
