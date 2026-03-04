@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Cheatsheet — Local Basics</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --green: #3fb950;
+    --green-dim: #238636;
+    --red: #f85149;
+    --red-dim: #da3633;
+    --blue: #58a6ff;
+    --blue-dim: #1f6feb;
+    --orange: #d29922;
+    --purple: #bc8cff;
+    --cyan: #39d2c0;
+    --pink: #f778ba;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 40px 20px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 50px;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #161b22 0%, #1c2333 100%);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .header h1 {
+    font-size: 2.8em;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .header .subtitle {
+    color: var(--text-dim);
+    font-size: 1.15em;
+    font-weight: 400;
+  }
+
+  /* Mental model bar */
+  .mental-model {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 50px;
+    padding: 30px 20px;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .area-box {
+    text-align: center;
+    padding: 20px 30px;
+    border-radius: 12px;
+    min-width: 180px;
+  }
+
+  .area-box.working { background: rgba(248,81,73,0.1); border: 2px solid var(--red-dim); }
+  .area-box.staging { background: rgba(210,153,34,0.1); border: 2px solid var(--orange); }
+  .area-box.repo    { background: rgba(63,185,80,0.1);  border: 2px solid var(--green-dim); }
+
+  .area-box .label {
+    font-weight: 700;
+    font-size: 1.05em;
+    margin-bottom: 4px;
+  }
+
+  .area-box.working .label { color: var(--red); }
+  .area-box.staging .label { color: var(--orange); }
+  .area-box.repo .label    { color: var(--green); }
+
+  .area-box .desc {
+    font-size: 0.82em;
+    color: var(--text-dim);
+  }
+
+  .arrow {
+    font-size: 1.8em;
+    color: var(--text-dim);
+    padding: 0 12px;
+    font-weight: 300;
+  }
+
+  .arrow-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7em;
+    color: var(--blue);
+    display: block;
+    text-align: center;
+  }
+
+  .arrow-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  /* Command cards */
+  .section-title {
+    font-size: 1.5em;
+    font-weight: 700;
+    margin: 40px 0 20px;
+    padding-left: 16px;
+    border-left: 4px solid var(--blue);
+    color: var(--blue);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(540px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover {
+    border-color: var(--blue-dim);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cmd-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.05em;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  .cmd-desc {
+    font-size: 0.9em;
+    color: var(--text-dim);
+  }
+
+  .card-body {
+    padding: 16px 20px;
+  }
+
+  /* Before / After panels */
+  .ba {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .ba-panel {
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78em;
+    line-height: 1.65;
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .ba-panel.before {
+    background: rgba(248,81,73,0.06);
+    border: 1px solid rgba(248,81,73,0.2);
+  }
+
+  .ba-panel.after {
+    background: rgba(63,185,80,0.06);
+    border: 1px solid rgba(63,185,80,0.2);
+  }
+
+  .ba-panel .tag {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.65em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .ba-panel.before .tag {
+    color: var(--red);
+    background: rgba(248,81,73,0.12);
+  }
+
+  .ba-panel.after .tag {
+    color: var(--green);
+    background: rgba(63,185,80,0.12);
+  }
+
+  /* Syntax colors inside panels */
+  .prompt { color: var(--text-dim); }
+  .cmd { color: var(--green); font-weight: 600; }
+  .flag { color: var(--purple); }
+  .file { color: var(--cyan); }
+  .string { color: #ce9178; }
+  .comment { color: #6a9955; font-style: italic; }
+  .hash { color: var(--orange); }
+  .branch { color: var(--pink); }
+  .head { color: var(--blue); font-weight: 600; }
+  .added { color: var(--green); }
+  .removed { color: var(--red); }
+  .status-m { color: var(--orange); }
+  .status-new { color: var(--red); }
+  .status-staged { color: var(--green); }
+  .dim { color: var(--text-dim); }
+  .highlight { color: #fff; font-weight: 600; }
+
+  /* Full-width command box */
+  .cmd-box {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    margin-bottom: 12px;
+    overflow-x: auto;
+  }
+
+  /* Flags section */
+  .flags {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .flags-title {
+    font-size: 0.75em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .flag-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 6px;
+    font-size: 0.82em;
+    align-items: baseline;
+  }
+
+  .flag-key {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--purple);
+    white-space: nowrap;
+    min-width: 120px;
+    font-weight: 500;
+  }
+
+  .flag-val {
+    color: var(--text-dim);
+  }
+
+  /* Viz section (log output etc) */
+  .viz {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76em;
+    line-height: 1.65;
+    margin-top: 12px;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .viz .tag {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.7em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  /* Tip callouts */
+  .tip {
+    background: rgba(88,166,255,0.08);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    font-size: 0.82em;
+    color: var(--text-dim);
+    margin-top: 12px;
+  }
+
+  .tip strong { color: var(--blue); }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .cards { grid-template-columns: 1fr; }
+    .ba { grid-template-columns: 1fr; }
+    .mental-model { flex-direction: column; }
+    .arrow { transform: rotate(90deg); }
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; color: #222; padding: 20px; }
+    .card { break-inside: avoid; border-color: #ccc; }
+    .ba-panel.before { background: #fff5f5; }
+    .ba-panel.after { background: #f0fff4; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ==================== HEADER ==================== -->
+<div class="header">
+  <h1>Git Cheatsheet</h1>
+  <div class="subtitle">Local Basics — What happens before &amp; after each command</div>
+</div>
+
+<!-- ==================== MENTAL MODEL ==================== -->
+<div class="mental-model">
+  <div class="area-box working">
+    <div class="label">Working Directory</div>
+    <div class="desc">Your actual files on disk</div>
+  </div>
+  <div class="arrow-wrap">
+    <span class="arrow-label">git add</span>
+    <span class="arrow">→</span>
+  </div>
+  <div class="area-box staging">
+    <div class="label">Staging Area</div>
+    <div class="desc">What will go in next commit</div>
+  </div>
+  <div class="arrow-wrap">
+    <span class="arrow-label">git commit</span>
+    <span class="arrow">→</span>
+  </div>
+  <div class="area-box repo">
+    <div class="label">Repository (.git)</div>
+    <div class="desc">Permanent history</div>
+  </div>
+</div>
+
+<!-- ==================== SETUP ==================== -->
+<div class="section-title">Setup</div>
+<div class="cards">
+
+  <!-- git init -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git init</span>
+      <span class="cmd-desc">Create a new repository</span>
+    </div>
+    <div class="card-body">
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before</span>
+          <span class="prompt">$</span> ls -a<br>
+          <span class="file">.</span>  <span class="file">..</span>  <span class="file">train.py</span>  <span class="file">data/</span>
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After</span>
+          <span class="prompt">$</span> ls -a<br>
+          <span class="file">.</span>  <span class="file">..</span>  <span class="added">.git/</span>  <span class="file">train.py</span>  <span class="file">data/</span>
+        </div>
+      </div>
+      <div class="tip"><strong>Tip:</strong> The <code>.git/</code> folder stores all history. Delete it = no more repo.</div>
+    </div>
+  </div>
+
+  <!-- git config -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git config</span>
+      <span class="cmd-desc">Set your identity (required before first commit)</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git config</span> <span class="flag">--global</span> user.name <span class="string">"Your Name"</span><br>
+        <span class="prompt">$</span> <span class="cmd">git config</span> <span class="flag">--global</span> user.email <span class="string">"you@example.com"</span>
+      </div>
+      <div class="flags">
+        <div class="flags-title">Key Flags</div>
+        <div class="flag-row"><span class="flag-key">--global</span> <span class="flag-val">Set for all repos on this machine</span></div>
+        <div class="flag-row"><span class="flag-key">--local</span> <span class="flag-val">Set for this repo only (default)</span></div>
+        <div class="flag-row"><span class="flag-key">--list</span> <span class="flag-val">Show all current settings</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== TRACKING CHANGES ==================== -->
+<div class="section-title">Tracking Changes</div>
+<div class="cards">
+
+  <!-- git status -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git status</span>
+      <span class="cmd-desc">See what's changed</span>
+    </div>
+    <div class="card-body">
+      <div class="viz">
+        <span class="tag">output</span>
+        On branch <span class="branch">main</span><br><br>
+        Changes not staged for commit:<br>
+        &nbsp;&nbsp;<span class="status-m">modified:   train.py</span><br><br>
+        Untracked files:<br>
+        &nbsp;&nbsp;<span class="status-new">utils.py</span><br><br>
+        Changes to be committed:<br>
+        &nbsp;&nbsp;<span class="status-staged">new file:   config.yaml</span>
+      </div>
+      <div class="flags">
+        <div class="flags-title">Key Flags</div>
+        <div class="flag-row"><span class="flag-key">-s / --short</span> <span class="flag-val">Compact output: <code style="color:var(--orange)">M</code> modified, <code style="color:var(--red)">??</code> untracked, <code style="color:var(--green)">A</code> staged</span></div>
+      </div>
+      <div class="viz" style="margin-top:8px">
+        <span class="tag">--short</span>
+        <span class="status-staged"> A</span> <span class="file">config.yaml</span><br>
+        <span class="status-m"> M</span> <span class="file">train.py</span><br>
+        <span class="status-new">??</span> <span class="file">utils.py</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- git add -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git add</span>
+      <span class="cmd-desc">Stage changes for next commit</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git add</span> <span class="file">train.py</span> <span class="file">utils.py</span>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before</span>
+          <span class="dim">Staging area:</span> <span class="status-staged">config.yaml</span><br>
+          <span class="dim">Unstaged:</span> <span class="status-m">train.py</span><br>
+          <span class="dim">Untracked:</span> <span class="status-new">utils.py</span>
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After</span>
+          <span class="dim">Staging area:</span> <span class="status-staged">config.yaml</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="status-staged">train.py</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="status-staged">utils.py</span><br>
+          <span class="dim">Unstaged:</span> <span class="dim">(empty)</span>
+        </div>
+      </div>
+      <div class="flags">
+        <div class="flags-title">Key Flags</div>
+        <div class="flag-row"><span class="flag-key">git add .</span> <span class="flag-val">Stage everything in current directory</span></div>
+        <div class="flag-row"><span class="flag-key">git add -p</span> <span class="flag-val">Interactive: pick individual hunks to stage</span></div>
+        <div class="flag-row"><span class="flag-key">git add *.py</span> <span class="flag-val">Stage all Python files (glob pattern)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- git commit -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git commit</span>
+      <span class="cmd-desc">Save a snapshot to history</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git commit</span> <span class="flag">-m</span> <span class="string">"Add training script and utilities"</span>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before</span>
+          <span class="dim">Staged:</span> <span class="status-staged">config.yaml, train.py, utils.py</span><br>
+          <span class="dim">Log:</span><br>
+          <span class="hash">a1b2c3d</span> Initial commit
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After</span>
+          <span class="dim">Staged:</span> <span class="dim">(empty — clean!)</span><br>
+          <span class="dim">Log:</span><br>
+          <span class="hash">f4e5d6c</span> <span class="highlight">Add training script and utilities</span><br>
+          <span class="hash">a1b2c3d</span> Initial commit
+        </div>
+      </div>
+      <div class="flags">
+        <div class="flags-title">Key Flags</div>
+        <div class="flag-row"><span class="flag-key">-m "msg"</span> <span class="flag-val">Commit message inline (skip editor)</span></div>
+        <div class="flag-row"><span class="flag-key">-am "msg"</span> <span class="flag-val">Add all <em>tracked</em> modified files + commit (skip <code>git add</code>)</span></div>
+        <div class="flag-row"><span class="flag-key">--amend</span> <span class="flag-val">Replace last commit (fix message or add forgotten files)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- git diff -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git diff</span>
+      <span class="cmd-desc">Show exactly what changed</span>
+    </div>
+    <div class="card-body">
+      <div class="viz">
+        <span class="tag">output</span>
+        <span class="dim">diff --git a/train.py b/train.py</span><br>
+        <span class="dim">--- a/train.py</span><br>
+        <span class="dim">+++ b/train.py</span><br>
+        <span class="dim">@@ -3,4 +3,5 @@</span><br>
+        &nbsp;import torch<br>
+        <span class="removed">-lr = 0.01</span><br>
+        <span class="added">+lr = 0.001</span><br>
+        <span class="added">+epochs = 50</span>
+      </div>
+      <div class="flags">
+        <div class="flags-title">What Each Variant Shows</div>
+        <div class="flag-row"><span class="flag-key">git diff</span> <span class="flag-val">Working dir vs staging (unstaged changes)</span></div>
+        <div class="flag-row"><span class="flag-key">git diff --staged</span> <span class="flag-val">Staging vs last commit (what will be committed)</span></div>
+        <div class="flag-row"><span class="flag-key">git diff HEAD</span> <span class="flag-val">Working dir vs last commit (all changes)</span></div>
+        <div class="flag-row"><span class="flag-key">git diff abc..def</span> <span class="flag-val">Between two commits</span></div>
+        <div class="flag-row"><span class="flag-key">--stat</span> <span class="flag-val">Summary: files changed, insertions, deletions</span></div>
+      </div>
+      <div class="viz" style="margin-top:8px">
+        <span class="tag">--stat</span>
+        train.py | <span class="added">3 </span><span class="added">++</span><span class="removed">-</span><br>
+        utils.py | <span class="added">12 </span><span class="added">++++++++++++</span><br>
+        2 files changed, 14 insertions(+), 1 deletion(-)
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== HISTORY ==================== -->
+<div class="section-title">Viewing History</div>
+<div class="cards">
+
+  <!-- git log -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git log</span>
+      <span class="cmd-desc">Browse commit history</span>
+    </div>
+    <div class="card-body">
+      <div class="viz">
+        <span class="tag">default</span>
+        <span class="hash">commit f4e5d6c...</span><br>
+        Author: You &lt;you@example.com&gt;<br>
+        Date:   Mon Mar 3 10:30:00 2026<br><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Add training script and utilities
+      </div>
+      <div class="flags">
+        <div class="flags-title">Useful Formats</div>
+        <div class="flag-row"><span class="flag-key">--oneline</span> <span class="flag-val">One commit per line (compact)</span></div>
+        <div class="flag-row"><span class="flag-key">--graph</span> <span class="flag-val">ASCII branch visualization</span></div>
+        <div class="flag-row"><span class="flag-key">--all</span> <span class="flag-val">Show all branches, not just current</span></div>
+        <div class="flag-row"><span class="flag-key">-n 5</span> <span class="flag-val">Show only last 5 commits</span></div>
+      </div>
+      <div class="viz" style="margin-top:8px">
+        <span class="tag">--oneline --graph --all</span>
+        <span class="added">*</span> <span class="hash">f4e5d6c</span> (<span class="head">HEAD -> main</span>) Add training script<br>
+        <span class="added">|</span> <span class="added">*</span> <span class="hash">b7c8d9e</span> (<span class="branch">feature/augment</span>) Add augmentation<br>
+        <span class="added">|/</span><br>
+        <span class="added">*</span> <span class="hash">a1b2c3d</span> Initial commit
+      </div>
+      <div class="tip"><strong>Pro alias:</strong> <code>git log --oneline --graph --all --decorate</code> — the most useful single command in Git</div>
+    </div>
+  </div>
+
+  <!-- git show -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git show</span>
+      <span class="cmd-desc">Inspect a single commit</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git show</span> <span class="hash">f4e5d6c</span>
+      </div>
+      <div class="viz">
+        <span class="tag">output</span>
+        <span class="hash">commit f4e5d6c...</span><br>
+        Author: You &lt;you@example.com&gt;<br>
+        Date:   Mon Mar 3 10:30:00 2026<br><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Add training script and utilities<br><br>
+        <span class="dim">diff --git a/train.py b/train.py</span><br>
+        <span class="added">+import torch</span><br>
+        <span class="added">+lr = 0.001</span><br>
+        <span class="added">+epochs = 50</span>
+      </div>
+      <div class="flags">
+        <div class="flags-title">Variants</div>
+        <div class="flag-row"><span class="flag-key">git show HEAD</span> <span class="flag-val">Latest commit</span></div>
+        <div class="flag-row"><span class="flag-key">git show HEAD~2</span> <span class="flag-val">Two commits ago</span></div>
+        <div class="flag-row"><span class="flag-key">git show :file.py</span> <span class="flag-val">Staged version of a file</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== BRANCHING ==================== -->
+<div class="section-title">Branching</div>
+<div class="cards">
+
+  <!-- git branch -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git branch</span>
+      <span class="cmd-desc">List, create, or delete branches</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git branch</span> <span class="branch">feature/augment</span>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before</span>
+          <span class="dim">Branches:</span><br>
+          <span class="added">*</span> <span class="branch">main</span>
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After</span>
+          <span class="dim">Branches:</span><br>
+          <span class="added">*</span> <span class="branch">main</span><br>
+          &nbsp;&nbsp;<span class="branch">feature/augment</span><br>
+          <span class="dim">(still on main — just created the branch)</span>
+        </div>
+      </div>
+      <div class="flags">
+        <div class="flags-title">Key Flags</div>
+        <div class="flag-row"><span class="flag-key">git branch</span> <span class="flag-val">List all local branches</span></div>
+        <div class="flag-row"><span class="flag-key">git branch -d name</span> <span class="flag-val">Delete branch (safe: only if merged)</span></div>
+        <div class="flag-row"><span class="flag-key">git branch -v</span> <span class="flag-val">Show last commit on each branch</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- git switch / checkout -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git switch</span>
+      <span class="cmd-desc">Move to a different branch</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git switch</span> <span class="branch">feature/augment</span>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before</span>
+          <span class="dim">HEAD →</span> <span class="branch">main</span><br>
+          <span class="dim">Files:</span> train.py (main version)
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After</span>
+          <span class="dim">HEAD →</span> <span class="branch">feature/augment</span><br>
+          <span class="dim">Files:</span> train.py (branch version)<br>
+          <span class="dim highlight">Working dir files change!</span>
+        </div>
+      </div>
+      <div class="flags">
+        <div class="flags-title">Key Flags</div>
+        <div class="flag-row"><span class="flag-key">git switch -c name</span> <span class="flag-val">Create + switch in one step</span></div>
+        <div class="flag-row"><span class="flag-key">git checkout name</span> <span class="flag-val">Older syntax (still works, same thing)</span></div>
+      </div>
+      <div class="tip"><strong>Key insight:</strong> Switching branches changes your actual files on disk. Git swaps them instantly.</div>
+    </div>
+  </div>
+
+  <!-- git merge -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git merge</span>
+      <span class="cmd-desc">Combine branches together</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git switch</span> <span class="branch">main</span><br>
+        <span class="prompt">$</span> <span class="cmd">git merge</span> <span class="branch">feature/augment</span>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before</span>
+          <span class="added">*</span> <span class="hash">c3</span> (<span class="branch">feature/augment</span>)<br>
+          <span class="added">*</span> <span class="hash">c2</span><br>
+          <span class="added">*</span> <span class="hash">c1</span> (<span class="head">HEAD -> main</span>)
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After (fast-forward)</span>
+          <span class="added">*</span> <span class="hash">c3</span> (<span class="head">HEAD -> main</span>, <span class="branch">feature/augment</span>)<br>
+          <span class="added">*</span> <span class="hash">c2</span><br>
+          <span class="added">*</span> <span class="hash">c1</span><br>
+          <span class="dim">main pointer just moved forward</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; font-size: 0.88em; color: var(--text-dim); margin-bottom: 8px;">When both branches have new commits → <strong style="color: var(--text)">three-way merge</strong>:</div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before</span>
+          <span class="added">*</span> <span class="hash">c4</span> (<span class="branch">feature</span>)<br>
+          <span class="added">|</span> <span class="added">*</span> <span class="hash">c3</span> (<span class="head">main</span>)<br>
+          <span class="added">|/</span><br>
+          <span class="added">*</span> <span class="hash">c2</span>
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After (merge commit)</span>
+          <span class="added">*</span> &nbsp; <span class="hash">c5</span> (<span class="head">main</span>) Merge feature<br>
+          <span class="added">|\</span><br>
+          <span class="added">|</span> <span class="added">*</span> <span class="hash">c4</span> (<span class="branch">feature</span>)<br>
+          <span class="added">*</span> <span class="added">|</span> <span class="hash">c3</span><br>
+          <span class="added">|/</span><br>
+          <span class="added">*</span> <span class="hash">c2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- merge conflicts -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">Merge Conflicts</span>
+      <span class="cmd-desc">When Git can't auto-merge</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size: 0.85em; color: var(--text-dim); margin-bottom: 10px;">
+        Both branches changed the <strong style="color:var(--text)">same line</strong> → Git marks the conflict:
+      </div>
+      <div class="viz">
+        <span class="tag">in file</span>
+        <span class="removed">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span><br>
+        <span class="highlight">lr = 0.001</span><br>
+        <span class="dim">=======</span><br>
+        <span class="highlight">lr = 0.0005</span><br>
+        <span class="added">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/augment</span>
+      </div>
+      <div style="font-size: 0.85em; color: var(--text-dim); margin: 14px 0 6px;">
+        <strong style="color:var(--text)">To resolve:</strong>
+      </div>
+      <div class="cmd-box">
+        <span class="comment"># 1. Edit the file — keep what you want, delete markers</span><br>
+        <span class="prompt">$</span> <span class="cmd">git add</span> <span class="file">train.py</span>         <span class="comment"># 2. Stage the resolved file</span><br>
+        <span class="prompt">$</span> <span class="cmd">git commit</span>                  <span class="comment"># 3. Finish the merge</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== UNDOING ==================== -->
+<div class="section-title">Undoing Things</div>
+<div class="cards">
+
+  <!-- git restore -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git restore</span>
+      <span class="cmd-desc">Discard changes or unstage files</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git restore</span> <span class="file">train.py</span>           <span class="comment"># discard working dir changes</span><br>
+        <span class="prompt">$</span> <span class="cmd">git restore</span> <span class="flag">--staged</span> <span class="file">train.py</span>  <span class="comment"># unstage (keep changes)</span>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before restore</span>
+          <span class="dim">Working dir:</span> <span class="status-m">train.py (modified)</span><br>
+          <span class="dim">Staging:</span> <span class="dim">(empty)</span>
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After restore</span>
+          <span class="dim">Working dir:</span> <span class="file">train.py (back to last commit)</span><br>
+          <span class="dim">Staging:</span> <span class="dim">(empty)</span>
+        </div>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before --staged</span>
+          <span class="dim">Working dir:</span> <span class="status-m">train.py (modified)</span><br>
+          <span class="dim">Staging:</span> <span class="status-staged">train.py</span>
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After --staged</span>
+          <span class="dim">Working dir:</span> <span class="status-m">train.py (still modified)</span><br>
+          <span class="dim">Staging:</span> <span class="dim">(empty — unstaged)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- git reset -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git reset</span>
+      <span class="cmd-desc">Move HEAD back (undo commits)</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git reset</span> <span class="flag">--soft</span> <span class="hash">HEAD~1</span>   <span class="comment"># undo last commit, keep staged</span><br>
+        <span class="prompt">$</span> <span class="cmd">git reset</span> <span class="hash">HEAD~1</span>          <span class="comment"># undo commit + unstage (default: --mixed)</span><br>
+        <span class="prompt">$</span> <span class="cmd">git reset</span> <span class="flag">--hard</span> <span class="hash">HEAD~1</span>  <span class="comment"># undo everything (DESTRUCTIVE)</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <div style="background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.2); border-radius: 8px; padding: 10px 12px; font-size: 0.78em; text-align: center;">
+          <div style="color: var(--green); font-weight: 700; font-family: 'JetBrains Mono', monospace;">--soft</div>
+          <div style="color: var(--text-dim); margin-top: 4px;">Keeps staging<br>Keeps working dir</div>
+        </div>
+        <div style="background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.3); border-radius: 8px; padding: 10px 12px; font-size: 0.78em; text-align: center;">
+          <div style="color: var(--orange); font-weight: 700; font-family: 'JetBrains Mono', monospace;">--mixed</div>
+          <div style="color: var(--text-dim); margin-top: 4px;">Clears staging<br>Keeps working dir</div>
+        </div>
+        <div style="background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.2); border-radius: 8px; padding: 10px 12px; font-size: 0.78em; text-align: center;">
+          <div style="color: var(--red); font-weight: 700; font-family: 'JetBrains Mono', monospace;">--hard</div>
+          <div style="color: var(--text-dim); margin-top: 4px;">Clears staging<br>Clears working dir</div>
+        </div>
+      </div>
+      <div class="tip" style="border-left-color: var(--red);"><strong style="color: var(--red);">Warning:</strong> <code>--hard</code> permanently destroys uncommitted changes!</div>
+    </div>
+  </div>
+
+  <!-- git stash -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git stash</span>
+      <span class="cmd-desc">Temporarily shelve changes</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git stash</span>         <span class="comment"># save changes, clean working dir</span><br>
+        <span class="prompt">$</span> <span class="cmd">git stash pop</span>     <span class="comment"># restore changes, remove from stash</span>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before stash</span>
+          <span class="dim">Working dir:</span> <span class="status-m">train.py (modified)</span><br>
+          <span class="dim">Stash:</span> <span class="dim">(empty)</span>
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After stash</span>
+          <span class="dim">Working dir:</span> <span class="file">clean!</span><br>
+          <span class="dim">Stash:</span> stash@{0}: WIP on main
+        </div>
+      </div>
+      <div class="flags">
+        <div class="flags-title">Key Flags</div>
+        <div class="flag-row"><span class="flag-key">git stash list</span> <span class="flag-val">Show all stashes</span></div>
+        <div class="flag-row"><span class="flag-key">git stash pop</span> <span class="flag-val">Apply + delete top stash</span></div>
+        <div class="flag-row"><span class="flag-key">git stash apply</span> <span class="flag-val">Apply but keep in stash</span></div>
+      </div>
+      <div class="tip"><strong>Use case:</strong> Need to switch branches but have uncommitted work? Stash it, switch, do your thing, switch back, pop.</div>
+    </div>
+  </div>
+
+  <!-- git revert -->
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">git revert</span>
+      <span class="cmd-desc">Undo a commit safely (creates new commit)</span>
+    </div>
+    <div class="card-body">
+      <div class="cmd-box">
+        <span class="prompt">$</span> <span class="cmd">git revert</span> <span class="hash">f4e5d6c</span>
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before</span>
+          <span class="added">*</span> <span class="hash">f4e5d6c</span> Add training script<br>
+          <span class="added">*</span> <span class="hash">a1b2c3d</span> Initial commit
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After</span>
+          <span class="added">*</span> <span class="hash">g7h8i9j</span> <span class="highlight">Revert "Add training script"</span><br>
+          <span class="added">*</span> <span class="hash">f4e5d6c</span> Add training script<br>
+          <span class="added">*</span> <span class="hash">a1b2c3d</span> Initial commit
+        </div>
+      </div>
+      <div class="tip"><strong>reset vs revert:</strong> <code>reset</code> rewrites history (use locally). <code>revert</code> adds a new undo commit (safe for shared branches).</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== .gitignore ==================== -->
+<div class="section-title">.gitignore</div>
+<div class="cards">
+  <div class="card">
+    <div class="card-header">
+      <span class="cmd-badge">.gitignore</span>
+      <span class="cmd-desc">Tell Git which files to skip</span>
+    </div>
+    <div class="card-body">
+      <div class="viz">
+        <span class="tag">.gitignore</span>
+        <span class="comment"># Python</span><br>
+        __pycache__/<br>
+        *.pyc<br>
+        .env<br><br>
+        <span class="comment"># ML artifacts</span><br>
+        *.pkl<br>
+        *.h5<br>
+        models/<br>
+        data/raw/<br><br>
+        <span class="comment"># IDE</span><br>
+        .vscode/<br>
+        .idea/<br><br>
+        <span class="comment"># OS</span><br>
+        .DS_Store<br>
+        Thumbs.db
+      </div>
+      <div class="ba">
+        <div class="ba-panel before">
+          <span class="tag">Before .gitignore</span>
+          <span class="prompt">$</span> git status<br>
+          <span class="status-new">?? __pycache__/</span><br>
+          <span class="status-new">?? .env</span><br>
+          <span class="status-new">?? model.pkl</span><br>
+          <span class="status-new">?? train.py</span>
+        </div>
+        <div class="ba-panel after">
+          <span class="tag">After .gitignore</span>
+          <span class="prompt">$</span> git status<br>
+          <span class="status-new">?? .gitignore</span><br>
+          <span class="status-new">?? train.py</span><br>
+          <span class="dim">(junk files hidden!)</span>
+        </div>
+      </div>
+      <div class="tip"><strong>Tip:</strong> <a href="https://github.com/github/gitignore" style="color: var(--blue);">github.com/github/gitignore</a> has templates for every language. Start with Python + your IDE.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== QUICK REFERENCE ==================== -->
+<div class="section-title">Quick Reference</div>
+<div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; font-size: 0.85em;">
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th style="text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--blue); font-weight: 600;">Command</th>
+        <th style="text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--blue); font-weight: 600;">What it does</th>
+        <th style="text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border); color: var(--blue); font-weight: 600;">Affects</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git init</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Create new repo</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Creates .git/</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git add &lt;file&gt;</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Stage changes</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--orange);">Working → Staging</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git commit -m "msg"</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Save snapshot</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--green);">Staging → Repo</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git status</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">What's changed?</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Read-only</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git diff</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Show line-by-line changes</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Read-only</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git log</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Browse history</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Read-only</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git branch &lt;name&gt;</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Create branch</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Adds pointer</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git switch &lt;name&gt;</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Change branch</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--red);">Working dir changes!</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git merge &lt;branch&gt;</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Combine branches</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--green);">Repo + Working dir</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git restore &lt;file&gt;</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Discard changes</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--red);">Working dir (destructive)</td></tr>
+      <tr><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; font-family: 'JetBrains Mono', monospace; color: var(--green);">git stash / pop</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Shelve / restore work</td><td style="padding: 8px 12px; border-bottom: 1px solid #21262d; color: var(--text-dim);">Working dir ↔ Stash</td></tr>
+      <tr><td style="padding: 8px 12px; font-family: 'JetBrains Mono', monospace; color: var(--green);">git revert &lt;hash&gt;</td><td style="padding: 8px 12px; color: var(--text-dim);">Undo commit (safe)</td><td style="padding: 8px 12px; color: var(--green);">Creates new commit</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align: center; color: var(--text-dim); margin-top: 40px; font-size: 0.85em; padding-bottom: 30px;">
+  ES 114 — Software Tools for AI · IIT Gandhinagar
+</div>
+
+</div>
+</body>
+</html>
