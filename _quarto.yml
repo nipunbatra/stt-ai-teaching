@@ -23,5 +23,7 @@ website:
 
 format:
   html:
-    theme: cosmo
+    theme:
+      light: [cosmo, custom.scss]
+      dark: [darkly, custom.scss]
     toc: false

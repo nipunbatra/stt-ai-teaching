@@ -1,0 +1,42 @@
+/*-- scss:defaults --*/
+
+/*-- scss:rules --*/
+
+/* Clean table styling */
+.table {
+  width: 100%;
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* Week number column */
+.table td:first-child {
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+/* Part headers */
+h2 {
+  margin-top: 2.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--bs-primary);
+}
+
+/* Subtitle arc text */
+.subtitle {
+  font-style: italic;
+}
+
+/* Compact link separators */
+a + .bi-dot, .bi-dot + a {
+  margin: 0 0.1em;
+}
