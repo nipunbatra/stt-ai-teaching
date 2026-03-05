@@ -2,47 +2,9 @@
 
 /*-- scss:rules --*/
 
-/* ═══════════════════════════════════════════════════════
-   🌓 Dark Mode Toggle — Sun/Moon Icons
-   ═══════════════════════════════════════════════════════ */
-
-/* Replace default toggle with sun/moon */
-.navbar .quarto-color-scheme-toggle .bi::before {
-  font-size: 1.3rem;
-}
-
-/* Sun icon in light mode (click to go dark) */
-[data-bs-theme="light"] .quarto-color-scheme-toggle .bi-toggle-off::before {
-  content: "🌙";
-  font-family: initial;
-}
-
-/* Moon icon in dark mode (click to go light) */
-[data-bs-theme="dark"] .quarto-color-scheme-toggle .bi-toggle-on::before {
-  content: "☀️";
-  font-family: initial;
-}
-
-/* Make the toggle bigger and more clickable */
-.quarto-color-scheme-toggle {
-  padding: 0.3rem 0.6rem !important;
-  font-size: 1.2rem;
-  border-radius: 2rem;
-  transition: all 0.3s ease;
-}
-
-.quarto-color-scheme-toggle:hover {
-  transform: scale(1.15);
-}
-
-/* ═══════════════════════════════════════════════════════
-   📐 Table Styling
-   ═══════════════════════════════════════════════════════ */
-
+/* Table styling */
 .table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
 }
 
 .table th {
@@ -56,117 +18,28 @@
   vertical-align: middle;
 }
 
-/* Week number column — big and bold */
 .table td:first-child {
-  font-weight: 800;
-  font-size: 1.2em;
-  text-align: center;
-}
-
-/* Hover effect on table rows */
-.table tbody tr {
-  transition: background-color 0.15s ease;
-}
-
-.table tbody tr:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.06);
-}
-
-/* ═══════════════════════════════════════════════════════
-   🎨 Section Headers
-   ═══════════════════════════════════════════════════════ */
-
-h2 {
-  margin-top: 2.8rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 3px solid transparent;
   font-weight: 700;
-}
-
-/* Color-coded section borders */
-h2.data-section,
-h2:has(+ table):nth-of-type(1) {
-  border-image: linear-gradient(90deg, #f59e0b, #f59e0b 50%, transparent) 1;
-}
-
-h2.models-section {
-  border-image: linear-gradient(90deg, #8b5cf6, #8b5cf6 50%, transparent) 1;
-}
-
-h2.engineering-section {
-  border-image: linear-gradient(90deg, #10b981, #10b981 50%, transparent) 1;
-}
-
-/* ═══════════════════════════════════════════════════════
-   ✨ Course Arc Callout
-   ═══════════════════════════════════════════════════════ */
-
-.callout-note {
-  border-left-width: 4px;
-  border-radius: 0.5rem;
-  font-size: 0.95em;
-}
-
-.callout-note p:first-child {
-  font-size: 1.4em;
-  letter-spacing: 0.15em;
   text-align: center;
-  margin-bottom: 0.3rem;
 }
-
-/* ═══════════════════════════════════════════════════════
-   🔗 Link Styling
-   ═══════════════════════════════════════════════════════ */
 
 .table a {
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s ease;
 }
 
 .table a:hover {
   text-decoration: underline;
 }
 
-/* Button links */
-.btn-sm {
-  font-size: 0.85rem;
-  padding: 0.3rem 0.8rem;
-  border-radius: 2rem;
-  margin-right: 0.3rem;
+/* Section headers */
+h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
 }
 
-/* ═══════════════════════════════════════════════════════
-   📱 Responsive
-   ═══════════════════════════════════════════════════════ */
-
+/* Responsive */
 @media (max-width: 768px) {
   .table {
     font-size: 0.85em;
   }
-
-  .callout-note p:first-child {
-    font-size: 1.1em;
-    letter-spacing: 0.08em;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
-   🌓 Dark Mode Adjustments
-   ═══════════════════════════════════════════════════════ */
-
-[data-bs-theme="dark"] .table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.04);
-}
-
-/* Subtitle styling */
-.subtitle {
-  font-style: italic;
-  opacity: 0.85;
-}
-
-/* Compact link separators */
-a + .bi-dot, .bi-dot + a {
-  margin: 0 0.1em;
 }

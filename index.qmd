@@ -3,42 +3,35 @@ title: "CS 203: Software Tools and Techniques for AI"
 subtitle: "IIT Gandhinagar · Jan 2026 · Prof. Nipun Batra"
 ---
 
-::: {.callout-note appearance="minimal"}
-📊 → 🏷️ → 🤖 → 📏 → 🔧 → 🔀 → 📦 → ⚙️ → 🚀 → ⚡
-**Collect** data → **Label** it → **Build** models → **Evaluate** → **Tune & track** → **Version** code → **Version** env → **Automate** → **Ship** → **Optimize**
-:::
-
-[🌐 Course website](https://nipunbatra.github.io/stt-ai-26/){.btn .btn-primary .btn-sm}
-[🐙 GitHub repo](https://github.com/nipunbatra/stt-ai-teaching){.btn .btn-outline-secondary .btn-sm}
+[Course website](https://nipunbatra.github.io/stt-ai-26/){.btn .btn-primary .btn-sm}
+[GitHub repo](https://github.com/nipunbatra/stt-ai-teaching){.btn .btn-outline-secondary .btn-sm}
 
 ---
 
-## ☀️ Part I: Data (Weeks 1–5) {.data-section}
+## Part I: Data (Weeks 1–5) {.data-section}
 
 | Week | Topic | Slides | Hands-On |
 |:----:|-------|:------:|:--------:|
-| 1 | 📥 Data Collection | [HTML](html/week01-data-collection-lecture.html) · [PDF](pdf/week01-data-collection-lecture.pdf) | [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week01-data-collection-lab.ipynb) |
-| 2 | ✅ Data Validation & Quality | [HTML](html/week02-data-validation-lecture.html) · [PDF](pdf/week02-data-validation-lecture.pdf) | [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week02-data-validation-lab.ipynb) |
-| 3 | 🏷️ Data Labeling & Annotation | [HTML](html/week03-data-labeling-lecture.html) · [PDF](pdf/week03-data-labeling-lecture.pdf) | [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week03-data-labeling-lab.ipynb) |
-| 4 | 🎯 Optimizing Labeling | [HTML](html/week04-optimizing-labeling-lecture.html) · [PDF](pdf/week04-optimizing-labeling-lecture.pdf) | [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week04-optimizing-labeling-lab.ipynb) |
-| 5 | 🔄 Data Augmentation | [HTML](html/week05-data-augmentation-lecture.html) · [PDF](pdf/week05-data-augmentation-lecture.pdf) | [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week05-data-augmentation-lab.ipynb) |
+| 1 | Data Collection | [HTML](html/week01-data-collection-lecture.html) · [PDF](pdf/week01-data-collection-lecture.pdf) | [Lab](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week01-data-collection-lab.ipynb) |
+| 2 | Data Validation & Quality | [HTML](html/week02-data-validation-lecture.html) · [PDF](pdf/week02-data-validation-lecture.pdf) | [Lab](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week02-data-validation-lab.ipynb) |
+| 3 | Data Labeling & Annotation | [HTML](html/week03-data-labeling-lecture.html) · [PDF](pdf/week03-data-labeling-lecture.pdf) | [Lab](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week03-data-labeling-lab.ipynb) |
+| 4 | Optimizing Labeling | [HTML](html/week04-optimizing-labeling-lecture.html) · [PDF](pdf/week04-optimizing-labeling-lecture.pdf) | [Lab](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week04-optimizing-labeling-lab.ipynb) |
+| 5 | Data Augmentation | [HTML](html/week05-data-augmentation-lecture.html) · [PDF](pdf/week05-data-augmentation-lecture.pdf) | [Lab](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week05-data-augmentation-lab.ipynb) |
 
-## 🌙 Part II: Models (Weeks 6–8) {.models-section}
-
-| Week | Topic | Slides | Hands-On |
-|:----:|-------|:------:|:--------:|
-| 6 | 🧠 LLM APIs & Multimodal AI | [HTML](html/week06-llm-apis-lecture.html) · [PDF](pdf/week06-llm-apis-lecture.pdf) | [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week06-llm-apis-lab.ipynb) |
-| 7 | 📏 Model Evaluation | [HTML](html/week07-model-development-lecture.html) · [PDF](pdf/week07-model-development-lecture.pdf) | [Notebook 📓](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week07/week07_evaluation_notebook.ipynb) · [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week07-model-development-lab.ipynb) |
-| 8 | 🔧 Tuning, AutoML & Tracking | [HTML](html/week08-tuning-tracking-lecture.html) · [PDF](pdf/week08-tuning-tracking-lecture.pdf) | [Notebook 📓](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week08/tuning_tracking_notebook.ipynb) |
-
-## ⚡ Part III: Engineering (Weeks 9–13) {.engineering-section}
-
-*Version your code → version your environment → automate → ship → optimize*
+## Part II: Models (Weeks 6–8) {.models-section}
 
 | Week | Topic | Slides | Hands-On |
 |:----:|-------|:------:|:--------:|
-| 9 | 🔀 Git | [HTML](html/week09-git-lecture.html) | [Follow-along 💻](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week09/git_followalong.sh) · [PDF](lecture-demos/week09/git_followalong.pdf) |
-| 10 | 📦 Reproducibility & Environments | [HTML](html/week10-reproducibility-lecture.html) | [Follow-along 💻](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week10/reproducibility_followalong.sh) · [PDF](lecture-demos/week10/reproducibility_followalong.pdf) |
-| 11 | ⚙️ Testing & CI/CD | [HTML](html/week11-cicd-lecture.html) | [Follow-along 💻](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/cicd_followalong.sh) · [PDF](lecture-demos/week11/cicd_followalong.pdf) |
-| 12 | 🚀 APIs & Demos | [HTML](html/week12-apis-lecture.html) | [Follow-along 💻](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) · [PDF](lecture-demos/week12/apis_followalong.pdf) |
-| 13 | ⚡ Profiling & Quantization | [HTML](html/week13-profiling-lecture.html) | [Notebook 📓](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_notebook.ipynb) · [Follow-along 💻](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_followalong.sh) |
+| 6 | LLM APIs & Multimodal AI | [HTML](html/week06-llm-apis-lecture.html) · [PDF](pdf/week06-llm-apis-lecture.pdf) | [Lab](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week06-llm-apis-lab.ipynb) |
+| 7 | Model Evaluation | [HTML](html/week07-model-development-lecture.html) · [PDF](pdf/week07-model-development-lecture.pdf) | [Notebook](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week07/week07_evaluation_notebook.ipynb) · [Lab](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week07-model-development-lab.ipynb) |
+| 8 | Tuning, AutoML & Tracking | [HTML](html/week08-tuning-tracking-lecture.html) · [PDF](pdf/week08-tuning-tracking-lecture.pdf) | [Notebook](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week08/tuning_tracking_notebook.ipynb) |
+
+## Part III: Engineering (Weeks 9–13) {.engineering-section}
+
+| Week | Topic | Slides | Hands-On |
+|:----:|-------|:------:|:--------:|
+| 9 | Git | [HTML](html/week09-git-lecture.html) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week09/git_followalong.sh) · [PDF](lecture-demos/week09/git_followalong.pdf) |
+| 10 | Reproducibility & Environments | [HTML](html/week10-reproducibility-lecture.html) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week10/reproducibility_followalong.sh) · [PDF](lecture-demos/week10/reproducibility_followalong.pdf) |
+| 11 | Testing & CI/CD | [HTML](html/week11-cicd-lecture.html) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/cicd_followalong.sh) · [PDF](lecture-demos/week11/cicd_followalong.pdf) |
+| 12 | APIs & Demos | [HTML](html/week12-apis-lecture.html) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) · [PDF](lecture-demos/week12/apis_followalong.pdf) |
+| 13 | Profiling & Quantization | [HTML](html/week13-profiling-lecture.html) | [Notebook](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_notebook.ipynb) · [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_followalong.sh) |
