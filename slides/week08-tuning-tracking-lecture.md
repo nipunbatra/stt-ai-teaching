@@ -20,7 +20,7 @@ math: mathjax
 # Where We Are
 
 ```
-Week 7:  Evaluate models properly    (CV, complexity, leakage)     ✓
+Week 7:  Evaluate models properly    (CV, complexity, bias-variance)   ✓
 Week 8:  Tune, AutoML & track        ← you are here
 Week 9:  Version your CODE           (Git)
 Week 10: Version your ENVIRONMENT    (venv, Docker)
@@ -39,7 +39,7 @@ Week 13: Make it fast and small      (profiling, quantization)
 | Model complexity | Degree, depth → underfitting/overfitting |
 | Bias-variance | Sweet spot minimizes total error |
 | K-fold CV | Average over multiple splits |
-| Data leakage | Preprocess inside CV with Pipelines |
+| CV variants | Stratified, TimeSeries, GroupKFold |
 
 **This week**: Systematically search for best hyperparameters, let AutoML do it, and track everything.
 
@@ -65,24 +65,6 @@ A Random Forest has *many* hyperparameters:
 | `max_features` | Features per split | 0.1-1.0 |
 
 And a neural network has even more: learning rate, batch size, hidden layers, dropout rate, optimizer, weight decay...
-
----
-
-# Approach 0: Manual Tuning
-
-```python
-# Monday
-model = RandomForestClassifier(n_estimators=100, max_depth=10)
-# Accuracy: 83.2%
-
-# Tuesday
-model = RandomForestClassifier(n_estimators=200, max_depth=15)
-# Accuracy: 84.1%
-
-# Wednesday ... was Tuesday max_depth=15 or 20?
-```
-
-**Problems**: No record. No systematic coverage. Easy to miss the best combo.
 
 ---
 
@@ -166,7 +148,7 @@ Now imagine a neural network with 6+ hyperparameters. Grid search is hopeless.
 
 > *"Random search is more efficient than grid search because not all hyperparameters are equally important."*
 
-**Reference**: J. Bergstra and Y. Bengio. "Random Search for Hyper-Parameter Optimization." *Journal of Machine Learning Research*, 13(Feb):281-305, 2012.
+J. Bergstra and Y. Bengio. "Random Search for Hyper-Parameter Optimization." *Journal of Machine Learning Research*, 13(Feb):281-305, 2012.
 
 Grid wastes evaluations varying unimportant parameters. Random search covers each dimension more uniformly.
 
@@ -192,15 +174,62 @@ search.fit(X, y)
 
 ---
 
-# Approach 3: Bayesian Optimization (Optuna)
+<!-- _class: lead -->
 
-**Use results so far to decide what to try next.**
+# Approach 3: Bayesian Optimization
 
-<img src="images/week08-tuning/search_strategies_comparison.png" width="750" style="display: block; margin: 0 auto;">
+*Use past results to decide what to try next*
 
 ---
 
-# Optuna in Code
+# The Key Idea: Learn a Surrogate
+
+Grid and Random are **blind** — they don't learn from previous evaluations.
+
+**Bayesian Optimization**:
+1. Evaluate a few random points
+2. Fit a **surrogate model** (GP or tree) to results so far
+3. Use an **acquisition function** to pick the most promising next point
+4. Evaluate, update surrogate, repeat
+
+The surrogate predicts both the **mean** (what score to expect) and **uncertainty** (how confident we are).
+
+---
+
+# 1D Example: Bayesian Optimization in Action
+
+```python
+from bayes_opt import BayesianOptimization
+
+def black_box(x):
+    return -((x - 2)**2) + 1  # unknown to optimizer
+
+optimizer = BayesianOptimization(
+    f=black_box,
+    pbounds={'x': (-5, 5)},
+    random_state=42)
+optimizer.maximize(init_points=3, n_iter=7)
+```
+
+After 3 random points, the GP surrogate "sees" the landscape and focuses on the peak. See notebook for step-by-step visualization.
+
+---
+
+# Two Flavors of Bayesian Optimization
+
+| | Gaussian Process (GP) | Tree Parzen Estimator (TPE) |
+|--|----------------------|----------------------------|
+| Surrogate | GP regression | Density estimators |
+| Library | `bayesian-optimization`, `skopt` | Optuna |
+| Strengths | Exact uncertainty, smooth functions | Scales to many params, handles categorical |
+| Best for | < 20 params, continuous | Any size, mixed types |
+
+**GP-based** models the function directly.
+**TPE** models the distribution of good vs bad configs.
+
+---
+
+# Optuna (TPE) in Code
 
 ```python
 import optuna
@@ -215,8 +244,32 @@ def objective(trial):
     return cross_val_score(model, X, y, cv=5).mean()
 
 study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=50)
+study.optimize(objective, n_trials=100)
 print(f"Best: {study.best_value:.3f}")
+```
+
+Optuna also supports **pruning**: stopping unpromising trials early.
+
+---
+
+# GP-Based Bayesian Optimization in Code
+
+```python
+from bayes_opt import BayesianOptimization
+
+def rf_objective(n_estimators, max_depth, min_samples_leaf):
+    model = RandomForestClassifier(
+        n_estimators=int(n_estimators),
+        max_depth=int(max_depth),
+        min_samples_leaf=int(min_samples_leaf))
+    return cross_val_score(model, X, y, cv=5).mean()
+
+optimizer = BayesianOptimization(
+    f=rf_objective,
+    pbounds={'n_estimators': (50, 500),
+             'max_depth': (3, 30),
+             'min_samples_leaf': (1, 20)})
+optimizer.maximize(init_points=10, n_iter=50)
 ```
 
 ---
@@ -240,16 +293,16 @@ Optuna prunes unpromising trials early (e.g., if loss diverges), saving compute.
 
 ---
 
-# Comparison: Grid vs Random vs Bayesian
+# Comparison: All Approaches
 
-| | Grid | Random | Bayesian (Optuna) |
-|---|------|--------|-------------------|
-| Intelligence | None | None | Learns from trials |
-| Efficiency | Low | Medium | High |
-| Setup | Easy | Easy | Moderate |
-| Best for | ≤ 2 params | 3-5 params | Expensive models, NNs |
+| | Grid | Random | GP-BayesOpt | Optuna (TPE) |
+|---|------|--------|-------------|--------------|
+| Intelligence | None | None | High | High |
+| Efficiency | Low | Medium | High | High |
+| Scales to many params | No | Yes | No (< 20) | Yes |
+| Handles categorical | Yes | Yes | No | Yes |
 
-**Practical rule**: Start with `RandomizedSearchCV`, switch to Optuna for neural nets or expensive models.
+**Practical rule**: Random for quick exploration, Optuna for serious tuning, GP for small expensive problems.
 
 ---
 
@@ -308,56 +361,42 @@ print(f"Nested CV: {outer_scores.mean():.3f} ± {outer_scores.std():.3f}")
 
 ---
 
-# AutoGluon: 3 Lines of Code
+# FLAML: Fast and Lightweight AutoML
 
 ```python
-from autogluon.tabular import TabularPredictor
+from flaml import AutoML
 
-predictor = TabularPredictor(label='success')
-predictor.fit(train_data, time_limit=300)  # 5 minutes
-predictions = predictor.predict(test_data)
+automl = AutoML()
+automl.fit(X_train, y_train,
+           task="classification",
+           time_budget=120)  # 2 minutes
+
+print(f"Best model: {automl.best_estimator}")
+print(f"Best score: {automl.best_config}")
+predictions = automl.predict(X_test)
 ```
 
-**No model selection. No hyperparameter tuning. No ensembling.**
-AutoGluon does all of it.
+**FLAML** (Microsoft): lightweight, fast, no heavy dependencies.
 
 ---
 
-# What Happens Inside
+# What FLAML Does
 
 ```
-AutoGluon: Starting fit...
-Fitting 11 models...
-  LightGBM           ✓ (32s)   val_acc=0.851
-  CatBoost           ✓ (45s)   val_acc=0.856
-  XGBoost            ✓ (38s)   val_acc=0.848
-  RandomForest       ✓ (25s)   val_acc=0.832
-  NeuralNetTorch     ✓ (65s)   val_acc=0.819
+FLAML: Starting fit...
+  Trying LightGBM...        val_acc=0.851  (3s)
+  Trying XGBoost...          val_acc=0.848  (5s)
+  Trying RandomForest...     val_acc=0.832  (2s)
+  Trying ExtraTrees...       val_acc=0.828  (2s)
+  Trying LRL1...             val_acc=0.789  (1s)
+  Retrying LightGBM (tuned)  val_acc=0.862  (8s)
   ...
 
-Ensembling top models...  ✓
-Best: WeightedEnsemble_L2 (val_acc=0.873)
+Best model: LGBMClassifier (val_acc=0.862)
+Total time: 120s
 ```
 
-The ensemble beats every individual model. That's **stacking**.
-
----
-
-# AutoGluon Leaderboard
-
-```python
-predictor.leaderboard(test_data)
-```
-
-```
-                   model  score_val  fit_time
-0    WeightedEnsemble_L2     0.873      180s
-1              CatBoost     0.856       60s
-2              LightGBM     0.851       40s
-3               XGBoost     0.848       55s
-4          RandomForest     0.832       30s
-5    LogisticRegression     0.789       10s
-```
+FLAML uses **cost-frugal** search — spends more time on promising models.
 
 ---
 
@@ -366,7 +405,7 @@ predictor.leaderboard(test_data)
 | Good for | Be careful when |
 |----------|-----------------|
 | Tabular data (CSVs) | Model must be interpretable |
-| Quick baselines | Latency matters (ensembles are slow) |
+| Quick baselines | Latency matters |
 | Lack time or ML expertise | Model must fit on edge device |
 | Kaggle competitions | Non-tabular data (images, text) |
 
@@ -389,7 +428,8 @@ search = RandomizedSearchCV(RandomForestClassifier(),
 outer = cross_val_score(search, X, y, cv=5)
 
 # Step 4: AutoML ceiling
-predictor = TabularPredictor(label='target').fit(train, time_limit=300)
+automl = AutoML()
+automl.fit(X_train, y_train, task="classification", time_budget=120)
 ```
 
 **If LR is close to AutoML → deploy LR (interpretable, fast).**
@@ -437,14 +477,6 @@ def set_seed(seed=42):
 
 ---
 
-# PyTorch Reproducibility Layers
-
-<img src="images/week08-tuning/pytorch_reproducibility_layers.png" width="650" style="display: block; margin: 0 auto;">
-
-**Tradeoff:** Full determinism can be 10-20% slower on GPU.
-
----
-
 # Multi-Seed Reporting
 
 Full determinism is not always necessary. Report variance instead:
@@ -473,84 +505,98 @@ Papers increasingly require multi-seed results (NeurIPS, ICML checklist).
 
 ---
 
-# The Spreadsheet Problem
-
-<img src="images/week08-tuning/experiment_tracking_workflow.png" width="750" style="display: block; margin: 0 auto;">
-
----
-
-# What W&B Tracks Automatically
-
-| What | How |
-|------|-----|
-| Hyperparameters | `wandb.config` |
-| Metrics | `wandb.log()` |
-| Code version | Auto-captures git hash |
-| Environment | requirements.txt snapshot |
-| System metrics | CPU, GPU, memory usage |
-
-**One dashboard** — compare all runs, filter, sort, reproduce.
-
----
-
-# W&B Basic Usage
+# The Problem: "Which Run Was That?"
 
 ```python
-import wandb
+# Monday:  lr=0.01, depth=10  → 83.2%
+# Tuesday: lr=0.001, depth=15 → 84.1%
+# Wednesday: ... was Tuesday depth=15 or 20?
+# Thursday: "I think the best was Tuesday's run. Probably."
+```
 
-wandb.init(project="netflix-predictor", config={
+You need a system that automatically records every experiment.
+
+---
+
+# Trackio: Local-First Experiment Tracking
+
+```python
+import trackio
+
+trackio.init(project="netflix-predictor", config={
     "learning_rate": 0.01,
     "n_estimators": 100,
     "seed": 42})
 
-model = train(wandb.config)
-wandb.log({"accuracy": accuracy, "f1": f1_score})
+model = train(trackio.config)
+trackio.log({"accuracy": accuracy, "f1": f1_score})
 
 for epoch in range(100):
     loss = train_one_epoch(model)
-    wandb.log({"epoch": epoch, "loss": loss})
+    trackio.log({"epoch": epoch, "loss": loss})
 
-wandb.finish()
+trackio.finish()
+```
+
+**Trackio** (Hugging Face): free, local-first, W&B-compatible API.
+
+---
+
+# Trackio Features
+
+| Feature | Details |
+|---------|---------|
+| **Local storage** | SQLite in `~/.cache/huggingface/trackio/` |
+| **Dashboard** | Gradio-based, runs locally |
+| **W&B-compatible API** | `init`, `log`, `finish` — same as wandb |
+| **Free forever** | No cloud account needed |
+| **Share** | Optionally sync to Hugging Face Spaces |
+
+```bash
+pip install trackio
+trackio              # launches local dashboard
 ```
 
 ---
 
-# W&B for PyTorch Training
+# Trackio for Training Loops
 
 ```python
-wandb.init(project="mnist-cnn", config={
+import trackio
+
+trackio.init(project="mnist-cnn", config={
     "lr": 1e-3, "epochs": 20, "batch_size": 64})
 
-for epoch in range(config.epochs):
+for epoch in range(20):
     for batch_x, batch_y in train_loader:
         loss = train_step(model, batch_x, batch_y)
-        wandb.log({"train_loss": loss})
+        trackio.log({"train_loss": loss})
 
     val_acc = evaluate(model, val_loader)
-    wandb.log({"epoch": epoch, "val_acc": val_acc})
+    trackio.log({"epoch": epoch, "val_acc": val_acc})
+
+trackio.finish()
 ```
 
-W&B auto-generates loss curves, accuracy plots, and system utilization graphs.
+Trackio auto-generates loss curves and accuracy plots in its local dashboard.
 
 ---
 
-# MLflow: A Self-Hosted Alternative
+# Comparing Runs in Trackio
 
 ```python
-import mlflow
+# Run 1: baseline
+trackio.init(project="nlp", config={"model": "lstm", "lr": 1e-3})
+# ... train ...
+trackio.finish()
 
-mlflow.set_experiment("netflix-predictor")
-
-with mlflow.start_run():
-    mlflow.log_param("n_estimators", 100)
-    mlflow.log_metric("accuracy", accuracy)
-    mlflow.sklearn.log_model(model, "model")
+# Run 2: improved
+trackio.init(project="nlp", config={"model": "transformer", "lr": 5e-4})
+# ... train ...
+trackio.finish()
 ```
 
-| | W&B | MLflow |
-|--|-----|--------|
-| Hosting | Cloud (free tier) | Self-hosted |
-| Best for | Teams, sweeps, rich viz | Privacy, enterprise |
+Open the local dashboard to see both runs side-by-side with their configs, metrics, and curves.
 
 ---
 
@@ -561,6 +607,19 @@ with mlflow.start_run():
 3. **Tag experiments** — `baseline`, `augmented`, `final`
 4. **Save the model file** — not just the metrics
 5. **Record the git hash** — know which code produced results
+
+---
+
+# Other Tracking Tools
+
+| Tool | Hosting | Best For |
+|------|---------|----------|
+| **Trackio** | Local | Free, simple, local-first |
+| **MLflow** | Self-hosted | Enterprise, model registry |
+| **W&B** | Cloud | Teams, sweeps, rich viz |
+| **TensorBoard** | Local | TensorFlow/PyTorch training |
+
+Pick based on your needs: Trackio for course projects, MLflow for production.
 
 ---
 
@@ -576,11 +635,12 @@ with mlflow.start_run():
 |---------|----------|
 | Grid search | Exhaustive but scales poorly |
 | Random search | Better coverage (Bergstra & Bengio, 2012) |
-| Bayesian (Optuna) | Learns from past trials, prunes bad ones |
+| Bayesian opt (GP) | Models the function, uses uncertainty |
+| Optuna (TPE) | Scales well, handles categorical, prunes |
 | Nested CV | Tune inside, evaluate outside — unbiased |
-| AutoML | Automates selection + tuning + ensembling |
-| PyTorch seeds | 8 settings for full reproducibility |
-| W&B / MLflow | Automated tracking replaces spreadsheets |
+| FLAML | Lightweight AutoML, cost-frugal search |
+| Reproducibility | 8 settings for PyTorch, multi-seed reporting |
+| Trackio | Local-first, free experiment tracking |
 
 ---
 
@@ -590,17 +650,17 @@ with mlflow.start_run():
 
 > Important hyperparameters get more unique values tested. Bergstra, J. and Bengio, Y. "Random Search for Hyper-Parameter Optimization." JMLR 13:281-305, 2012.
 
-**Q2**: What is nested CV and when do you need it?
+**Q2**: What is the difference between GP-based and TPE-based Bayesian optimization?
 
-> Inner loop tunes, outer loop evaluates. Needed because `best_score_` is optimistically biased.
+> GP models the objective function directly with uncertainty. TPE models the distribution of good vs bad configurations. GP works better for small, continuous spaces; TPE scales to more parameters and handles categorical.
 
 ---
 
 # Exam Questions (2/2)
 
-**Q3**: AutoML gets 88%, logistic regression gets 85%. Which deploy?
+**Q3**: What is nested CV and when do you need it?
 
-> Depends on context: interpretability, latency, model size. 3% may not justify complexity.
+> Inner loop tunes, outer loop evaluates. Needed because `best_score_` is optimistically biased.
 
 **Q4**: You train a neural net with `torch.manual_seed(42)` but get different results each run. Why?
 
@@ -615,6 +675,6 @@ with mlflow.start_run():
 
 > Tune systematically (random/Bayesian).
 > Report honestly (nested CV).
-> Let AutoML find the ceiling. Track everything.
+> Let AutoML find the ceiling. Track everything locally.
 
 **Next week**: Git — Version Your Code

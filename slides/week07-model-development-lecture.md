@@ -106,6 +106,29 @@ RandomForestClassifier          acc=0.835
 
 ---
 
+# Beyond Classification: Regression
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+print(f"R² score: {r2_score(y_test, y_pred):.3f}")
+print(f"RMSE:     {mean_squared_error(y_test, y_pred, squared=False):.3f}")
+```
+
+| Task | Metrics |
+|------|---------|
+| Classification | accuracy, precision, recall, F1, AUC-ROC |
+| Regression | R², RMSE, MAE |
+
+The API is the same. Only the scoring function changes.
+
+---
+
 <!-- _class: lead -->
 
 # Part 2: Train/Test Split
@@ -131,6 +154,24 @@ Full data:  1000 samples
 Training:    800 samples  (model learns from these)
 Testing:     200 samples  (model is evaluated on these)
 ```
+
+---
+
+# Why Not Evaluate on Training Data?
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+
+dt = DecisionTreeClassifier()  # no max_depth limit
+dt.fit(X_train, y_train)
+
+print(f"Train accuracy: {dt.score(X_train, y_train):.3f}")  # 1.000!
+print(f"Test accuracy:  {dt.score(X_test, y_test):.3f}")    # 0.762
+```
+
+An unbounded decision tree **memorizes** every training example.
+
+Train accuracy = 100% tells you nothing about real-world performance. It's like grading a student on the exact questions they practiced.
 
 ---
 
@@ -276,6 +317,20 @@ $$\text{Total Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise
 
 ---
 
+# Bias-Variance in Plain English
+
+**Bias** = error from wrong assumptions (model too simple)
+**Variance** = error from sensitivity to training data (model too complex)
+
+| | Low Bias | High Bias |
+|---|----------|-----------|
+| **Low Variance** | Sweet spot | Underfitting |
+| **High Variance** | Overfitting | Worst of both |
+
+**Example**: Fitting a line to a quadratic curve = high bias. Fitting a degree-15 polynomial to 20 points = high variance.
+
+---
+
 # Diagnosing Your Model
 
 | Train Acc | Test Acc | Gap | Diagnosis |
@@ -286,6 +341,22 @@ $$\text{Total Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise
 | 99% | 65% | 34% | **Severe overfitting** — simplify |
 
 **The train-test gap is your overfitting detector.** Gap > 10% = red flag.
+
+---
+
+# Regularization: Controlling Complexity
+
+**Idea**: Penalize complexity — fit the data but keep weights small.
+
+| Type | What It Does | Code |
+|------|--------------|------|
+| L2 (Ridge) | Shrinks weights toward zero | `C=0.1` |
+| L1 (Lasso) | Drives some weights to zero | `penalty='l1'` |
+| Tree depth | Limits tree growth | `max_depth=5` |
+| Dropout | Drops neurons randomly | `nn.Dropout(0.5)` |
+| Early stopping | Stop training when val loss rises | `patience=10` |
+
+**Smaller C = more regularization.** Also a hyperparameter — need CV to pick it.
 
 ---
 
@@ -405,6 +476,25 @@ Mean: 0.833  Std: 0.013
 
 ---
 
+# CV vs Single Split: Stability
+
+```python
+# Single split: repeat 50 times → std ~0.03
+# 5-fold CV: repeat 10 times → std ~0.005
+```
+
+CV is typically **5-10x more stable** than single train/test splits.
+
+| Method | Estimated Accuracy | Std |
+|--------|-------------------|-----|
+| Single split (best case) | 88.1% | - |
+| Single split (worst case) | 79.8% | - |
+| 5-fold CV | 83.3% | 1.3% |
+
+CV gives you both the estimate *and* its uncertainty.
+
+---
+
 # Choosing K
 
 | K | Train Size | Bias | Variance | Speed |
@@ -506,137 +596,35 @@ scores = cross_val_score(model, X, y, cv=gkf, groups=groups)
 | Grouped data | Same entity in both | `GroupKFold` |
 | Very small data | Can't afford to waste | `LeaveOneOut` |
 
----
-
-<!-- _class: lead -->
-
-# Part 7: Data Leakage
-
-*The silent killer of ML projects*
+**Real-world**: Many datasets need combinations (e.g., `StratifiedGroupKFold`).
 
 ---
 
-# Data Leakage: The #1 CV Mistake
-
-**Leakage**: Information from the test set "leaks" into training.
+# Putting It All Together: Full Example
 
 ```python
-# WRONG: Scaler sees ALL data (including test fold!)
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)           # ← Leakage!
-scores = cross_val_score(model, X_scaled, y, cv=5)
-```
-
-```python
-# RIGHT: Use a Pipeline (scaler fits only on training fold)
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
+# Build pipeline (preprocessing + model)
 pipe = Pipeline([
     ('scaler', StandardScaler()),
-    ('model', RandomForestClassifier())
+    ('rf', RandomForestClassifier(n_estimators=100))
 ])
-scores = cross_val_score(pipe, X, y, cv=5)   # ← Clean
+
+# Stratified 5-fold CV
+scores = cross_val_score(pipe, X, y, cv=5, scoring='accuracy')
+print(f"CV accuracy: {scores.mean():.3f} ± {scores.std():.3f}")
+
+# Multiple metrics at once
+from sklearn.model_selection import cross_validate
+
+results = cross_validate(pipe, X, y, cv=5,
+    scoring=['accuracy', 'f1', 'roc_auc'])
+for metric in ['accuracy', 'f1', 'roc_auc']:
+    vals = results[f'test_{metric}']
+    print(f"{metric}: {vals.mean():.3f} ± {vals.std():.3f}")
 ```
-
----
-
-# Common Leakage Sources
-
-| Leakage Type | Example | Fix |
-|--------------|---------|-----|
-| Preprocessing | Scaling on full data | `Pipeline` |
-| Feature selection | Selecting on full data | Select inside CV |
-| Target leakage | Feature encodes the label | Remove it |
-| Temporal leakage | Using future data | `TimeSeriesSplit` |
-| Duplicate leakage | Same sample in train+test | Deduplicate |
-
-**Leakage gives optimistic results that won't hold in production.**
-
----
-
-# Real-World Leakage Example
-
-**Kaggle Tabular Playground 2021**: Top teams discovered that a timestamp feature encoded the target. Models scored 99%+ in CV but the feature wouldn't exist at prediction time.
-
-**Hospital readmission study**: Patients appeared in both train and test sets. Model learned patient-specific patterns, not general readmission risk. Deployed model accuracy dropped 15%.
-
-**Always ask**: "Would I have this information at prediction time?"
-
----
-
-<!-- _class: lead -->
-
-# Part 8: Learning & Validation Curves
-
-*Diagnostic tools for your model*
-
----
-
-# Learning Curves
-
-**Plot score vs training set size.** Diagnoses whether you need more data.
-
-```python
-from sklearn.model_selection import learning_curve
-
-train_sizes, train_scores, val_scores = learning_curve(
-    model, X, y,
-    train_sizes=[0.1, 0.25, 0.5, 0.75, 1.0], cv=5
-)
-```
-
-| Shape | Diagnosis | Action |
-|-------|-----------|--------|
-| Big gap, both rising | **Overfitting** | More data helps |
-| Both flat at low score | **Underfitting** | Need better model |
-| Converged at high score | **Good fit** | Done |
-
----
-
-# Validation Curves
-
-**Plot score vs hyperparameter value.** Finds the sweet spot.
-
-<img src="images/week07/validation_curve.png" width="650" style="display: block; margin: 0 auto;">
-
----
-
-# Validation Curve in Code
-
-```python
-from sklearn.model_selection import validation_curve
-
-train_scores, val_scores = validation_curve(
-    RandomForestClassifier(), X, y,
-    param_name="max_depth",
-    param_range=[1, 2, 5, 10, 20, 50],
-    cv=5
-)
-
-# Plot train/val means with ± 1 std shading
-plt.plot(param_range, train_scores.mean(axis=1), label='Train')
-plt.plot(param_range, val_scores.mean(axis=1), label='Validation')
-plt.xlabel('max_depth')
-plt.ylabel('Accuracy')
-```
-
-The peak of the validation curve is the sweet spot.
-
----
-
-# Regularization: Controlling Complexity
-
-**Idea**: Penalize complexity — fit the data but keep weights small.
-
-| Type | What It Does | Code |
-|------|--------------|------|
-| L2 (Ridge) | Shrinks weights toward zero | `C=0.1` |
-| L1 (Lasso) | Drives some weights to zero | `penalty='l1'` |
-| Tree depth | Limits tree growth | `max_depth=5` |
-| Dropout | Drops neurons randomly | `nn.Dropout(0.5)` |
-| Weight decay | L2 for neural nets | `optim.Adam(lr=1e-3, weight_decay=1e-4)` |
-
-**Smaller C = more regularization.** Also a hyperparameter — need CV to pick it.
 
 ---
 
@@ -652,12 +640,13 @@ The peak of the validation curve is the sweet spot.
 |---------|----------|
 | Sklearn pattern | fit → predict → score, same API for all models |
 | Train/test split | Never evaluate on training data |
+| Variance problem | Different splits → different scores |
 | Model complexity | Degree, depth, layers control underfitting/overfitting |
 | Bias-variance | Sweet spot minimizes total error |
+| Regularization | Penalize complexity to reduce overfitting |
 | Train/Validate/Test | Train to learn, validate to tune, test to report |
-| K-fold CV | Use all data for training and validation |
+| K-fold CV | Use all data; 5-10x more stable than single split |
 | CV variants | Match strategy to data structure |
-| Data leakage | Preprocessing must happen inside CV |
 
 ---
 
@@ -675,9 +664,9 @@ The peak of the validation curve is the sweet spot.
 
 # Exam Questions (2/3)
 
-**Q3**: You scale all features, then run `cross_val_score`. What's wrong?
+**Q3**: Why can't you use the test set to pick hyperparameters?
 
-> Data leakage — scaler saw test fold data. Fix: use a `Pipeline`.
+> It contaminates your final evaluation. Use a validation set or CV instead.
 
 **Q4**: When would you NOT use standard K-fold CV?
 
@@ -687,17 +676,17 @@ The peak of the validation curve is the sweet spot.
 
 # Exam Questions (3/3)
 
-**Q5**: Why can't you use the test set to pick hyperparameters?
+**Q5**: LOO CV has the lowest bias. Why not always use it?
 
-> It contaminates your final evaluation. Use a validation set or CV instead.
+> Very slow (N model fits) and high variance (each test set is 1 sample).
 
 **Q6**: A neural net trains for 500 epochs. Train loss → 0, val loss rises after epoch 50. What's happening?
 
 > Overfitting after epoch 50. Fix: early stopping, dropout, or weight decay.
 
-**Q7**: What does a learning curve tell you that a validation curve doesn't?
+**Q7**: What's the difference between `model.score(X_train, y_train)` and the K-fold CV score?
 
-> Learning curve: do I need more data? Validation curve: what's the best hyperparameter?
+> Train score shows memorization ability. CV score estimates real-world performance on unseen data.
 
 ---
 
@@ -708,6 +697,6 @@ The peak of the validation curve is the sweet spot.
 
 > Don't trust a single number. Cross-validate.
 > Understand your model's complexity knobs.
-> Prevent leakage with Pipelines.
+> Match your CV strategy to your data.
 
 **Next week**: Hyperparameter Tuning, AutoML & Experiment Tracking
