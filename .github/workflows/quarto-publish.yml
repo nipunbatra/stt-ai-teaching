@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-deploy:
@@ -26,9 +26,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install Marp CLI
-        run: npm install -g @marp-team/marp-cli
+        run: npm ci
 
       - name: Build Marp slides (HTML)
         run: |
@@ -36,23 +37,21 @@ jobs:
           for f in slides/*.md; do
             filename=$(basename "$f" .md)
             echo "Building HTML: $f"
-            marp "$f" -o "html/${filename}.html" --allow-local-files --theme-set slides/iitgn-modern.css
+            npx marp "$f" -o "html/${filename}.html" --allow-local-files --theme-set slides/iitgn-modern.css
           done
-          # Copy images so relative paths work in HTML
           cp -r slides/images html/
 
       - name: Build Marp slides (PDF)
         env:
-          PUPPETEER_TIMEOUT: 120000  # 2 minutes timeout for large slides
+          PUPPETEER_TIMEOUT: 120000
         run: |
           mkdir -p pdf
-          # Install Chrome for PDF generation
           npx playwright install chromium
-          for f in slides/*.md; do
-            filename=$(basename "$f" .md)
-            echo "Building PDF: $f"
-            marp "$f" -o "pdf/${filename}.pdf" --allow-local-files --theme-set slides/iitgn-modern.css || echo "Warning: PDF build failed for $f"
-          done
+          ls slides/*.md | xargs -P 4 -I {} sh -c '
+            filename=$(basename "{}" .md)
+            echo "Building PDF: {}"
+            npx marp "{}" -o "pdf/${filename}.pdf" --allow-local-files --theme-set slides/iitgn-modern.css || echo "Warning: PDF build failed for {}"
+          '
 
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2

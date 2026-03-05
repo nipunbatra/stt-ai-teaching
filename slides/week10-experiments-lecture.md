@@ -66,382 +66,24 @@ A system that **automatically** records:
 
 ---
 
-<!-- _class: lead -->
+# Recap: Tuning from Week 7
 
-# Part 1: Theory — Why Tuning Matters
+You already know *how* to tune (Grid, Random, Bayesian/Optuna).
 
----
+This week: how to **track** and **reproduce** those experiments.
 
-# The Bias-Variance Tradeoff
-
-```
-Error = Bias² + Variance + Irreducible Noise
-```
-
-| | High Bias | High Variance |
-|--|-----------|---------------|
-| **Model** | Too simple | Too complex |
-| **Training error** | High | Low |
-| **Test error** | High | High |
-| **Fix** | More features, complex model | More data, regularization |
-
-**Hyperparameter tuning** = finding the sweet spot between underfitting and overfitting.
-
----
-
-# Bias-Variance: Visually
-
-```
-    Error
-      │
-      │ \                         ╱
-      │  \    Test Error         ╱
-      │   \                    ╱
-      │    \     ___         ╱
-      │     \  ╱    ╲      ╱
-      │      ╲╱      ╲   ╱
-      │                ╲╱  ← Sweet spot
-      │     ──────────────  Training Error
-      │
-      └──────────────────────────────
-        Simple ←  Complexity  → Complex
-        (High Bias)        (High Variance)
-```
-
-**Tuning hyperparameters** moves you along this curve.
-
-Too few trees? Underfitting. Too many with no regularization? Overfitting.
-
----
-
-# What Are Hyperparameters?
-
-**Parameters** — learned from data (weights, biases):
-```python
-model.fit(X, y)  # parameters are learned here
-```
-
-**Hyperparameters** — set by YOU before training:
-```python
-RandomForestClassifier(
-    n_estimators=100,      # how many trees?
-    max_depth=10,          # how deep?
-    min_samples_split=5    # when to stop splitting?
-)
-```
-
-**The model can't learn its own hyperparameters.** You must search for good ones.
-
----
-
-# Examples of Hyperparameters
-
-| Model | Key Hyperparameters |
-|-------|-------------------|
-| **Random Forest** | n_estimators, max_depth, min_samples_split |
-| **SVM** | C (regularization), kernel, gamma |
-| **Neural Network** | learning_rate, batch_size, n_layers, hidden_size |
-| **k-NN** | k (n_neighbors), distance metric |
-| **Gradient Boosting** | learning_rate, n_estimators, max_depth, subsample |
-
-**Some matter more than others.** Learning rate is almost always critical. Number of layers often matters less than you'd think.
-
----
-
-# The Tuning Process
-
-```
-1. Define search space
-   lr: [0.0001 ... 0.1]
-   n_estimators: [50 ... 500]
-
-2. Pick a search strategy
-   Grid? Random? Bayesian?
-
-3. Evaluate each configuration
-   Use cross-validation (NOT test set!)
-
-4. Select best configuration
-   Retrain on full training set
-
-5. Final evaluation on TEST SET
-   Report this number (only once!)
-```
-
-**Common mistake:** Tuning on the test set → overly optimistic estimate.
+| Week 7 | Week 10 |
+|--------|---------|
+| *How* to find good hyperparameters | *How* to record and reproduce runs |
+| GridSearchCV, Optuna | W&B, MLflow |
+| Cross-validation | PyTorch determinism |
+| "Which params are best?" | "Which run was best, and can I reproduce it?" |
 
 ---
 
 <!-- _class: lead -->
 
-# Part 1b: Search Strategies
-
----
-
-# Grid Search
-
-**Try every combination.**
-
-```python
-from sklearn.model_selection import GridSearchCV
-
-param_grid = {
-    "n_estimators": [50, 100, 200],
-    "max_depth": [5, 10, None],
-    "min_samples_split": [2, 5, 10],
-}
-
-grid = GridSearchCV(
-    RandomForestClassifier(random_state=42),
-    param_grid,
-    cv=5,           # 5-fold cross-validation
-    scoring="accuracy",
-    n_jobs=-1,      # use all CPU cores
-)
-grid.fit(X_train, y_train)
-print(grid.best_params_)
-print(grid.best_score_)
-```
-
-**3 x 3 x 3 = 27 combinations x 5 folds = 135 fits!**
-
----
-
-# Grid Search: The Problem
-
-```
-             n_estimators
-          50    100    200
-         ┌──────────────────┐
-    5    │ 0.78  0.80  0.81 │
-max  10  │ 0.82  0.84  0.85 │
-depth    │ 0.83  0.85  0.86 │
-   None  │ 0.83  0.85  0.86 │
-         └──────────────────┘
-```
-
-**Problem:** If `max_depth` doesn't matter much (10 vs None are similar), we wasted runs exploring both. Those runs could have tried more `n_estimators` values.
-
-**Cost grows exponentially:** 3 params x 10 values each = 1,000 combinations!
-
----
-
-# Random Search
-
-**Sample randomly from distributions.**
-
-```python
-from sklearn.model_selection import RandomizedSearchCV
-from scipy.stats import randint, uniform
-
-param_distributions = {
-    "n_estimators": randint(50, 500),
-    "max_depth": randint(3, 50),
-    "min_samples_split": randint(2, 20),
-}
-
-random_search = RandomizedSearchCV(
-    RandomForestClassifier(random_state=42),
-    param_distributions,
-    n_iter=27,       # same budget as grid
-    cv=5,
-    scoring="accuracy",
-    random_state=42,
-    n_jobs=-1,
-)
-random_search.fit(X_train, y_train)
-```
-
----
-
-# Grid vs Random: Visually
-
-```
-Grid Search:              Random Search:
-┌─────────────────┐      ┌─────────────────┐
-│ •   •   •       │      │    •     •       │
-│                 │      │  •           •   │
-│ •   •   •       │      │        •        │
-│                 │      │ •          •     │
-│ •   •   •       │      │      •       •  │
-└─────────────────┘      └─────────────────┘
-  Only 3 unique lr         9 unique lr values
-  values explored!         explored!
-```
-
-**If `lr` matters more than `n_estimators`,** random search finds good `lr` values faster.
-
-**With the same budget, random search explores more of the important dimensions.**
-
-*(Bergstra & Bengio, 2012)*
-
-<!-- ⌨ NOTEBOOK → Grid vs random search comparison -->
-
----
-
-# When Grid Search IS Better
-
-Grid search wins when:
-- **Few hyperparameters** (1-2): exhaustive search is cheap
-- **Discrete choices**: kernel=["linear", "rbf", "poly"]
-- **Known good ranges**: you've narrowed down the space already
-
-```python
-# Good use of grid search: just 2 params, small space
-param_grid = {
-    "kernel": ["linear", "rbf"],
-    "C": [0.1, 1, 10, 100],
-}
-# Only 8 combinations — grid is fine!
-```
-
-**Rule of thumb:** > 3 hyperparameters or continuous ranges → use random or Bayesian.
-
----
-
-# Bayesian Optimization (Optuna)
-
-**Idea:** Use results from previous runs to decide what to try next.
-
-```
-Run 1: lr=0.05  → accuracy 0.80
-Run 2: lr=0.01  → accuracy 0.85   ← better!
-Run 3: lr=0.008 → accuracy 0.86   ← promising region!
-Run 4: lr=0.007 → accuracy 0.84   ← Optuna narrows in
-Run 5: lr=0.009 → accuracy 0.87   ← best so far!
-```
-
-**Smarter than random** — builds a surrogate model of "what works" and balances:
-- **Exploitation:** Try near the best so far
-- **Exploration:** Try unexplored regions
-
----
-
-# Optuna in Practice
-
-```python
-import optuna
-
-def objective(trial):
-    params = {
-        "n_estimators": trial.suggest_int("n_estimators", 50, 500),
-        "max_depth": trial.suggest_int("max_depth", 3, 50),
-        "min_samples_split": trial.suggest_int("min_samples_split", 2, 20),
-        "learning_rate": trial.suggest_float("lr", 1e-4, 0.1, log=True),
-    }
-    model = GradientBoostingClassifier(**params, random_state=42)
-    score = cross_val_score(model, X_train, y_train, cv=5).mean()
-    return score
-
-study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=50)
-
-print(f"Best: {study.best_value:.3f}")
-print(f"Params: {study.best_params}")
-```
-
-<!-- ⌨ NOTEBOOK → Optuna demo with visualization -->
-
----
-
-# Optuna: Built-in Visualizations
-
-```python
-# Which params matter most?
-optuna.visualization.plot_param_importances(study)
-
-# How did the search progress?
-optuna.visualization.plot_optimization_history(study)
-
-# Parameter relationships
-optuna.visualization.plot_contour(study, params=["lr", "n_estimators"])
-
-# Parallel coordinates
-optuna.visualization.plot_parallel_coordinate(study)
-```
-
-Optuna can also **prune** bad trials early (stop training if it's going badly).
-
----
-
-# Search Strategy Summary
-
-| Strategy | Pros | Cons | Use When |
-|----------|------|------|----------|
-| **Grid** | Exhaustive, reproducible | Exponential cost | Few params, small space |
-| **Random** | Good coverage, simple | No learning | Moderate space |
-| **Bayesian** | Efficient, learns | More complex | Large space, expensive training |
-
-**Practical advice:**
-1. Start with random search to understand the landscape
-2. Narrow the range based on results
-3. Use Bayesian (Optuna) for fine-tuning in the narrow range
-
----
-
-# Cross-Validation for Tuning
-
-**Problem:** Tuning on a single train/test split is noisy.
-
-**K-Fold Cross-Validation:**
-
-```
-Fold 1: [Test] [Train] [Train] [Train] [Train]
-Fold 2: [Train] [Test] [Train] [Train] [Train]
-Fold 3: [Train] [Train] [Test] [Train] [Train]
-Fold 4: [Train] [Train] [Train] [Test] [Train]
-Fold 5: [Train] [Train] [Train] [Train] [Test]
-```
-
-Average score across folds → more reliable estimate.
-
-**Warning:** Don't tune hyperparameters on the test set! Use a separate validation set or cross-validation on the training set only.
-
----
-
-# CV Variants
-
-| Variant | Use Case |
-|---------|----------|
-| **K-Fold** | Default choice (k=5 or 10) |
-| **Stratified K-Fold** | Imbalanced classes (preserves class ratio) |
-| **Leave-One-Out** | Very small datasets (k = n) |
-| **Time Series Split** | Temporal data (train on past, test on future) |
-| **Group K-Fold** | Grouped data (all samples from one patient in same fold) |
-
-```python
-from sklearn.model_selection import StratifiedKFold
-
-skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-scores = cross_val_score(model, X, y, cv=skf)
-print(f"Mean: {scores.mean():.3f} ± {scores.std():.3f}")
-```
-
----
-
-# The Data Split Hierarchy
-
-```
-Full Dataset
-├── Training Set (80%)
-│   ├── CV Train Fold (used for fitting)
-│   └── CV Val Fold (used for hyperparameter selection)
-│
-└── Test Set (20%) — TOUCH ONLY ONCE AT THE END
-```
-
-**Three-level separation:**
-1. **CV folds** — compare hyperparameter configurations
-2. **Validation** — select the best configuration
-3. **Test** — final unbiased performance estimate
-
-**If you tune on the test set, you're cheating.** Your reported accuracy will be optimistic.
-
----
-
-<!-- _class: lead -->
-
-# Part 2: PyTorch Reproducibility
+# Part 1: PyTorch Reproducibility
 
 ---
 
@@ -810,20 +452,19 @@ MLflow if you need self-hosted.
 
 # Key Takeaways
 
-1. **Hyperparameter tuning** finds the bias-variance sweet spot
-   - Random search > grid search in most cases
-   - Bayesian (Optuna) is smarter still
-   - Always use cross-validation, never tune on test set
-
-2. **PyTorch reproducibility** needs more than just seeds
+1. **PyTorch reproducibility** needs more than just seeds
    - `torch.use_deterministic_algorithms(True)` + cuDNN settings
    - Seed DataLoader workers separately
-   - Consider reporting mean ± std over multiple seeds
+   - Report mean ± std over multiple seeds
 
-3. **Experiment tracking** (W&B/MLflow) replaces spreadsheets
+2. **Experiment tracking** (W&B/MLflow) replaces spreadsheets
    - Logs params, metrics, code, artifacts automatically
    - Compare runs in a dashboard
    - Sweeps automate hyperparameter search
+
+3. **Tracking + tuning are complementary**
+   - Week 7 taught *how* to tune → Week 10 teaches *how* to track
+   - W&B Sweeps = tuning + tracking in one tool
 
 **Next week:** CI/CD — automate testing and deployment
 
@@ -834,10 +475,9 @@ MLflow if you need self-hosted.
 # Questions?
 
 **Exam-relevant concepts:**
-- Bias-variance tradeoff and how tuning navigates it
-- Parameters vs hyperparameters
-- Grid vs random search — why random wins in high dimensions
-- K-fold cross-validation and its variants
-- Train/validation/test split hierarchy
-- PyTorch determinism requirements (all 8 settings)
+- PyTorch determinism: all 8 settings and why each is needed
+- DataLoader reproducibility (worker_init_fn + generator)
 - When full determinism is vs isn't necessary
+- W&B: what it tracks automatically vs manually
+- MLflow vs W&B: when to use which
+- Multi-seed reporting: why it's better than single deterministic run
