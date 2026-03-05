@@ -18,10 +18,10 @@ paginate: true
 # Where We Are
 
 ```
-Week 8-9:   Version code + environment         ✓
-Week 10:    Track experiments                   ✓
-Week 11:    Automate with CI/CD                 ✓
-Week 12:    SHIP IT                             ← you are here
+Week 7-8:   Evaluate, tune & track              ✓
+Week 9-10:  Version code + environment           ✓
+Week 11:    Automate with CI/CD                  ✓
+Week 12:    SHIP IT                              ← you are here
 Week 13:    Make it fast and small
 ```
 

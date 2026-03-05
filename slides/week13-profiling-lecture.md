@@ -18,11 +18,11 @@ paginate: true
 # Where We Are
 
 ```
-Week 8-9:   Version code + environment         ✓
-Week 10:    Track experiments                   ✓
-Week 11:    Automate with CI/CD                 ✓
-Week 12:    Ship as API/demo                    ✓
-Week 13:    Make it FAST and SMALL              ← you are here
+Week 7-8:   Evaluate, tune & track              ✓
+Week 9-10:  Version code + environment           ✓
+Week 11:    Automate with CI/CD                  ✓
+Week 12:    Ship as API/demo                     ✓
+Week 13:    Make it FAST and SMALL               ← you are here
 ```
 
 Your model is deployed. But:

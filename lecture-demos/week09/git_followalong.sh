@@ -1,7 +1,7 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║  Git Deep Dive — Follow-Along Guide                                     ║
-# ║  Week 8 · CS 203 · Software Tools and Techniques for AI                ║
+# ║  Week 9 · CS 203 · Software Tools and Techniques for AI                ║
 # ║  Prof. Nipun Batra · IIT Gandhinagar                                    ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 #

@@ -8,7 +8,7 @@ math: mathjax
 <!-- _class: title-slide -->
 <!-- _paginate: false -->
 
-# From Models to Experiments
+# Model Evaluation & AutoML
 
 ## Week 7: CS 203 - Software Tools and Techniques for AI
 
@@ -34,7 +34,7 @@ math: mathjax
 | 5 | Augmented the dataset | More data from existing data |
 | 6 | Used Gemini API for multimodal tasks | Foundation models as tools |
 
-**This week**: We train and rigorously evaluate our *own* models.
+**This week**: We train and rigorously evaluate our *own* models, then let AutoML do it for us.
 
 **Why not just use LLMs for everything?**
 - Cost at scale (10M predictions/day)
@@ -371,366 +371,7 @@ train_scores, val_scores = validation_curve(
 
 <!-- _class: lead -->
 
-# Part 3: Hyperparameter Tuning
-
-*Finding the best knobs to turn*
-
----
-
-# Parameters vs Hyperparameters
-
-<img src="images/week07/params_vs_hyperparams.png" width="700" style="display: block; margin: 0 auto;">
-
-**Parameters**: The model figures these out from data (weights, thresholds).
-**Hyperparameters**: You decide these *before* training.
-
----
-
-# Common Hyperparameters
-
-| Model | Hyperparameter | What It Controls | Typical Range |
-|-------|----------------|------------------|---------------|
-| **Logistic Reg** | `C` | Regularization strength | 0.001 - 1000 |
-| **Decision Tree** | `max_depth` | Tree complexity | 1 - 50 |
-| **Random Forest** | `n_estimators` | Number of trees | 50 - 500 |
-| **Random Forest** | `min_samples_leaf` | Minimum leaf size | 1 - 20 |
-| **XGBoost** | `learning_rate` | Step size | 0.01 - 0.3 |
-| **XGBoost** | `max_depth` | Tree complexity | 3 - 10 |
-
-**How do you find the best combination?**
-
----
-
-# Approach 0: "Grad Student Descent"
-
-```python
-# Monday
-model = RandomForestClassifier(n_estimators=100, max_depth=10)
-# Accuracy: 83.2%
-
-# Tuesday
-model = RandomForestClassifier(n_estimators=200, max_depth=15)
-# Accuracy: 84.1%
-
-# Wednesday
-model = RandomForestClassifier(n_estimators=200, max_depth=20)
-# Accuracy: 82.8%  ... wait, was Tuesday's result with max_depth=15 or 20?
-
-# Thursday: give up, use the Tuesday one. Probably.
-```
-
-**Problems**: No record of what you tried. No systematic coverage. Easy to miss the best combination.
-
----
-
-# Approach 1: Grid Search
-
-**Try every combination on a predefined grid.**
-
-```python
-from sklearn.model_selection import GridSearchCV
-
-param_grid = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [5, 10, 15, None],
-    'min_samples_leaf': [1, 2, 5]
-}
-
-grid = GridSearchCV(
-    RandomForestClassifier(), param_grid, cv=5, scoring='accuracy'
-)
-grid.fit(X, y)
-
-print(f"Best params: {grid.best_params_}")
-print(f"Best score:  {grid.best_score_:.3f}")
-```
-
----
-
-# Grid Search: The Explosion Problem
-
-```
-Parameters:
-  n_estimators:    [50, 100, 200]         → 3 values
-  max_depth:       [5, 10, 15, None]      → 4 values
-  min_samples_leaf: [1, 2, 5]             → 3 values
-
-Total combinations: 3 × 4 × 3 = 36
-Cross-validation:   36 × 5 folds = 180 model fits
-```
-
-**Now add two more parameters with 5 values each:**
-$$3 \times 4 \times 3 \times 5 \times 5 = 900 \text{ combinations} \times 5 \text{ folds} = 4{,}500 \text{ fits}$$
-
-**Grid search doesn't scale.** Each new parameter multiplies the cost.
-
----
-
-# Approach 2: Random Search
-
-**Sample random combinations instead of trying all of them.**
-
-<img src="images/week07/grid_vs_random_search.png" width="750" style="display: block; margin: 0 auto;">
-
----
-
-# Why Random Search Works Better
-
-**Bergstra & Bengio (2012)**: A landmark result.
-
-**Key insight**: Not all hyperparameters matter equally.
-
-- Maybe `max_depth` matters a lot, but `min_samples_leaf` barely affects performance.
-- Grid search wastes many evaluations varying the unimportant parameter.
-- Random search spreads evaluations more evenly across *all* dimensions.
-- With the same budget, random search explores more unique values of the important parameters.
-
-**In practice**: 60 random trials often beats a full grid search.
-
----
-
-# Random Search in Code
-
-```python
-from sklearn.model_selection import RandomizedSearchCV
-from scipy.stats import randint, uniform
-
-param_distributions = {
-    'n_estimators': randint(50, 500),          # Sample integers 50-500
-    'max_depth': randint(3, 30),               # Sample integers 3-30
-    'min_samples_leaf': randint(1, 20),        # Sample integers 1-20
-    'max_features': uniform(0.1, 0.9),         # Sample floats 0.1-1.0
-}
-
-search = RandomizedSearchCV(
-    RandomForestClassifier(),
-    param_distributions,
-    n_iter=60,                                 # Only 60 random trials
-    cv=5,
-    random_state=42
-)
-search.fit(X, y)
-print(f"Best: {search.best_score_:.3f} with {search.best_params_}")
-```
-
----
-
-# Grid vs Random: When to Use Which
-
-| | Grid Search | Random Search |
-|---|-------------|---------------|
-| **Combinations** | All | Sampled |
-| **Budget** | Grows exponentially | You control it (`n_iter`) |
-| **Coverage** | Even but sparse per dimension | Better for important params |
-| **Best for** | 1-2 hyperparameters | 3+ hyperparameters |
-| **Guarantees** | Finds best in grid | May miss the best |
-
-**Rule of thumb**: Use grid for quick searches (few params, few values). Use random for everything else.
-
----
-
-# Approach 3: Bayesian Optimization
-
-**Idea**: Use results so far to decide what to try next.
-
-Grid and random search are *blind* -- they don't learn from previous trials.
-Bayesian optimization builds a model of "hyperparameter → score" and picks the next point intelligently.
-
-```
-Trial 1: max_depth=5, lr=0.1   → 82%
-Trial 2: max_depth=10, lr=0.01 → 85%
-Trial 3: max_depth=8, lr=0.05  → ??? (model predicts ~86%, tries this region)
-```
-
-**Explores** uncertain regions + **exploits** promising regions.
-
----
-
-# Optuna: Bayesian Optimization Made Easy
-
-```python
-import optuna
-
-def objective(trial):
-    params = {
-        'n_estimators': trial.suggest_int('n_estimators', 50, 500),
-        'max_depth': trial.suggest_int('max_depth', 3, 30),
-        'min_samples_leaf': trial.suggest_int('min_samples_leaf', 1, 20),
-    }
-    model = RandomForestClassifier(**params)
-    scores = cross_val_score(model, X, y, cv=5)
-    return scores.mean()
-
-study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=50)
-
-print(f"Best score: {study.best_value:.3f}")
-print(f"Best params: {study.best_params}")
-```
-
----
-
-# Optuna: Built-In Visualizations
-
-```python
-# Which hyperparameters matter most?
-optuna.visualization.plot_param_importances(study)
-
-# How did optimization progress over trials?
-optuna.visualization.plot_optimization_history(study)
-
-# How do parameters interact?
-optuna.visualization.plot_contour(study)
-```
-
-**Optuna also supports**:
-- Pruning bad trials early (stop wasting time on hopeless configs)
-- Multi-objective optimization (accuracy AND speed)
-- Distributed search across machines
-
----
-
-# Comparison: All Three Approaches
-
-| | Grid | Random | Bayesian (Optuna) |
-|---|------|--------|-------------------|
-| **Intelligence** | None | None | Learns from trials |
-| **Efficiency** | Low | Medium | High |
-| **Setup** | Easy | Easy | Moderate |
-| **Best for** | Few params | Many params | Expensive models |
-| **Parallelizable** | Yes | Yes | Partially |
-
-**Practical advice**:
-1. Start with `RandomizedSearchCV` (simple, effective)
-2. Switch to Optuna when model training is expensive (minutes per fit)
-
----
-
-# The Tuning Trap: Evaluating Tuned Models
-
-**A subtle but critical mistake:**
-
-```python
-# WRONG: Tune and evaluate on the SAME cross-validation
-grid = GridSearchCV(model, params, cv=5)
-grid.fit(X, y)
-print(f"Best score: {grid.best_score_:.3f}")  # Optimistic!
-```
-
-**Why this is wrong**: You searched over many configurations and picked the best one. By definition, it's the luckiest. This is *selection bias*.
-
-**The score from `GridSearchCV.best_score_` is always optimistic.**
-
----
-
-# Nested Cross-Validation
-
-**Solution**: Separate the tuning loop from the evaluation loop.
-
-<img src="images/week07/nested_cross_validation.png" width="750" style="display: block; margin: 0 auto;">
-
-- **Inner loop**: Tunes hyperparameters (finds best config)
-- **Outer loop**: Evaluates the *tuned model* on truly held-out data
-
----
-
-# Nested CV in Code
-
-```python
-from sklearn.model_selection import cross_val_score, GridSearchCV
-
-# Inner loop: tune hyperparameters
-inner_cv = GridSearchCV(
-    RandomForestClassifier(),
-    param_grid={'max_depth': [5, 10, 15], 'n_estimators': [100, 200]},
-    cv=3                  # 3-fold inner CV for tuning
-)
-
-# Outer loop: evaluate the tuned model
-outer_scores = cross_val_score(inner_cv, X, y, cv=5)  # 5-fold outer CV
-
-print(f"Nested CV score: {outer_scores.mean():.3f} +/- {outer_scores.std():.3f}")
-```
-
-**This is the gold standard** for reporting tuned model performance.
-
----
-
-# Hyperparameter Tuning: Best Practices
-
-<div class="insight">
-
-1. **Always use CV for tuning** -- never tune on a single split
-2. **Random search before grid** -- grid only if you have 1-2 params
-3. **Set a compute budget** -- diminishing returns after ~100 trials
-4. **Use nested CV for final reporting** -- `GridSearchCV.best_score_` is optimistic
-5. **Log everything** -- you will want to revisit old experiments
-
-</div>
-
----
-
-# Common Tuning Mistakes
-
-<div class="warning">
-
-1. **Tuning on test set**: "I'll just try a few values on test..." -- now test is contaminated
-2. **Too fine a grid**: `learning_rate: [0.001, 0.0011, 0.0012, ...]` -- waste of compute
-3. **Ignoring interactions**: `max_depth` and `n_estimators` interact -- tune them together
-4. **Not setting random seeds**: Can't reproduce the best result
-5. **Reporting `best_score_` as final performance**: Always use nested CV
-
-</div>
-
----
-
-<!-- _class: lead -->
-
-# Part 4: Experiment Tracking
-
-*"Which run was the good one?"*
-
----
-
-# The Notebook Graveyard
-
-After a week of tuning, your notebook has:
-
-- 47 cells with various model configs
-- Some cells re-run, some not
-- Results scattered across `print()` statements
-- "I think the best one was... cell 23? Or was it 31?"
-
-**You need a system.** Tools exist for this:
-
-| Tool | Type | Best For |
-|------|------|----------|
-| **Weights & Biases** | Cloud service | Teams, dashboards, sweeps |
-| **MLflow** | Self-hosted | Privacy, local-first |
-| **TensorBoard** | Built into TF/PyTorch | Training curves |
-| **Optuna Dashboard** | Built into Optuna | Hyperparameter viz |
-
----
-
-# What to Track
-
-| Category | Examples |
-|----------|---------|
-| **Hyperparameters** | `max_depth=10`, `lr=0.01`, `n_estimators=200` |
-| **Metrics** | Accuracy, F1, loss, training time |
-| **Data** | Dataset version, split seed, preprocessing steps |
-| **Code** | Git commit hash, notebook version |
-| **Artifacts** | Saved model file, plots, confusion matrix |
-
-**We'll cover these tools in depth next week (Reproducibility).**
-
-For now: if you're using Optuna, its built-in tracking is a great start.
-
----
-
-<!-- _class: lead -->
-
-# Part 5: AutoML
+# Part 3: AutoML
 
 *What if the computer did all of this for you?*
 
@@ -923,8 +564,6 @@ predictor = TabularPredictor(label='target').fit(train_data, time_limit=300)
 | **Data leakage** | Preprocessing must happen *inside* CV, not before |
 | **Learning curves** | Tells you if more data would help |
 | **Validation curves** | Tells you the best hyperparameter value |
-| **Random > Grid** | Better coverage of important dimensions |
-| **Nested CV** | Tune inside, evaluate outside |
 | **AutoML** | Automates model selection + tuning + ensembling |
 
 ---
@@ -940,20 +579,10 @@ predictor = TabularPredictor(label='target').fit(train_data, time_limit=300)
 **Q3**: You scale all features, then run `cross_val_score`. What's wrong?
 > Data leakage. The scaler saw test fold data. Fix: use a `Pipeline`.
 
-**Q4**: Why does random search often beat grid search?
-> Important hyperparameters get more unique values tested (Bergstra & Bengio 2012).
-
----
-
-# More Exam Questions
-
-**Q5**: What is nested cross-validation and when do you need it?
-> Inner loop tunes hyperparameters, outer loop evaluates. Needed whenever you report performance of a *tuned* model, because `best_score_` from GridSearchCV is optimistically biased.
-
-**Q6**: When would you NOT use standard K-fold CV?
+**Q4**: When would you NOT use standard K-fold CV?
 > Time series (use TimeSeriesSplit), grouped data (use GroupKFold).
 
-**Q7**: AutoML gets 88% accuracy. Your logistic regression gets 85%. Which do you deploy?
+**Q5**: AutoML gets 88% accuracy. Your logistic regression gets 85%. Which do you deploy?
 > Depends on context. If interpretability, latency, or model size matter, the 3% gap may not justify AutoML's complexity. There's no universal right answer -- articulate the tradeoffs.
 
 ---
@@ -962,12 +591,11 @@ predictor = TabularPredictor(label='target').fit(train_data, time_limit=300)
 
 | Task | Time | What You'll Do |
 |------|------|----------------|
-| **1. CV Exploration** | 15 min | Single split vs 5-fold: see the variance yourself |
-| **2. Validation Curves** | 15 min | Plot `max_depth` vs accuracy for a Random Forest |
-| **3. Grid vs Random** | 20 min | Same budget, compare coverage and best score |
-| **4. Optuna** | 20 min | Bayesian optimization with visualizations |
-| **5. Nested CV** | 10 min | Compare `best_score_` vs nested CV score |
-| **6. AutoGluon** | 20 min | Run AutoML, analyze leaderboard |
+| **1. CV Exploration** | 20 min | Single split vs 5-fold: see the variance yourself |
+| **2. Validation Curves** | 20 min | Plot `max_depth` vs accuracy for a Random Forest |
+| **3. Learning Curves** | 15 min | Diagnose underfitting vs overfitting |
+| **4. Data Leakage** | 15 min | Pipeline vs raw scaling: see the difference |
+| **5. AutoGluon** | 30 min | Run AutoML, analyze leaderboard |
 
 ---
 
@@ -978,8 +606,8 @@ predictor = TabularPredictor(label='target').fit(train_data, time_limit=300)
 
 **This week's message:**
 
-> Measure properly (CV). Tune systematically (random/Bayesian search).
-> Report honestly (nested CV). Automate when it makes sense (AutoML).
-> Start simple. Climb the ladder only when justified.
+> Measure properly (CV). Understand bias-variance tradeoffs.
+> Detect leakage with Pipelines. Let AutoML find the ceiling.
+> Start simple. Climb the complexity ladder only when justified.
 
-**Next week**: Reproducibility & Environments
+**Next week**: Tuning & Experiment Tracking

@@ -1,7 +1,7 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║  Reproducibility & Environments — Follow-Along Guide                    ║
-# ║  Week 9 · CS 203 · Software Tools and Techniques for AI                ║
+# ║  Week 10 · CS 203 · Software Tools and Techniques for AI               ║
 # ║  Prof. Nipun Batra · IIT Gandhinagar                                    ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 #

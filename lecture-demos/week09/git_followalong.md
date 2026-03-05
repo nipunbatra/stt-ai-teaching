@@ -1,6 +1,6 @@
 ---
 title: "Git Deep Dive — Follow-Along Guide"
-subtitle: "Week 8 · CS 203 · Software Tools and Techniques for AI"
+subtitle: "Week 9 · CS 203 · Software Tools and Techniques for AI"
 author: "Prof. Nipun Batra · IIT Gandhinagar"
 date: "Spring 2026"
 geometry: margin=2cm

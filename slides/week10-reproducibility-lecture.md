@@ -8,7 +8,7 @@ paginate: true
 
 # Reproducibility & Environments
 
-## Week 9 · CS 203: Software Tools and Techniques for AI
+## Week 10 · CS 203: Software Tools and Techniques for AI
 
 **Prof. Nipun Batra**
 *IIT Gandhinagar*
@@ -60,22 +60,9 @@ ERROR: Could not find a version that satisfies the requirement sklearn
 
 # The Reproducibility Spectrum
 
-<div class="insight">
+<img src="images/week10/reproducibility_spectrum.png" width="800" style="display: block; margin: 0 auto;">
 
-**Your code is only as good as its ability to run elsewhere.** If no one else can run it, it might as well not exist. Reproducibility isn't about being fancy - it's about being useful.
-
-</div>
-
-```
-                    Reproducibility Spectrum
-
-Not Reproducible                                    Fully Reproducible
-     |                                                     |
-     v                                                     v
-[Just code] → [+ README] → [+ requirements.txt] → [+ Docker] → [+ CI/CD]
-     ↓            ↓               ↓                    ↓            ↓
- "What?"    "Maybe..."      "Probably!"          "Definitely"   "Automated"
-```
+**Your code is only as good as its ability to run elsewhere.** If no one else can run it, it might as well not exist.
 
 **Today's goal**: Get you to "Probably!" or better.
 
@@ -84,13 +71,14 @@ Not Reproducible                                    Fully Reproducible
 # Connection to Our Journey
 
 ```
-Week 1-7: Built a movie success predictor
-Week 8:   Version-controlled the code with Git
-          ↓
-Week 9:   Version-control the ENVIRONMENT!
-          - Anyone can run your code
-          - Same results every time
-          - Works on any machine
+Week 1-7:  Built a movie success predictor
+Week 8:    Tuned & tracked experiments (Optuna, W&B)
+Week 9:    Version-controlled the code with Git
+           ↓
+Week 10:   Version-control the ENVIRONMENT!
+           - Anyone can run your code
+           - Same results every time
+           - Works on any machine
 ```
 
 **Git versions your code. Today we version everything else.**
@@ -427,6 +415,12 @@ cross_val_score(model, X, y, cv=kf)  # Yes!
 - Even PATH configurations vary
 
 **Virtual environments isolate Python, not the whole system.**
+
+---
+
+# Docker: Build Once, Run Anywhere
+
+<img src="images/week10/docker_concepts.png" width="800" style="display: block; margin: 0 auto;">
 
 ---
 
@@ -767,4 +761,4 @@ Now anyone can run: `bash setup.sh`
 - Docker basics
 - Project structure
 
-**Next week:** Experiment tracking with Weights & Biases
+**Next week:** Testing & CI/CD — Automate Everything

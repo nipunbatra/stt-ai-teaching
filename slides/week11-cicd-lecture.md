@@ -18,11 +18,12 @@ paginate: true
 # Where We Are
 
 ```
-Week 8:  Version your CODE        (Git)
-Week 9:  Version your ENVIRONMENT (venv, Docker)
-Week 10: Version your EXPERIMENTS (W&B)
-Week 11: AUTOMATE everything      ← you are here
-Week 12: Ship it                  (APIs, demos)
+Week 7-8: Evaluate, tune & track   (CV, Optuna, W&B)       ✓
+Week 9:   Version your CODE        (Git)                    ✓
+Week 10:  Version your ENVIRONMENT  (venv, Docker)          ✓
+Week 11:  AUTOMATE everything       ← you are here
+Week 12:  Ship it                   (APIs, demos)
+Week 13:  Make it fast and small    (profiling, quantization)
 ```
 
 You push code to GitHub. But who checks that:
@@ -49,6 +50,12 @@ Deploy to production           ← breaks at 2am
 ```
 
 **Humans are bad at repetitive tasks. Machines are great at them.**
+
+---
+
+# The CI/CD Pipeline
+
+<img src="images/week11/cicd_pipeline.png" width="800" style="display: block; margin: 0 auto;">
 
 ---
 

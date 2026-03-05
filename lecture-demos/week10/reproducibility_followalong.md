@@ -1,6 +1,6 @@
 ---
 title: "Reproducibility & Environments — Follow-Along Guide"
-subtitle: "Week 9 · CS 203 · Software Tools and Techniques for AI"
+subtitle: "Week 10 · CS 203 · Software Tools and Techniques for AI"
 author: "Prof. Nipun Batra · IIT Gandhinagar"
 date: "Spring 2026"
 geometry: margin=2cm
