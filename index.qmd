@@ -28,8 +28,8 @@ subtitle: "IIT Gandhinagar · Jan 2026 · Prof. Nipun Batra"
 | Week | Topic | Slides | Hands-On |
 |:----:|-------|:------:|:--------:|
 | 6 | 🧠 LLM APIs & Multimodal AI | [HTML](html/week06-llm-apis-lecture.html) · [PDF](pdf/week06-llm-apis-lecture.pdf) | [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week06-llm-apis-lab.ipynb) |
-| 7 | 📏 Model Evaluation & AutoML | [HTML](html/week07-model-development-lecture.html) · [PDF](pdf/week07-model-development-lecture.pdf) | [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week07-model-development-lab.ipynb) |
-| 8 | 🔧 Tuning & Experiment Tracking | [HTML](html/week08-tuning-tracking-lecture.html) · [PDF](pdf/week08-tuning-tracking-lecture.pdf) | [Notebook 📓](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week08/tuning_tracking_notebook.ipynb) |
+| 7 | 📏 Model Evaluation | [HTML](html/week07-model-development-lecture.html) · [PDF](pdf/week07-model-development-lecture.pdf) | [Notebook 📓](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week07/week07_evaluation_notebook.ipynb) · [Lab 🧪](https://github.com/nipunbatra/stt-ai-teaching/blob/master/labs/week07-model-development-lab.ipynb) |
+| 8 | 🔧 Tuning, AutoML & Tracking | [HTML](html/week08-tuning-tracking-lecture.html) · [PDF](pdf/week08-tuning-tracking-lecture.pdf) | [Notebook 📓](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week08/tuning_tracking_notebook.ipynb) |
 
 ## ⚡ Part III: Engineering (Weeks 9–13) {.engineering-section}
 

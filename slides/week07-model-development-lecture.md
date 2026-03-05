@@ -8,7 +8,7 @@ math: mathjax
 <!-- _class: title-slide -->
 <!-- _paginate: false -->
 
-# Model Evaluation & AutoML
+# Model Evaluation
 
 ## Week 7: CS 203 - Software Tools and Techniques for AI
 
@@ -17,11 +17,17 @@ math: mathjax
 
 ---
 
-<!-- _class: lead -->
+# Where We Are
 
-# Part 1: Refresher
-
-*Where we are and what we know*
+```
+Week 7:  EVALUATE models properly   ← you are here
+Week 8:  Tune, AutoML & track experiments
+Week 9:  Version your CODE          (Git)
+Week 10: Version your ENVIRONMENT   (venv, Docker)
+Week 11: Automate everything        (CI/CD)
+Week 12: Ship it                    (APIs, demos)
+Week 13: Make it fast and small     (profiling, quantization)
+```
 
 ---
 
@@ -34,7 +40,7 @@ math: mathjax
 | 5 | Augmented the dataset | More data from existing data |
 | 6 | Used Gemini API for multimodal tasks | Foundation models as tools |
 
-**This week**: We train and rigorously evaluate our *own* models, then let AutoML do it for us.
+**This week**: We train and rigorously evaluate our *own* models.
 
 **Why not just use LLMs for everything?**
 - Cost at scale (10M predictions/day)
@@ -44,36 +50,216 @@ math: mathjax
 
 ---
 
-# The Complexity Ladder
+<!-- _class: lead -->
 
-```
-Level 5: Neural Network         ← Only if huge data + GPU budget
-Level 4: Gradient Boosting      ← Often best for tabular (XGBoost, LightGBM)
-Level 3: Random Forest          ← Great default, hard to mess up
-Level 2: Logistic Regression    ← Start here. Seriously.
-Level 1: Dummy (majority class) ← Your baseline floor
-```
+# Part 1: Sklearn Refresher
 
-**Rule**: Climb one step at a time. Stop when gains are marginal.
+*The basic ML workflow in 5 minutes*
 
-**The dummy baseline matters**: If 70% of movies succeed, predicting "success" always = 70%. Any real model *must* beat this.
+<!-- ⌨ NOTEBOOK → "Part 1: sklearn refresher" -->
 
 ---
 
-# Bias-Variance Tradeoff
+# The Sklearn Pattern: Fit → Predict → Score
 
-<img src="images/week07/bias_variance_tradeoff.png" width="650" style="display: block; margin: 0 auto;">
+```python
+from sklearn.linear_model import LogisticRegression
+
+# 1. Create model
+model = LogisticRegression()
+
+# 2. Fit (learn from data)
+model.fit(X_train, y_train)
+
+# 3. Predict
+predictions = model.predict(X_test)
+
+# 4. Score
+accuracy = model.score(X_test, y_test)
+print(f"Accuracy: {accuracy:.2%}")
+```
+
+**Every sklearn model follows this pattern.** Logistic Regression, Random Forest, SVM — all the same API.
+
+---
+
+# Swapping Models is One Line
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+for ModelClass in [LogisticRegression, DecisionTreeClassifier, RandomForestClassifier]:
+    model = ModelClass()
+    model.fit(X_train, y_train)
+    acc = model.score(X_test, y_test)
+    print(f"{ModelClass.__name__:30s}  accuracy = {acc:.3f}")
+```
+
+```
+LogisticRegression              accuracy = 0.792
+DecisionTreeClassifier          accuracy = 0.812
+RandomForestClassifier          accuracy = 0.835
+```
+
+**Question**: Can we trust these numbers? Let's find out.
+
+---
+
+<!-- _class: lead -->
+
+# Part 2: Train/Test Split
+
+*Why one number isn't enough*
+
+<!-- ⌨ NOTEBOOK → "Part 2: train/test variance" -->
+
+---
+
+# The Basic Idea
+
+**Don't evaluate on the data you trained on.**
+
+```python
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+```
+
+```
+Full data:  1000 samples
+Training:    800 samples  (model learns from these)
+Testing:     200 samples  (model is evaluated on these)
+```
+
+If you evaluate on training data, the model just "remembers" the answers.
+
+---
+
+# The Variance Problem
+
+```python
+# Run 1
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+model.fit(X_train, y_train)
+print(model.score(X_test, y_test))  # 87.3%
+
+# Run 2 (same code, different random seed)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+model.fit(X_train, y_train)
+print(model.score(X_test, y_test))  # 79.8%
+```
+
+**Which is the real accuracy? 87%? 80%? Something else?**
+
+You wouldn't bet ₹5 crore on a single coin flip. Don't bet your model evaluation on a single random split.
+
+---
+
+# Let's See It: 50 Random Splits
+
+<!-- ⌨ NOTEBOOK → run 50 splits, plot histogram -->
+
+```python
+scores = []
+for i in range(50):
+    X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2)
+    model.fit(X_tr, y_tr)
+    scores.append(model.score(X_te, y_te))
+
+print(f"Min: {min(scores):.3f}  Max: {max(scores):.3f}  Range: {max(scores)-min(scores):.3f}")
+```
+
+The range can be **5-10 percentage points**. Same model, same data, wildly different scores.
+
+**The fundamental issue**: One test set is a sample. Samples have variance.
+
+---
+
+<!-- _class: lead -->
+
+# Part 3: Model Complexity
+
+*The knobs that control underfitting vs overfitting*
+
+<!-- ⌨ NOTEBOOK → "Part 3: complexity demos" -->
+
+---
+
+# Complexity Example 1: Polynomial Degree
+
+<img src="images/week07/polynomial_complexity.png" width="800" style="display: block; margin: 0 auto;">
+
+**More features = more expressive model.** But too expressive → memorizes noise.
+
+---
+
+# Polynomial Features in Code
+
+```python
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import Pipeline
+
+for degree in [1, 3, 15]:
+    pipe = Pipeline([
+        ('poly', PolynomialFeatures(degree=degree)),
+        ('lr', LinearRegression())
+    ])
+    pipe.fit(X_train, y_train)
+    print(f"Degree {degree:2d}: "
+          f"Train R² = {pipe.score(X_train, y_train):.3f}  "
+          f"Test R²  = {pipe.score(X_test, y_test):.3f}")
+```
+
+```
+Degree  1: Train R² = 0.421  Test R²  = 0.398   ← underfitting
+Degree  3: Train R² = 0.891  Test R²  = 0.872   ← good
+Degree 15: Train R² = 0.999  Test R²  = 0.214   ← overfitting!
+```
+
+---
+
+# Complexity Example 2: Decision Tree Depth
+
+<img src="images/week07/decision_tree_depth.png" width="800" style="display: block; margin: 0 auto;">
+
+---
+
+# Tree Depth in Code
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+
+for depth in [1, 4, 20, None]:
+    dt = DecisionTreeClassifier(max_depth=depth, random_state=42)
+    dt.fit(X_train, y_train)
+    print(f"max_depth={str(depth):>4s}: "
+          f"Train = {dt.score(X_train, y_train):.3f}  "
+          f"Test  = {dt.score(X_test, y_test):.3f}")
+```
+
+```
+max_depth=   1: Train = 0.731  Test  = 0.720   ← underfitting
+max_depth=   4: Train = 0.862  Test  = 0.845   ← good
+max_depth=  20: Train = 0.998  Test  = 0.781   ← overfitting
+max_depth=None: Train = 1.000  Test  = 0.762   ← severe overfitting
+```
+
+**Train accuracy of 100% is a red flag**, not a celebration.
+
+---
+
+# The Bias-Variance Tradeoff
+
+<img src="images/week07/bias_variance_curve.png" width="750" style="display: block; margin: 0 auto;">
 
 $$\text{Total Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise}$$
 
-**Simple model** = high bias, low variance (underfitting)
-**Complex model** = low bias, high variance (overfitting)
-
----
-
-# Overfitting vs Underfitting
-
-<img src="images/week07/overfitting_underfitting.png" width="750" style="display: block; margin: 0 auto;">
+The sweet spot minimizes **total** error, not just training error.
 
 ---
 
@@ -94,65 +280,87 @@ $$\text{Total Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise
 
 ---
 
-# Regularization: One Slide
+<!-- _class: lead -->
 
-**Idea**: Penalize complexity. "Fit the data, but keep weights small."
+# Part 4: Hyperparameters & the Validation Set
 
-| Type | What It Does | Code |
-|------|--------------|------|
-| **L2 (Ridge)** | Shrinks all weights toward zero | `LogisticRegression(C=0.1)` |
-| **L1 (Lasso)** | Drives some weights to exactly zero | `LogisticRegression(penalty='l1')` |
-| **Tree depth** | Limits how deep trees can grow | `max_depth=5` |
-| **Dropout** | Randomly drops neurons during training | `Dropout(0.5)` |
+*How do we pick the right complexity?*
 
-**Smaller C = more regularization** (C = 1/$\lambda$)
+---
 
-OK -- so how do we actually *measure* if our model is good?
+# What Are Hyperparameters?
+
+**Parameters**: learned from data (weights, thresholds) — you don't set these.
+**Hyperparameters**: set *before* training — you choose these.
+
+| Model | Hyperparameter | Controls |
+|-------|----------------|----------|
+| Polynomial Regression | `degree` | Feature complexity |
+| Decision Tree | `max_depth` | Tree complexity |
+| Random Forest | `n_estimators` | Number of trees |
+| Logistic Regression | `C` | Regularization strength |
+
+**How do you find the best value?** You can't use training score (always prefers more complex). You can't use test score (contaminates your final evaluation).
+
+---
+
+# Train / Validate / Test
+
+<img src="images/week07/train_validate_test.png" width="800" style="display: block; margin: 0 auto;">
+
+---
+
+# The Three Sets in Practice
+
+```python
+# Split into train (60%), validation (20%), test (20%)
+X_trainval, X_test, y_trainval, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+X_train, X_val, y_train, y_val = train_test_split(
+    X_trainval, y_trainval, test_size=0.25, random_state=42  # 0.25 × 0.8 = 0.2
+)
+
+# Try different hyperparameters on VALIDATION set
+for depth in [1, 2, 3, 5, 10, 20]:
+    dt = DecisionTreeClassifier(max_depth=depth).fit(X_train, y_train)
+    print(f"depth={depth:2d}  val_acc={dt.score(X_val, y_val):.3f}")
+
+# Pick best, evaluate ONCE on test set
+best = DecisionTreeClassifier(max_depth=5).fit(X_train, y_train)
+print(f"\nFinal test accuracy: {best.score(X_test, y_test):.3f}")
+```
+
+**The test set is your "sealed envelope."** Open it once. Never tune on it.
+
+---
+
+# Problem: We're Wasting Data
+
+With 1000 samples:
+- Train: 600 (learn patterns)
+- Validation: 200 (pick hyperparameters)
+- Test: 200 (final evaluation)
+
+**We're only training on 60% of data.** With small datasets, this hurts.
+
+**Also**: the validation score depends on *which* 200 samples happen to be in the validation set. Same variance problem as before!
+
+**Can we do better?**
 
 ---
 
 <!-- _class: lead -->
 
-# Part 2: Cross-Validation
+# Part 5: K-Fold Cross-Validation
 
-*How to actually trust your numbers*
+*Use ALL data for training AND validation*
 
----
-
-# The Problem
-
-```python
-# Run 1
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-model.fit(X_train, y_train)
-print(model.score(X_test, y_test))  # 87.3%
-
-# Run 2 (same code, different random seed)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-model.fit(X_train, y_train)
-print(model.score(X_test, y_test))  # 79.8%
-```
-
-**Which is the real accuracy? 87%? 80%? Something else?**
-
-You wouldn't bet $500M on a single coin flip. Don't bet your model evaluation on a single random split.
+<!-- ⌨ NOTEBOOK → "Part 5: K-fold CV" -->
 
 ---
 
-# Why Does This Happen?
-
-**Different splits create different test sets:**
-
-- **Test Set A**: Mostly "easy" movies (clear hits and flops)
-- **Test Set B**: Mostly "hard" movies (borderline cases)
-
-Same model, same training data, wildly different results.
-
-**The fundamental issue**: One test set is a sample. Samples have variance.
-
----
-
-# K-Fold Cross-Validation: The Fix
+# K-Fold Cross-Validation
 
 <img src="images/week07/cross_validation_kfold.png" width="750" style="display: block; margin: 0 auto;">
 
@@ -164,15 +372,17 @@ Same model, same training data, wildly different results.
 
 **Split data into K equal parts (folds). Rotate which one is the test set.**
 
-- **Fold 1**: Train on folds 2-5, test on fold 1
-- **Fold 2**: Train on folds 1,3-5, test on fold 2
-- **Fold 3**: Train on folds 1-2,4-5, test on fold 3
-- **Fold 4**: Train on folds 1-3,5, test on fold 4
-- **Fold 5**: Train on folds 1-4, test on fold 5
+```
+Fold 1:  [TEST] [train] [train] [train] [train]   → score₁
+Fold 2:  [train] [TEST] [train] [train] [train]   → score₂
+Fold 3:  [train] [train] [TEST] [train] [train]   → score₃
+Fold 4:  [train] [train] [train] [TEST] [train]   → score₄
+Fold 5:  [train] [train] [train] [train] [TEST]   → score₅
+```
 
 **Final score** = Average of all 5 test scores
 
-$$\text{CV Score} = \frac{1}{K} \sum_{k=1}^{K} \text{Score}_k \qquad SE = \frac{\sigma}{\sqrt{K}}$$
+$$\text{CV Score} = \frac{1}{K} \sum_{k=1}^{K} \text{Score}_k \qquad \text{SE} = \frac{\sigma}{\sqrt{K}}$$
 
 ---
 
@@ -198,22 +408,7 @@ Mean: 0.833
 Std:  0.013
 ```
 
----
-
-# How to Report Results
-
-**Wrong**: "Our model achieves 87% accuracy"
-
-**Right**: "Our model achieves **83.3% +/- 1.3%** accuracy (5-fold CV)"
-
-| Std Dev | Interpretation |
-|---------|----------------|
-| +/- 1% | Very reliable estimate |
-| +/- 3% | Reasonable |
-| +/- 5% | Noisy -- need more data or folds |
-| +/- 10% | Don't trust this number |
-
-The standard deviation tells you how much to trust the mean.
+**Report as**: "83.3% ± 1.3% accuracy (5-fold CV)"
 
 ---
 
@@ -229,6 +424,33 @@ The standard deviation tells you how much to trust the mean.
 **Default**: K=5. Use K=10 if dataset is small. LOO only for < 100 samples.
 
 **Why LOO has high variance**: Each test set has 1 sample. That's a very noisy estimate per fold.
+
+---
+
+# Leave-One-Out Cross-Validation (LOO)
+
+```python
+from sklearn.model_selection import LeaveOneOut, cross_val_score
+
+loo = LeaveOneOut()
+scores = cross_val_score(model, X, y, cv=loo)
+
+print(f"LOO: {scores.mean():.3f} ({len(scores)} folds!)")
+```
+
+**N folds = N model fits.** For 1000 samples, that's 1000 models.
+
+**When to use:** Very small datasets (< 50-100 samples) where you can't afford to waste any data. Medical studies, rare events.
+
+**When NOT to use:** Large datasets. Too slow and high variance.
+
+---
+
+<!-- _class: lead -->
+
+# Part 6: CV Variants
+
+*Stratified, Time Series, Grouped*
 
 ---
 
@@ -253,23 +475,56 @@ scores = cross_val_score(model, X, y, cv=skf)
 
 ---
 
-# When Standard K-Fold Breaks
+# Time Series Split
 
-| Data Type | Problem | Solution |
-|-----------|---------|----------|
-| **Time series** | Training on future, testing on past | `TimeSeriesSplit` |
-| **Grouped data** | Same patient in train AND test | `GroupKFold` |
-| **Very small** | K folds too small to be useful | `LeaveOneOut` |
+**Problem**: Training on future data, predicting the past = leakage.
 
 ```python
 from sklearn.model_selection import TimeSeriesSplit
 
 tscv = TimeSeriesSplit(n_splits=5)
-# Split 1: Train [2018],       Test [2019]
-# Split 2: Train [2018-2019],  Test [2020]
-# Split 3: Train [2018-2020],  Test [2021]
-# Always: past predicts future. Never the reverse.
 ```
+
+```
+Split 1: Train [2018]             → Test [2019]
+Split 2: Train [2018-2019]       → Test [2020]
+Split 3: Train [2018-2020]       → Test [2021]
+Split 4: Train [2018-2021]       → Test [2022]
+Split 5: Train [2018-2022]       → Test [2023]
+```
+
+**Always: past predicts future. Never the reverse.**
+
+---
+
+# Group K-Fold
+
+**Problem**: Same patient appears in train AND test → data leakage.
+
+```python
+from sklearn.model_selection import GroupKFold
+
+groups = patient_ids  # e.g., [1, 1, 1, 2, 2, 3, 3, 3, 3, ...]
+gkf = GroupKFold(n_splits=5)
+scores = cross_val_score(model, X, y, cv=gkf, groups=groups)
+```
+
+**All samples from one patient go into the same fold.**
+
+| Data Type | Problem | Solution |
+|-----------|---------|----------|
+| **Classification** | Class imbalance | `StratifiedKFold` |
+| **Time series** | Temporal leakage | `TimeSeriesSplit` |
+| **Grouped data** | Same entity in both | `GroupKFold` |
+| **Very small** | Too few samples | `LeaveOneOut` |
+
+---
+
+<!-- _class: lead -->
+
+# Part 7: Data Leakage
+
+*The silent killer of ML projects*
 
 ---
 
@@ -278,9 +533,9 @@ tscv = TimeSeriesSplit(n_splits=5)
 **Leakage**: Information from the test set "leaks" into training.
 
 ```python
-# WRONG: Scaler sees ALL data (including test)
+# WRONG: Scaler sees ALL data (including test fold!)
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)           # <-- Leakage!
+X_scaled = scaler.fit_transform(X)           # ← Leakage!
 scores = cross_val_score(model, X_scaled, y, cv=5)
 ```
 
@@ -292,14 +547,14 @@ pipe = Pipeline([
     ('scaler', StandardScaler()),
     ('model', RandomForestClassifier())
 ])
-scores = cross_val_score(pipe, X, y, cv=5)   # <-- Clean
+scores = cross_val_score(pipe, X, y, cv=5)   # ← Clean
 ```
 
 **The Pipeline ensures preprocessing happens *inside* each fold.**
 
 ---
 
-# Other Common Leakage Sources
+# Common Leakage Sources
 
 | Leakage Type | Example | Fix |
 |--------------|---------|-----|
@@ -318,6 +573,37 @@ Your model looks great in the notebook, fails in the real world.
 
 ---
 
+# Leakage Demo
+
+<!-- ⌨ NOTEBOOK → "Part 7: leakage demo" -->
+
+```python
+# WRONG way (leakage)
+scaler = StandardScaler()
+X_leaked = scaler.fit_transform(X)
+scores_leaked = cross_val_score(model, X_leaked, y, cv=5)
+
+# RIGHT way (pipeline)
+pipe = Pipeline([('scaler', StandardScaler()), ('model', model)])
+scores_clean = cross_val_score(pipe, X, y, cv=5)
+
+print(f"With leakage:    {scores_leaked.mean():.4f}")
+print(f"Without leakage: {scores_clean.mean():.4f}")
+print(f"Difference:      {scores_leaked.mean() - scores_clean.mean():.4f}")
+```
+
+The leaked score is **always** higher. That's the danger — it looks better, but it's a lie.
+
+---
+
+<!-- _class: lead -->
+
+# Part 8: Learning & Validation Curves
+
+*Diagnostic tools for your model*
+
+---
+
 # Learning Curves
 
 **Plot score vs training set size.** Diagnoses whether you need more data.
@@ -332,8 +618,8 @@ train_sizes, train_scores, val_scores = learning_curve(
 
 | Shape | Diagnosis | Action |
 |-------|-----------|--------|
-| Big gap, both rising | **Overfitting** -- more data would help | Collect more data |
-| Both flat at low score | **Underfitting** -- more data won't help | More complex model |
+| Big gap, both rising | **Overfitting** — more data would help | Collect more data |
+| Both flat at low score | **Underfitting** — more data won't help | More complex model |
 | Converged at high score | **Good fit** | You're done |
 
 ---
@@ -355,197 +641,20 @@ train_scores, val_scores = validation_curve(
 
 ---
 
-# Cross-Validation Summary
+# Regularization: Controlling Complexity
 
-| Situation | Use This | Code |
-|-----------|----------|------|
-| **Classification** | `StratifiedKFold` | `cross_val_score(model, X, y, cv=5)` |
-| **Regression** | `KFold` | `cross_val_score(model, X, y, cv=5)` |
-| **Time series** | `TimeSeriesSplit` | `TimeSeriesSplit(n_splits=5)` |
-| **Grouped data** | `GroupKFold` | `GroupKFold(n_splits=5)` |
-| **Avoid leakage** | `Pipeline` | `Pipeline([('scaler', ...), ('model', ...)])` |
-| **Find right K** | Validation curve | `validation_curve(...)` |
-| **Need more data?** | Learning curve | `learning_curve(...)` |
+**Idea**: Penalize complexity. "Fit the data, but keep weights small."
 
----
+| Type | What It Does | Code |
+|------|--------------|------|
+| **L2 (Ridge)** | Shrinks all weights toward zero | `LogisticRegression(C=0.1)` |
+| **L1 (Lasso)** | Drives some weights to exactly zero | `LogisticRegression(penalty='l1')` |
+| **Tree depth** | Limits how deep trees can grow | `max_depth=5` |
+| **Dropout** | Randomly drops neurons during training | `Dropout(0.5)` |
 
-<!-- _class: lead -->
+**Smaller C = more regularization** (C = 1/$\lambda$)
 
-# Part 3: AutoML
-
-*What if the computer did all of this for you?*
-
----
-
-# The Manual Process We Just Learned
-
-```
-Step 1: Pick a model                    (complexity ladder)
-Step 2: Choose hyperparameters          (grid/random/Bayesian search)
-Step 3: Evaluate properly               (nested cross-validation)
-Step 4: Try another model               (repeat steps 1-3)
-Step 5: Compare all models              (pick the best)
-Step 6: Maybe ensemble the top ones     (combine for better accuracy)
-```
-
-**AutoML automates steps 1-6.**
-
----
-
-# What AutoML Does
-
-<img src="images/week07/automl_pipeline.png" width="750" style="display: block; margin: 0 auto;">
-
----
-
-# AutoGluon: 3 Lines of Code
-
-```python
-from autogluon.tabular import TabularPredictor
-
-# 1. Create predictor
-predictor = TabularPredictor(label='success')
-
-# 2. Fit (give it a time budget)
-predictor.fit(train_data, time_limit=300)  # 5 minutes
-
-# 3. Predict
-predictions = predictor.predict(test_data)
-```
-
-**That's it.** No model selection. No hyperparameter tuning. No ensembling.
-AutoGluon does all of it.
-
----
-
-# What Happens Inside
-
-```
-AutoGluon: Starting fit...
-Preprocessing data...
-  15 numeric features, 3 categorical features
-
-Fitting 11 models...
-  LightGBM           ✓ (32s)   val_acc=0.851
-  CatBoost           ✓ (45s)   val_acc=0.856
-  XGBoost            ✓ (38s)   val_acc=0.848
-  RandomForest       ✓ (25s)   val_acc=0.832
-  ExtraTrees         ✓ (28s)   val_acc=0.828
-  NeuralNetTorch     ✓ (65s)   val_acc=0.819
-  LogisticRegression ✓ (5s)    val_acc=0.789
-  ...
-
-Ensembling top models...  ✓ (15s)
-Best: WeightedEnsemble_L2 (val_acc=0.873)
-```
-
----
-
-# AutoGluon Leaderboard
-
-```python
-predictor.leaderboard(test_data)
-```
-
-```
-                   model  score_val  fit_time  pred_time
-0    WeightedEnsemble_L2     0.873      180s       0.5s
-1              CatBoost     0.856       60s        0.1s
-2              LightGBM     0.851       40s        0.1s
-3               XGBoost     0.848       55s        0.1s
-4          RandomForest     0.832       30s        0.2s
-5    LogisticRegression     0.789       10s        0.0s
-```
-
-**The ensemble beats every individual model.** That's the power of stacking.
-
----
-
-# AutoGluon Presets
-
-```python
-# Quick exploration (minutes)
-predictor.fit(train_data, presets='medium_quality', time_limit=60)
-
-# Balanced (recommended default)
-predictor.fit(train_data, presets='good_quality', time_limit=300)
-
-# Production
-predictor.fit(train_data, presets='high_quality', time_limit=3600)
-
-# Competition (best possible, very slow)
-predictor.fit(train_data, presets='best_quality', time_limit=14400)
-```
-
-| Preset | Time | Models | Ensembling |
-|--------|------|--------|------------|
-| `medium_quality` | ~1 min | 5-6 | Simple |
-| `good_quality` | ~5 min | 8-10 | Weighted |
-| `high_quality` | ~1 hour | 10+ | Multi-layer stacking |
-| `best_quality` | Hours | 15+ | Deep stacking |
-
----
-
-# When to Use AutoML
-
-<div class="columns">
-<div>
-
-**Good for:**
-- Tabular data (CSVs, dataframes)
-- Quick baselines and upper bounds
-- When you lack time or ML expertise
-- Kaggle competitions
-
-</div>
-<div>
-
-**Be careful when:**
-- Model must be interpretable (use LR or DT instead)
-- Inference latency matters (ensembles are slow)
-- Model must fit on device (ensembles are large)
-- Data is non-tabular (images, text, audio)
-
-</div>
-</div>
-
----
-
-# AutoML vs Manual: The Spectrum
-
-| Approach | Effort | Control | Accuracy |
-|----------|--------|---------|----------|
-| `DummyClassifier()` | Zero | N/A | Baseline |
-| `LogisticRegression()` | Low | High | Good |
-| `RandomizedSearchCV(RF, ...)` | Medium | High | Better |
-| `optuna.optimize(objective, ...)` | Medium | High | Better |
-| `TabularPredictor().fit()` | Low | Low | Best |
-
-**They're not mutually exclusive.** Use AutoML to find the ceiling, then manually build an interpretable model that gets close.
-
----
-
-# The Complete Workflow
-
-```python
-# Step 1: Know your floor
-dummy = cross_val_score(DummyClassifier(), X, y, cv=5).mean()
-
-# Step 2: Simple interpretable model
-lr = cross_val_score(LogisticRegression(), X, y, cv=5).mean()
-
-# Step 3: Strong default with tuning
-search = RandomizedSearchCV(RandomForestClassifier(), params, n_iter=60, cv=5)
-outer = cross_val_score(search, X, y, cv=5)  # Nested CV
-
-# Step 4: AutoML ceiling
-predictor = TabularPredictor(label='target').fit(train_data, time_limit=300)
-
-# Step 5: Decide
-# If LR is close to AutoML → deploy LR (interpretable, fast)
-# If RF is close to AutoML → deploy RF (good balance)
-# If only AutoML is good enough → deploy AutoML (accept complexity)
-```
+Regularization is another **hyperparameter** — we need CV to pick it too.
 
 ---
 
@@ -559,43 +668,45 @@ predictor = TabularPredictor(label='target').fit(train_data, time_limit=300)
 
 | Concept | One-Liner |
 |---------|-----------|
-| **Cross-validation** | Never trust a single train/test split |
-| **Stratified CV** | Preserve class ratios in each fold |
-| **Data leakage** | Preprocessing must happen *inside* CV, not before |
-| **Learning curves** | Tells you if more data would help |
-| **Validation curves** | Tells you the best hyperparameter value |
-| **AutoML** | Automates model selection + tuning + ensembling |
+| **Sklearn pattern** | fit → predict → score, same API for every model |
+| **Train/test split** | Never evaluate on training data |
+| **Variance problem** | Different splits → different scores |
+| **Model complexity** | Polynomial degree, tree depth control underfitting/overfitting |
+| **Bias-variance** | Sweet spot minimizes total error |
+| **Train/Validate/Test** | Train to learn, validate to tune, test to report |
+| **K-fold CV** | Use all data for both training and validation |
+| **Stratified/Time/Group** | Match CV strategy to your data structure |
+| **Data leakage** | Preprocessing must happen *inside* CV |
+| **Learning curves** | Do I need more data or a better model? |
 
 ---
 
 # Exam Questions
 
-**Q1**: Why use CV instead of a single train/test split?
-> Single split can be lucky/unlucky. CV averages over K splits for a reliable estimate with a standard error.
+**Q1**: You run your model 50 times with different random splits and get accuracies from 78% to 88%. What's the problem, and how do you fix it?
+> Single train/test split has high variance. Fix: use K-fold CV to average over multiple splits.
 
-**Q2**: Train accuracy 99%, test accuracy 70%. What's wrong?
-> Overfitting. Model memorized training data. Fix: regularize, simplify, more data.
+**Q2**: Train accuracy 99%, test accuracy 65%. What's wrong?
+> Severe overfitting. Model memorized training data. Fix: reduce complexity (lower degree/depth), regularize, get more data.
 
 **Q3**: You scale all features, then run `cross_val_score`. What's wrong?
 > Data leakage. The scaler saw test fold data. Fix: use a `Pipeline`.
 
 **Q4**: When would you NOT use standard K-fold CV?
-> Time series (use TimeSeriesSplit), grouped data (use GroupKFold).
-
-**Q5**: AutoML gets 88% accuracy. Your logistic regression gets 85%. Which do you deploy?
-> Depends on context. If interpretability, latency, or model size matter, the 3% gap may not justify AutoML's complexity. There's no universal right answer -- articulate the tradeoffs.
+> Time series (use TimeSeriesSplit), grouped data (use GroupKFold), imbalanced classes (use StratifiedKFold).
 
 ---
 
-# Lab Preview
+# Exam Questions (continued)
 
-| Task | Time | What You'll Do |
-|------|------|----------------|
-| **1. CV Exploration** | 20 min | Single split vs 5-fold: see the variance yourself |
-| **2. Validation Curves** | 20 min | Plot `max_depth` vs accuracy for a Random Forest |
-| **3. Learning Curves** | 15 min | Diagnose underfitting vs overfitting |
-| **4. Data Leakage** | 15 min | Pipeline vs raw scaling: see the difference |
-| **5. AutoGluon** | 30 min | Run AutoML, analyze leaderboard |
+**Q5**: Why can't you use the test set to pick hyperparameters?
+> It contaminates your final evaluation. The test set must be unseen until the very end. Use a validation set or cross-validation instead.
+
+**Q6**: A decision tree with max_depth=None gets 100% training accuracy. Is this good?
+> No — it means the tree memorized the training data. Check the test/validation accuracy. Likely severe overfitting.
+
+**Q7**: What does a learning curve tell you that a validation curve doesn't?
+> Learning curve: do I need more data? (varies training set size). Validation curve: what's the best hyperparameter value? (varies a hyperparameter).
 
 ---
 
@@ -606,8 +717,9 @@ predictor = TabularPredictor(label='target').fit(train_data, time_limit=300)
 
 **This week's message:**
 
-> Measure properly (CV). Understand bias-variance tradeoffs.
-> Detect leakage with Pipelines. Let AutoML find the ceiling.
-> Start simple. Climb the complexity ladder only when justified.
+> Don't trust a single number. Cross-validate.
+> Understand your model's complexity knobs.
+> Prevent leakage with Pipelines.
+> Diagnose with learning and validation curves.
 
-**Next week**: Tuning & Experiment Tracking
+**Next week**: Hyperparameter Tuning, AutoML & Experiment Tracking
