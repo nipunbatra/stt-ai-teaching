@@ -361,42 +361,48 @@ print(f"Nested CV: {outer_scores.mean():.3f} ± {outer_scores.std():.3f}")
 
 ---
 
-# FLAML: Fast and Lightweight AutoML
+# DIY AutoML (Pure sklearn)
 
 ```python
-from flaml import AutoML
+from sklearn.model_selection import GridSearchCV
 
-automl = AutoML()
-automl.fit(X_train, y_train,
-           task="classification",
-           time_budget=120)  # 2 minutes
+model_configs = {
+    'LogReg': (LogisticRegression(), {'C': [0.01, 0.1, 1, 10]}),
+    'KNN':    (KNeighborsClassifier(), {'n_neighbors': [3, 5, 11]}),
+    'SVM':    (SVC(), {'C': [0.1, 1, 10], 'kernel': ['rbf', 'poly']}),
+    'RF':     (RandomForestClassifier(), {'n_estimators': [100, 200]}),
+    'GB':     (GradientBoostingClassifier(), {'lr': [0.01, 0.1]}),
+}
 
-print(f"Best model: {automl.best_estimator}")
-print(f"Best score: {automl.best_config}")
-predictions = automl.predict(X_test)
+results = {}
+for name, (model, params) in model_configs.items():
+    gs = GridSearchCV(model, params, cv=5, scoring='accuracy')
+    gs.fit(X_train, y_train)
+    results[name] = gs.best_score_
+
+winner = max(results, key=results.get)
 ```
 
-**FLAML** (Microsoft): lightweight, fast, no heavy dependencies.
+**No extra packages.** Just loop over model families with their grids.
 
 ---
 
-# What FLAML Does
+# DIY AutoML: What You Get
 
 ```
-FLAML: Starting fit...
-  Trying LightGBM...        val_acc=0.851  (3s)
-  Trying XGBoost...          val_acc=0.848  (5s)
-  Trying RandomForest...     val_acc=0.832  (2s)
-  Trying ExtraTrees...       val_acc=0.828  (2s)
-  Trying LRL1...             val_acc=0.789  (1s)
-  Retrying LightGBM (tuned)  val_acc=0.862  (8s)
-  ...
+Model               Combos  Best CV   Time
+==============================================
+Logistic Regression     10   0.8575   0.3s
+KNN                     12   0.9050   0.5s
+SVM                     12   0.9325   1.2s
+Random Forest           36   0.9338   4.1s
+Gradient Boosting       27   0.9400   6.8s
+Extra Trees             36   0.9313   3.9s
 
-Best model: LGBMClassifier (val_acc=0.862)
-Total time: 120s
+Winner: Gradient Boosting (CV=0.9400)
 ```
 
-FLAML uses **cost-frugal** search — spends more time on promising models.
+The same idea behind tools like FLAML and AutoGluon — try many models, tune each, pick the best.
 
 ---
 
@@ -427,12 +433,13 @@ search = RandomizedSearchCV(RandomForestClassifier(),
                             params, n_iter=60, cv=5)
 outer = cross_val_score(search, X, y, cv=5)
 
-# Step 4: AutoML ceiling
-automl = AutoML()
-automl.fit(X_train, y_train, task="classification", time_budget=120)
+# Step 4: AutoML ceiling (DIY or dedicated tool)
+for name, (model, params) in model_configs.items():
+    gs = GridSearchCV(model, params, cv=5)
+    gs.fit(X_train, y_train)
 ```
 
-**If LR is close to AutoML → deploy LR (interpretable, fast).**
+**If LR is close to the best tuned model → deploy LR (interpretable, fast).**
 
 ---
 
@@ -638,7 +645,7 @@ Pick based on your needs: Trackio for course projects, MLflow for production.
 | Bayesian opt (GP) | Models the function, uses uncertainty |
 | Optuna (TPE) | Scales well, handles categorical, prunes |
 | Nested CV | Tune inside, evaluate outside — unbiased |
-| FLAML | Lightweight AutoML, cost-frugal search |
+| DIY AutoML | Loop over model families + GridSearchCV |
 | Reproducibility | 8 settings for PyTorch, multi-seed reporting |
 | Trackio | Local-first, free experiment tracking |
 
