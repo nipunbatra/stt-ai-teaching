@@ -64,11 +64,11 @@ A Random Forest has *many* hyperparameters:
 | `min_samples_leaf` | Minimum leaf size | 1-20 |
 | `max_features` | Features per split | 0.1-1.0 |
 
-**How to find the best combination?** Trying by hand doesn't scale.
+And a neural network has even more: learning rate, batch size, hidden layers, dropout rate, optimizer, weight decay...
 
 ---
 
-# Approach 0: "Grad Student Descent"
+# Approach 0: Manual Tuning
 
 ```python
 # Monday
@@ -79,16 +79,38 @@ model = RandomForestClassifier(n_estimators=100, max_depth=10)
 model = RandomForestClassifier(n_estimators=200, max_depth=15)
 # Accuracy: 84.1%
 
-# Wednesday ... wait, was Tuesday max_depth=15 or 20?
+# Wednesday ... was Tuesday max_depth=15 or 20?
 ```
 
 **Problems**: No record. No systematic coverage. Easy to miss the best combo.
 
 ---
 
-# Approach 1: Grid Search
+# Approach 1: Grid Search (The For-Loop Way)
 
-**Try every combination on a predefined grid.**
+What's *really* happening inside `GridSearchCV`?
+
+```python
+best_score, best_params = 0, {}
+
+for n_est in [50, 100, 200]:
+    for depth in [5, 10, 15]:
+        for leaf in [1, 2, 5]:
+            model = RandomForestClassifier(
+                n_estimators=n_est, max_depth=depth,
+                min_samples_leaf=leaf)
+            score = cross_val_score(model, X, y, cv=5).mean()
+            if score > best_score:
+                best_score = score
+                best_params = {'n_est': n_est, 'depth': depth,
+                               'leaf': leaf}
+
+# That's 3 × 3 × 3 = 27 combos × 5 folds = 135 fits!
+```
+
+---
+
+# Grid Search: The Sklearn Way
 
 ```python
 from sklearn.model_selection import GridSearchCV
@@ -100,12 +122,15 @@ param_grid = {
 }
 
 grid = GridSearchCV(
-    RandomForestClassifier(), param_grid, cv=5, scoring='accuracy')
+    RandomForestClassifier(), param_grid,
+    cv=5, scoring='accuracy')
 grid.fit(X, y)
 
 print(f"Best params: {grid.best_params_}")
 print(f"Best score:  {grid.best_score_:.3f}")
 ```
+
+Same nested for-loops, but handles CV, scoring, and results tracking.
 
 ---
 
@@ -123,7 +148,7 @@ Total: 3 × 4 × 3 = 36 combos × 5 folds = 180 fits
 
 $$36 \times 5 \times 5 = 900 \text{ combos} \times 5 \text{ folds} = 4{,}500 \text{ fits}$$
 
-Grid search doesn't scale. Each new parameter multiplies cost.
+Now imagine a neural network with 6+ hyperparameters. Grid search is hopeless.
 
 ---
 
@@ -137,10 +162,17 @@ Grid search doesn't scale. Each new parameter multiplies cost.
 
 # Why Random Search Works Better
 
-**Bergstra & Bengio (2012)**: Not all hyperparameters matter equally.
+**Bergstra & Bengio (2012)**:
 
-- Grid search wastes evaluations varying unimportant parameters
-- Random search spreads evaluations more evenly across all dimensions
+> *"Random search is more efficient than grid search because not all hyperparameters are equally important."*
+
+**Reference**: J. Bergstra and Y. Bengio. "Random Search for Hyper-Parameter Optimization." *Journal of Machine Learning Research*, 13(Feb):281-305, 2012.
+
+Grid wastes evaluations varying unimportant parameters. Random search covers each dimension more uniformly.
+
+---
+
+# Random Search in Code
 
 ```python
 from sklearn.model_selection import RandomizedSearchCV
@@ -150,7 +182,8 @@ search = RandomizedSearchCV(
     RandomForestClassifier(),
     {'n_estimators': randint(50, 500),
      'max_depth': randint(3, 30),
-     'min_samples_leaf': randint(1, 20)},
+     'min_samples_leaf': randint(1, 20),
+     'max_features': uniform(0.1, 0.9)},
     n_iter=60, cv=5, random_state=42)
 search.fit(X, y)
 ```
@@ -183,8 +216,27 @@ def objective(trial):
 
 study = optuna.create_study(direction='maximize')
 study.optimize(objective, n_trials=50)
-print(f"Best: {study.best_value:.3f}  Params: {study.best_params}")
+print(f"Best: {study.best_value:.3f}")
 ```
+
+---
+
+# Optuna for Neural Networks
+
+```python
+def nn_objective(trial):
+    lr = trial.suggest_float('lr', 1e-5, 1e-1, log=True)
+    hidden = trial.suggest_int('hidden_size', 32, 512)
+    dropout = trial.suggest_float('dropout', 0.0, 0.5)
+    n_layers = trial.suggest_int('n_layers', 1, 4)
+
+    model = build_network(hidden, n_layers, dropout)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    val_loss = train_and_evaluate(model, optimizer)
+    return val_loss
+```
+
+Optuna prunes unpromising trials early (e.g., if loss diverges), saving compute.
 
 ---
 
@@ -195,9 +247,9 @@ print(f"Best: {study.best_value:.3f}  Params: {study.best_params}")
 | Intelligence | None | None | Learns from trials |
 | Efficiency | Low | Medium | High |
 | Setup | Easy | Easy | Moderate |
-| Best for | ≤ 2 params | 3+ params | Expensive models |
+| Best for | ≤ 2 params | 3-5 params | Expensive models, NNs |
 
-**Practical rule**: Start with `RandomizedSearchCV`, switch to Optuna when training is expensive.
+**Practical rule**: Start with `RandomizedSearchCV`, switch to Optuna for neural nets or expensive models.
 
 ---
 
@@ -235,7 +287,8 @@ from sklearn.model_selection import cross_val_score, GridSearchCV
 # Inner loop: tune hyperparameters
 inner_cv = GridSearchCV(
     RandomForestClassifier(),
-    param_grid={'max_depth': [5, 10, 15], 'n_estimators': [100, 200]},
+    param_grid={'max_depth': [5, 10, 15],
+                'n_estimators': [100, 200]},
     cv=3)
 
 # Outer loop: evaluate the tuned model
@@ -286,7 +339,7 @@ Ensembling top models...  ✓
 Best: WeightedEnsemble_L2 (val_acc=0.873)
 ```
 
-The ensemble beats every individual model.
+The ensemble beats every individual model. That's **stacking**.
 
 ---
 
@@ -312,9 +365,9 @@ predictor.leaderboard(test_data)
 
 | Good for | Be careful when |
 |----------|-----------------|
-| Tabular data | Model must be interpretable |
+| Tabular data (CSVs) | Model must be interpretable |
 | Quick baselines | Latency matters (ensembles are slow) |
-| Lack time or ML expertise | Model must fit on device |
+| Lack time or ML expertise | Model must fit on edge device |
 | Kaggle competitions | Non-tabular data (images, text) |
 
 **Use AutoML to find the ceiling, then manually build an interpretable model that gets close.**
@@ -331,15 +384,15 @@ dummy = cross_val_score(DummyClassifier(), X, y, cv=5).mean()
 lr = cross_val_score(LogisticRegression(), X, y, cv=5).mean()
 
 # Step 3: Strong model with tuning (nested CV)
-search = RandomizedSearchCV(RandomForestClassifier(), params,
-                            n_iter=60, cv=5)
+search = RandomizedSearchCV(RandomForestClassifier(),
+                            params, n_iter=60, cv=5)
 outer = cross_val_score(search, X, y, cv=5)
 
 # Step 4: AutoML ceiling
 predictor = TabularPredictor(label='target').fit(train, time_limit=300)
-
-# Step 5: If LR ≈ AutoML → deploy LR (interpretable, fast)
 ```
+
+**If LR is close to AutoML → deploy LR (interpretable, fast).**
 
 ---
 
@@ -351,21 +404,32 @@ predictor = TabularPredictor(label='target').fit(train, time_limit=300)
 
 ---
 
+# Sklearn: Easy Reproducibility
+
+```python
+# One parameter is enough
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+```
+
+Every run with `random_state=42` gives the **exact same result**.
+
+---
+
 # PyTorch: Seeds Aren't Enough
 
-In sklearn, `random_state=42` is sufficient. PyTorch is harder:
+PyTorch has many sources of randomness:
 
 ```python
 import torch, random, numpy as np, os
 
 def set_seed(seed=42):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-    torch.use_deterministic_algorithms(True)
+    random.seed(seed)                          # Python
+    np.random.seed(seed)                       # NumPy
+    torch.manual_seed(seed)                    # PyTorch CPU
+    torch.cuda.manual_seed_all(seed)           # PyTorch GPU
+    torch.backends.cudnn.deterministic = True  # cuDNN
+    torch.backends.cudnn.benchmark = False     # cuDNN
+    torch.use_deterministic_algorithms(True)   # All ops
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 ```
 
@@ -396,6 +460,8 @@ print(f"Accuracy: {np.mean(results):.3f} ± {np.std(results):.3f}")
 ```
 
 **More informative than a single deterministic result.**
+
+Papers increasingly require multi-seed results (NeurIPS, ICML checklist).
 
 ---
 
@@ -433,7 +499,9 @@ print(f"Accuracy: {np.mean(results):.3f} ± {np.std(results):.3f}")
 import wandb
 
 wandb.init(project="netflix-predictor", config={
-    "learning_rate": 0.01, "n_estimators": 100, "seed": 42})
+    "learning_rate": 0.01,
+    "n_estimators": 100,
+    "seed": 42})
 
 model = train(wandb.config)
 wandb.log({"accuracy": accuracy, "f1": f1_score})
@@ -444,6 +512,25 @@ for epoch in range(100):
 
 wandb.finish()
 ```
+
+---
+
+# W&B for PyTorch Training
+
+```python
+wandb.init(project="mnist-cnn", config={
+    "lr": 1e-3, "epochs": 20, "batch_size": 64})
+
+for epoch in range(config.epochs):
+    for batch_x, batch_y in train_loader:
+        loss = train_step(model, batch_x, batch_y)
+        wandb.log({"train_loss": loss})
+
+    val_acc = evaluate(model, val_loader)
+    wandb.log({"epoch": epoch, "val_acc": val_acc})
+```
+
+W&B auto-generates loss curves, accuracy plots, and system utilization graphs.
 
 ---
 
@@ -487,12 +574,12 @@ with mlflow.start_run():
 
 | Concept | Key Idea |
 |---------|----------|
-| Random > Grid | Better coverage of important dimensions |
-| Bayesian (Optuna) | Learns from past trials |
-| Nested CV | Tune inside, evaluate outside |
+| Grid search | Exhaustive but scales poorly |
+| Random search | Better coverage (Bergstra & Bengio, 2012) |
+| Bayesian (Optuna) | Learns from past trials, prunes bad ones |
+| Nested CV | Tune inside, evaluate outside — unbiased |
 | AutoML | Automates selection + tuning + ensembling |
 | PyTorch seeds | 8 settings for full reproducibility |
-| Multi-seed | More informative than one run |
 | W&B / MLflow | Automated tracking replaces spreadsheets |
 
 ---
@@ -501,7 +588,7 @@ with mlflow.start_run():
 
 **Q1**: Why does random search often beat grid search?
 
-> Important hyperparameters get more unique values tested (Bergstra & Bengio 2012).
+> Important hyperparameters get more unique values tested. Bergstra, J. and Bengio, Y. "Random Search for Hyper-Parameter Optimization." JMLR 13:281-305, 2012.
 
 **Q2**: What is nested CV and when do you need it?
 
@@ -511,13 +598,13 @@ with mlflow.start_run():
 
 # Exam Questions (2/2)
 
-**Q3**: AutoML gets 88%, logistic regression gets 85%. Which do you deploy?
+**Q3**: AutoML gets 88%, logistic regression gets 85%. Which deploy?
 
-> Depends on context: interpretability, latency, model size.
+> Depends on context: interpretability, latency, model size. 3% may not justify complexity.
 
-**Q4**: Name three things beyond `torch.manual_seed()` for PyTorch determinism.
+**Q4**: You train a neural net with `torch.manual_seed(42)` but get different results each run. Why?
 
-> `torch.use_deterministic_algorithms(True)`, `cudnn.benchmark = False`, `CUBLAS_WORKSPACE_CONFIG`.
+> Need to also set `np.random.seed`, `cudnn.deterministic=True`, `cudnn.benchmark=False`, `use_deterministic_algorithms(True)`, `CUBLAS_WORKSPACE_CONFIG`.
 
 ---
 

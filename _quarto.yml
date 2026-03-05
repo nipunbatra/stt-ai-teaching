@@ -4,6 +4,7 @@ project:
   render:
     - "*.qmd"
     - "labs/*.ipynb"
+    - "lecture-demos/**/*.ipynb"
     - "!slides/"
 
 website:

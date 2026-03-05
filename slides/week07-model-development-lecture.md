@@ -44,6 +44,20 @@ Week 13: Make it fast and small     (profiling, quantization)
 
 ---
 
+# Why Not Just Use LLMs for Everything?
+
+| Concern | Example |
+|---------|---------|
+| **Cost** | 10M predictions/day at $0.01/call = $100K/day |
+| **Latency** | Need < 5ms for ad ranking; GPT-4 takes seconds |
+| **Privacy** | Hospital data can't leave your server |
+| **Interpretability** | Bank must explain why a loan was denied |
+| **Size** | Running on a phone or Raspberry Pi |
+
+A well-tuned sklearn model may be the right answer.
+
+---
+
 <!-- _class: lead -->
 
 # Part 1: Sklearn Refresher
@@ -229,6 +243,31 @@ max_depth=None: Train=1.000  Test=0.762   ← severe overfitting
 
 ---
 
+# Neural Networks: Same Idea, More Knobs
+
+```python
+import torch.nn as nn
+
+# Simple net: 1 hidden layer, 8 neurons → underfitting?
+small_net = nn.Sequential(nn.Linear(784, 8), nn.ReLU(), nn.Linear(8, 10))
+
+# Bigger net: 3 layers, 512 neurons each → overfitting?
+big_net = nn.Sequential(
+    nn.Linear(784, 512), nn.ReLU(),
+    nn.Linear(512, 512), nn.ReLU(),
+    nn.Linear(512, 10)
+)
+```
+
+| Hyperparameter | Increases complexity |
+|----------------|---------------------|
+| Hidden layers | More layers → more capacity |
+| Hidden units | More neurons → more parameters |
+| Epochs | More training → eventually memorizes |
+| Learning rate | Too high → unstable, too low → underfit |
+
+---
+
 # The Bias-Variance Tradeoff
 
 <img src="images/week07/bias_variance_curve.png" width="700" style="display: block; margin: 0 auto;">
@@ -268,7 +307,7 @@ $$\text{Total Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise
 | Polynomial Regression | `degree` | Feature complexity |
 | Decision Tree | `max_depth` | Tree complexity |
 | Random Forest | `n_estimators` | Number of trees |
-| Logistic Regression | `C` | Regularization strength |
+| Neural Network | `hidden_size`, `lr` | Capacity, learning speed |
 
 ---
 
@@ -338,25 +377,9 @@ Also: validation score depends on *which* 200 samples happen to be in the valida
 
 # K-Fold Cross-Validation
 
-<img src="images/week07/cross_validation_kfold.png" width="700" style="display: block; margin: 0 auto;">
+<img src="images/week07/kfold_diagram.png" width="800" style="display: block; margin: 0 auto;">
 
-**Key insight**: Every data point is used for testing exactly once.
-
----
-
-# K-Fold: How It Works
-
-**Split data into K equal folds. Rotate which one is the test set.**
-
-```
-Fold 1:  [TEST] [train] [train] [train] [train]   → score₁
-Fold 2:  [train] [TEST] [train] [train] [train]   → score₂
-Fold 3:  [train] [train] [TEST] [train] [train]   → score₃
-Fold 4:  [train] [train] [train] [TEST] [train]   → score₄
-Fold 5:  [train] [train] [train] [train] [TEST]   → score₅
-
-Final = mean(scores)    SE = σ / √K
-```
+Every data point is used for testing **exactly once** and for training **K-1 times**.
 
 ---
 
@@ -523,31 +546,21 @@ scores = cross_val_score(pipe, X, y, cv=5)   # ← Clean
 |--------------|---------|-----|
 | Preprocessing | Scaling on full data | `Pipeline` |
 | Feature selection | Selecting on full data | Select inside CV |
-| Target leakage | Feature encodes the label | Remove the feature |
+| Target leakage | Feature encodes the label | Remove it |
 | Temporal leakage | Using future data | `TimeSeriesSplit` |
-| Duplicate leakage | Same sample in train+test | Deduplicate first |
+| Duplicate leakage | Same sample in train+test | Deduplicate |
 
 **Leakage gives optimistic results that won't hold in production.**
 
 ---
 
-# Leakage Demo
+# Real-World Leakage Example
 
-```python
-# WRONG way (leakage)
-scaler = StandardScaler()
-X_leaked = scaler.fit_transform(X)
-scores_leaked = cross_val_score(model, X_leaked, y, cv=5)
+**Kaggle Tabular Playground 2021**: Top teams discovered that a timestamp feature encoded the target. Models scored 99%+ in CV but the feature wouldn't exist at prediction time.
 
-# RIGHT way (pipeline)
-pipe = Pipeline([('scaler', StandardScaler()), ('model', model)])
-scores_clean = cross_val_score(pipe, X, y, cv=5)
+**Hospital readmission study**: Patients appeared in both train and test sets. Model learned patient-specific patterns, not general readmission risk. Deployed model accuracy dropped 15%.
 
-print(f"With leakage:    {scores_leaked.mean():.4f}")
-print(f"Without leakage: {scores_clean.mean():.4f}")
-```
-
-The leaked score is **always** higher. That's the danger.
+**Always ask**: "Would I have this information at prediction time?"
 
 ---
 
@@ -567,7 +580,8 @@ The leaked score is **always** higher. That's the danger.
 from sklearn.model_selection import learning_curve
 
 train_sizes, train_scores, val_scores = learning_curve(
-    model, X, y, train_sizes=[0.1, 0.25, 0.5, 0.75, 1.0], cv=5
+    model, X, y,
+    train_sizes=[0.1, 0.25, 0.5, 0.75, 1.0], cv=5
 )
 ```
 
@@ -585,13 +599,28 @@ train_sizes, train_scores, val_scores = learning_curve(
 
 <img src="images/week07/validation_curve.png" width="650" style="display: block; margin: 0 auto;">
 
+---
+
+# Validation Curve in Code
+
 ```python
 from sklearn.model_selection import validation_curve
 
 train_scores, val_scores = validation_curve(
     RandomForestClassifier(), X, y,
-    param_name="max_depth", param_range=[1, 2, 5, 10, 20, 50], cv=5)
+    param_name="max_depth",
+    param_range=[1, 2, 5, 10, 20, 50],
+    cv=5
+)
+
+# Plot train/val means with ± 1 std shading
+plt.plot(param_range, train_scores.mean(axis=1), label='Train')
+plt.plot(param_range, val_scores.mean(axis=1), label='Validation')
+plt.xlabel('max_depth')
+plt.ylabel('Accuracy')
 ```
+
+The peak of the validation curve is the sweet spot.
 
 ---
 
@@ -604,7 +633,8 @@ train_scores, val_scores = validation_curve(
 | L2 (Ridge) | Shrinks weights toward zero | `C=0.1` |
 | L1 (Lasso) | Drives some weights to zero | `penalty='l1'` |
 | Tree depth | Limits tree growth | `max_depth=5` |
-| Dropout | Drops neurons randomly | `Dropout(0.5)` |
+| Dropout | Drops neurons randomly | `nn.Dropout(0.5)` |
+| Weight decay | L2 for neural nets | `optim.Adam(lr=1e-3, weight_decay=1e-4)` |
 
 **Smaller C = more regularization.** Also a hyperparameter — need CV to pick it.
 
@@ -620,14 +650,14 @@ train_scores, val_scores = validation_curve(
 
 | Concept | Key Idea |
 |---------|----------|
-| **Sklearn pattern** | fit → predict → score, same API for all models |
-| **Train/test split** | Never evaluate on training data |
-| **Model complexity** | Degree, depth control underfitting/overfitting |
-| **Bias-variance** | Sweet spot minimizes total error |
-| **Train/Validate/Test** | Train to learn, validate to tune, test to report |
-| **K-fold CV** | Use all data for training and validation |
-| **CV variants** | Match strategy to data structure |
-| **Data leakage** | Preprocessing must happen inside CV |
+| Sklearn pattern | fit → predict → score, same API for all models |
+| Train/test split | Never evaluate on training data |
+| Model complexity | Degree, depth, layers control underfitting/overfitting |
+| Bias-variance | Sweet spot minimizes total error |
+| Train/Validate/Test | Train to learn, validate to tune, test to report |
+| K-fold CV | Use all data for training and validation |
+| CV variants | Match strategy to data structure |
+| Data leakage | Preprocessing must happen inside CV |
 
 ---
 
@@ -661,9 +691,9 @@ train_scores, val_scores = validation_curve(
 
 > It contaminates your final evaluation. Use a validation set or CV instead.
 
-**Q6**: A decision tree with max_depth=None gets 100% training accuracy. Good?
+**Q6**: A neural net trains for 500 epochs. Train loss → 0, val loss rises after epoch 50. What's happening?
 
-> No — tree memorized training data. Likely severe overfitting.
+> Overfitting after epoch 50. Fix: early stopping, dropout, or weight decay.
 
 **Q7**: What does a learning curve tell you that a validation curve doesn't?
 
