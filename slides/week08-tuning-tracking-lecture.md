@@ -80,7 +80,7 @@ Week 13: Make it fast and small      (profiling, quantization)
 | Cross-validation | We use CV to evaluate every hyperparameter combo |
 | Overfitting | Too many hyperparameters → overfit to validation set |
 | Bias-variance | Tuning controls this tradeoff |
-| 5-step protocol | Tuning is Step 2; test set stays sealed |
+| Model comparison | CV all candidates → pick best → retrain on all data |
 
 **This week builds directly on Week 7.** If CV is unclear, review Week 7 first.
 
@@ -171,7 +171,7 @@ param_grid = {
 
 grid = GridSearchCV(
     RandomForestClassifier(), param_grid,
-    cv=5, scoring='accuracy')
+    cv=5, scoring='accuracy', n_jobs=-1)  # use all CPU cores
 grid.fit(X, y)
 
 print(f"Best params: {grid.best_params_}")
@@ -428,35 +428,28 @@ Optuna monitors intermediate results and kills unpromising trials, saving comput
 
 ---
 
-# The Tuning Trap: Selection Bias
+# Aside: Is `best_score_` Trustworthy?
 
 ```python
-# WRONG: Tune and evaluate on SAME cross-validation
 grid = GridSearchCV(model, params, cv=5)
 grid.fit(X, y)
-print(f"Best score: {grid.best_score_:.3f}")  # Optimistic!
+print(f"Best score: {grid.best_score_:.3f}")  # Slightly optimistic!
 ```
 
 **Why?** You tried many configs and picked the best. By definition, it's the luckiest.
 
-**`GridSearchCV.best_score_` is always optimistically biased.**
+`GridSearchCV.best_score_` has a small **selection bias**. In practice, with a reasonable number of candidates, this bias is small. But for papers or high-stakes settings, use nested CV.
 
 ---
 
-# Nested Cross-Validation
+# Advanced: Nested Cross-Validation
 
-**Separate the tuning loop from the evaluation loop.**
+For rigorous reporting (e.g., academic papers), separate tuning from evaluation:
 
-![w:700](images/week07/nested_cross_validation.png)
-
----
-
-# Nested CV: How It Works
+![w:600](images/week07/nested_cross_validation.png)
 
 - **Inner loop** (3-fold): Tunes hyperparameters via GridSearchCV
 - **Outer loop** (5-fold): Evaluates the *tuned* model on truly held-out data
-
-The inner loop finds the best hyperparameters. The outer loop tells you how well the *process of tuning + training* will perform on new data.
 
 ---
 
@@ -470,14 +463,14 @@ inner_cv = GridSearchCV(
     RandomForestClassifier(),
     param_grid={'max_depth': [5, 10, 15],
                 'n_estimators': [100, 200]},
-    cv=3)
+    cv=3, n_jobs=-1)
 
 # Outer loop: evaluate the tuned model
 outer_scores = cross_val_score(inner_cv, X, y, cv=5)
 print(f"Nested CV: {outer_scores.mean():.3f} ± {outer_scores.std():.3f}")
 ```
 
-**This is the gold standard** for reporting tuned model performance.
+This gives an **unbiased estimate** of how well the tuning + training process generalizes.
 
 > Notebook Part 4: Compare `grid.best_score_` vs nested CV scores.
 
@@ -512,22 +505,19 @@ This is exactly what tools like AutoGluon, FLAML, and auto-sklearn do.
 
 ```python
 model_configs = {
-    'LogReg': (LogisticRegression(),
-               {'C': [0.01, 0.1, 1, 10]}),
-    'KNN':    (KNeighborsClassifier(),
-               {'n_neighbors': [3, 5, 11]}),
-    'SVM':    (SVC(),
-               {'C': [0.1, 1, 10], 'kernel': ['rbf', 'poly']}),
-    'RF':     (RandomForestClassifier(),
-               {'n_estimators': [100, 200]}),
-    'GB':     (GradientBoostingClassifier(),
-               {'learning_rate': [0.01, 0.1]}),
+    'LogReg': (LogisticRegression(), {'C': [0.01, 0.1, 1, 10]}),
+    'KNN':    (KNeighborsClassifier(), {'n_neighbors': [3, 5, 11]}),
+    'SVM':    (SVC(), {'C': [0.1, 1, 10], 'kernel': ['rbf', 'poly']}),
+    'RF':     (RandomForestClassifier(), {'n_estimators': [100, 200]}),
+    'GB':     (GradientBoostingClassifier(), {'learning_rate': [0.01, 0.1]}),
 }
 
+results = {}
 for name, (model, params) in model_configs.items():
-    gs = GridSearchCV(model, params, cv=5)
-    gs.fit(X_train, y_train)
+    gs = GridSearchCV(model, params, cv=5, n_jobs=-1)
+    gs.fit(X, y)
     results[name] = gs.best_score_
+    print(f"{name:12s}  Best CV = {gs.best_score_:.4f}")
 ```
 
 > Notebook Part 5: Full DIY AutoML with 6 model families.
@@ -575,17 +565,16 @@ dummy = cross_val_score(DummyClassifier(), X, y, cv=5).mean()
 # Step 2: Simple interpretable model
 lr = cross_val_score(LogisticRegression(), X, y, cv=5).mean()
 
-# Step 3: Strong model with tuning (nested CV)
-search = RandomizedSearchCV(RF(), params, n_iter=60, cv=5)
-outer = cross_val_score(search, X, y, cv=5)
+# Step 3: Strong model with tuning
+search = RandomizedSearchCV(
+    RandomForestClassifier(), params, n_iter=60, cv=5, n_jobs=-1)
+search.fit(X, y)
+print(f"Best RF: {search.best_score_:.3f}")
 
-# Step 4: AutoML ceiling
-for name, (model, params) in model_configs.items():
-    gs = GridSearchCV(model, params, cv=5)
-    gs.fit(X_train, y_train)
+# Step 4: AutoML ceiling — loop over model families (see DIY AutoML)
 ```
 
-**If LR is close to the best → deploy LR (interpretable, fast).**
+**If LogReg is close to the best → deploy LogReg (interpretable, fast).**
 
 ---
 
@@ -638,11 +627,11 @@ def set_seed(seed=42):
     torch.cuda.manual_seed_all(seed)           # PyTorch GPU
     torch.backends.cudnn.deterministic = True  # cuDNN
     torch.backends.cudnn.benchmark = False     # cuDNN
-    torch.use_deterministic_algorithms(True)   # All ops
-    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+    torch.use_deterministic_algorithms(True)   # Error if non-deterministic op used
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # Set before CUDA ops
 ```
 
-**Miss any one of these → non-reproducible results.**
+**Miss any one of these → non-reproducible results.** Note: `use_deterministic_algorithms(True)` will raise an error if a non-deterministic operation is encountered.
 
 > Notebook Part 7: Test what happens when you skip each seed.
 
@@ -714,7 +703,7 @@ Sound familiar? You need a system that **automatically records** every experimen
 | **Environment** | Python version, package versions, git hash |
 | **Metadata** | Run name, tags, notes, timestamp |
 
-Tracking all of this manually in a spreadsheet breaks down after 10 runs.
+Tracking all of this manually in a spreadsheet breaks down after 10 runs. (Note: not all tools support all categories — Trackio handles config + metrics; MLflow adds artifacts.)
 
 ---
 
@@ -775,7 +764,7 @@ Trackio auto-generates loss curves and accuracy plots in its local dashboard.
 
 ```bash
 pip install trackio
-trackio              # launches local dashboard
+trackio show         # launches local Gradio dashboard
 ```
 
 ---
@@ -839,7 +828,7 @@ Pick based on your needs. Start with Trackio, graduate to MLflow or W&B for team
 | Random search | Better coverage, you control the budget |
 | GP-based BayesOpt | Models the function, uses uncertainty |
 | Optuna (TPE) | Scales well, handles categorical, supports pruning |
-| Nested CV | Tune inside, evaluate outside — unbiased estimate |
+| Nested CV | Advanced: tune inside, evaluate outside — unbiased estimate for papers |
 
 ---
 
@@ -869,9 +858,9 @@ Pick based on your needs. Start with Trackio, graduate to MLflow or W&B for team
 
 > GP models the objective function directly with uncertainty. TPE models the distribution of good vs bad configurations. GP works better for small, continuous spaces; TPE scales to more parameters and handles categorical.
 
-**Q3**: What is nested CV and when do you need it?
+**Q3**: What is nested CV and when might you use it?
 
-> Inner loop tunes hyperparameters, outer loop evaluates. Needed because `GridSearchCV.best_score_` is optimistically biased — it reports the luckiest result from many tries.
+> Inner loop tunes hyperparameters, outer loop evaluates. Useful for academic papers or high-stakes settings where you need an unbiased estimate of the tuning + training process. `GridSearchCV.best_score_` has a small selection bias from picking the luckiest result.
 
 ---
 
@@ -883,7 +872,7 @@ Pick based on your needs. Start with Trackio, graduate to MLflow or W&B for team
 
 **Q5**: Why should you track experiments programmatically instead of in a spreadsheet?
 
-> Spreadsheets don't scale, are error-prone, and can't automatically capture configs, metrics over time, or model artifacts. Tools like Trackio automate all of this.
+> Spreadsheets don't scale, are error-prone, and can't automatically capture configs or metrics over time. Tools like Trackio automate logging of configs and metrics; more advanced tools (MLflow, W&B) also handle artifacts and model registry.
 
 ---
 
