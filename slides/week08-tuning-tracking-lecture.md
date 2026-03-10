@@ -287,13 +287,14 @@ Bayesian optimization **uses past results** to decide where to look next.
 
 Remember active learning from earlier weeks?
 
+![w:650](images/week08/bayesopt_active_learning.png)
+
 | | Active Learning | Bayesian Optimization |
 |--|----------------|----------------------|
 | **Goal** | Reduce uncertainty everywhere | Find the **maximum** |
-| **Strategy** | Sample where model is most uncertain | Sample where score is likely **highest** |
-| **Focus** | Exploration | Exploitation + Exploration |
+| **Strategy** | Sample where most uncertain | Sample where score likely **highest** |
 
-Both use a surrogate model. Both pick the next point intelligently. BayesOpt just asks a different question: **"where is the best score?"** instead of "where am I most uncertain?"
+BayesOpt asks: **"where is the best score?"** instead of "where am I most uncertain?"
 
 ---
 
@@ -311,33 +312,27 @@ The surrogate gets better with each evaluation → search gets smarter over time
 
 # The Surrogate Model: Mean + Uncertainty
 
-The surrogate doesn't just predict "this config will score 85%."
+![w:800](images/week08/bayesopt_prior2posterior.png)
 
-It predicts: "this config will score **85% ± 8%**."
+**Left (Prior)**: Before any evaluation — flat mean, wide uncertainty band.
+**Right (Posterior)**: After one evaluation — uncertainty shrinks near the observed point.
 
-This lets us balance:
-- **Exploitation**: try near the current best (high mean)
-- **Exploration**: try where we're uncertain (high uncertainty)
+The surrogate predicts both **mean** (μ) and **uncertainty** (σ) at every point.
 
-The **acquisition function** (e.g., Expected Improvement) combines both.
-
-*See the interactive GP visualization: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
+*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
 
 ---
 
 # Expected Improvement: The Intuition
 
-At each candidate point, ask: **"how much better could this be than my current best?"**
+![w:750](images/week08/bayesopt_ei.png)
 
-```
-Current best score: 87%
+**Top**: Surrogate model (black = predicted mean, grey = uncertainty). Red dot = next query.
+**Bottom**: Acquisition function (α_EI). Blue cross = maximum → **next point to evaluate**.
 
-Candidate A:  mean=86%, uncertainty=±1%  → probably worse
-Candidate B:  mean=88%, uncertainty=±2%  → likely improvement!
-Candidate C:  mean=84%, uncertainty=±10% → uncertain, maybe great!
-```
+The acquisition function is highest where the model predicts **high score AND high uncertainty**.
 
-**Expected Improvement** weights both the probability of improvement and its magnitude. It automatically balances exploration vs exploitation.
+*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
 
 ---
 
