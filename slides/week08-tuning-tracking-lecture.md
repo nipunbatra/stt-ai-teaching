@@ -140,11 +140,11 @@ for n_est in [50, 100, 200]:
             score = cross_val_score(model, X, y, cv=5).mean()
             if score > best_score:
                 best_score = score
-                best_params = {'n_est': n_est, 'depth': depth,
-                               'leaf': leaf}
+                best_params = {'n_estimators': n_est,
+                    'max_depth': depth, 'min_samples_leaf': leaf}
 ```
 
-> Notebook Part 1a: Implement this manual grid search.
+> Notebook Part 1: Implement this manual grid search.
 
 ---
 
@@ -180,7 +180,7 @@ print(f"Best score:  {grid.best_score_:.3f}")
 
 Same nested for-loops, but handles CV, scoring, and results tracking.
 
-> Notebook Part 1b: Use `GridSearchCV` and inspect `grid.cv_results_`.
+> Notebook Part 1: Use `GridSearchCV` and inspect `grid.cv_results_`.
 
 ---
 
@@ -234,13 +234,13 @@ search = RandomizedSearchCV(
      'max_depth': randint(3, 30),
      'min_samples_leaf': randint(1, 20),
      'max_features': uniform(0.1, 0.9)},
-    n_iter=60, cv=5, random_state=42)
+    n_iter=60, cv=5, n_jobs=-1, random_state=42)
 search.fit(X, y)
 ```
 
 **60 random trials often beats a full grid search** of 900+ combos.
 
-> Notebook Part 1c: Compare Grid vs Random search on the same budget.
+> Notebook Part 1: Compare Grid vs Random search on the same budget.
 
 ---
 
@@ -306,64 +306,13 @@ optimizer = BayesianOptimization(
 optimizer.maximize(init_points=3, n_iter=7)
 ```
 
-After 3 random points, the GP surrogate "sees" the landscape and focuses on the peak.
+After 3 random points, the surrogate model "sees" the landscape and focuses on the peak.
 
-> Notebook Part 2a: Visualize the GP surrogate step by step as it learns.
-
----
-
-# Two Flavors of Bayesian Optimization
-
-| | Gaussian Process (GP) | Tree Parzen Estimator (TPE) |
-|--|----------------------|----------------------------|
-| Surrogate | GP regression | Density estimators |
-| Library | `bayesian-optimization` | Optuna |
-| Strengths | Exact uncertainty, smooth functions | Scales well, handles categorical |
-| Best for | < 20 params, continuous | Any size, mixed types |
+> Notebook Part 2: Visualize the surrogate model step by step as it learns.
 
 ---
 
-# GP vs TPE: How They Work
-
-**GP-based**: Models the objective function directly.
-- Builds a probability distribution over functions
-- Picks next point where Expected Improvement is highest
-- Needs all params to be continuous
-
-**TPE**: Models the distribution of *good* vs *bad* configurations.
-- Splits trials into "good" (top 20%) and "bad" (bottom 80%)
-- Picks next point likely to be in the "good" distribution
-- Naturally handles categorical, integer, and conditional params
-
-> Notebook Part 3: Side-by-side comparison of GP vs TPE behavior.
-
----
-
-# GP-Based BayesOpt for Hyperparameter Tuning
-
-```python
-from bayes_opt import BayesianOptimization
-
-def rf_objective(n_estimators, max_depth, min_samples_leaf):
-    model = RandomForestClassifier(
-        n_estimators=int(n_estimators),
-        max_depth=int(max_depth),
-        min_samples_leaf=int(min_samples_leaf))
-    return cross_val_score(model, X, y, cv=5).mean()
-
-optimizer = BayesianOptimization(
-    f=rf_objective,
-    pbounds={'n_estimators': (50, 500),
-             'max_depth': (3, 30),
-             'min_samples_leaf': (1, 20)})
-optimizer.maximize(init_points=10, n_iter=50)
-```
-
-> Notebook Part 2b: Full GP-based tuning with convergence plot.
-
----
-
-# Optuna (TPE) in Code
+# Optuna: Bayesian Optimization Made Easy
 
 ```python
 import optuna
@@ -383,7 +332,7 @@ print(f"Best: {study.best_value:.3f}")
 print(f"Params: {study.best_params}")
 ```
 
-> Notebook Part 2c: Full Optuna tuning with visualization.
+> Notebook Part 2: Full Optuna tuning with visualization.
 
 ---
 
@@ -410,19 +359,19 @@ def objective(trial):
 
 Optuna monitors intermediate results and kills unpromising trials, saving compute.
 
-> Notebook Part 2d: Optuna with pruning — see how it skips bad trials.
+> Notebook Part 6: Optuna with pruning for neural networks — see how it skips bad trials.
 
 ---
 
 # Comparison: All Tuning Approaches
 
-| | Grid | Random | GP-BayesOpt | Optuna (TPE) |
-|---|------|--------|-------------|--------------|
-| Intelligence | None | None | High | High |
-| Efficiency | Low | Medium | High | High |
-| Scales to many params | No | Yes | No (< 20) | Yes |
-| Handles categorical | Yes | Yes | No | Yes |
-| Pruning support | No | No | No | Yes |
+| | Grid | Random | Optuna (Bayesian) |
+|---|------|--------|-------------------|
+| Intelligence | None | None | High |
+| Efficiency | Low | Medium | High |
+| Scales to many params | No | Yes | Yes |
+| Handles categorical | Yes | Yes | Yes |
+| Pruning support | No | No | Yes |
 
 **Practical rule**: Random for quick exploration, Optuna for serious tuning.
 
@@ -510,6 +459,7 @@ model_configs = {
     'SVM':    (SVC(), {'C': [0.1, 1, 10], 'kernel': ['rbf', 'poly']}),
     'RF':     (RandomForestClassifier(), {'n_estimators': [100, 200]}),
     'GB':     (GradientBoostingClassifier(), {'learning_rate': [0.01, 0.1]}),
+    'ET':     (ExtraTreesClassifier(), {'n_estimators': [100, 200]}),
 }
 
 results = {}
@@ -520,7 +470,7 @@ for name, (model, params) in model_configs.items():
     print(f"{name:12s}  Best CV = {gs.best_score_:.4f}")
 ```
 
-> Notebook Part 5: Full DIY AutoML with 6 model families.
+> Notebook Part 5: Full DIY AutoML with multiple model families.
 
 ---
 
@@ -566,8 +516,9 @@ dummy = cross_val_score(DummyClassifier(), X, y, cv=5).mean()
 lr = cross_val_score(LogisticRegression(), X, y, cv=5).mean()
 
 # Step 3: Strong model with tuning
+rf_params = {'n_estimators': randint(50, 500), 'max_depth': randint(3, 30)}
 search = RandomizedSearchCV(
-    RandomForestClassifier(), params, n_iter=60, cv=5, n_jobs=-1)
+    RandomForestClassifier(), rf_params, n_iter=60, cv=5, n_jobs=-1)
 search.fit(X, y)
 print(f"Best RF: {search.best_score_:.3f}")
 
@@ -633,7 +584,7 @@ def set_seed(seed=42):
 
 **Miss any one of these → non-reproducible results.** Note: `use_deterministic_algorithms(True)` will raise an error if a non-deterministic operation is encountered.
 
-> Notebook Part 7: Test what happens when you skip each seed.
+> Notebook Part 7: Test what happens when you skip each seed setting.
 
 ---
 
@@ -717,15 +668,16 @@ trackio.init(project="netflix-predictor", config={
     "n_estimators": 100,
     "seed": 42})
 
-model = train(trackio.config)
-trackio.log({"accuracy": accuracy, "f1": f1_score})
+model = train(trackio.config)           # your training code
+trackio.log({"accuracy": accuracy,      # log final metrics
+             "f1": f1_score})
 
 trackio.finish()
 ```
 
-**Trackio** (Hugging Face): free, local-first, W&B-compatible API.
+**Trackio** (Hugging Face): free, local-first, W&B-compatible API. Three calls: `init`, `log`, `finish`.
 
-> Notebook Part 8a: Log your first sklearn experiment.
+> Notebook Part 8: Log your first sklearn experiment.
 
 ---
 
@@ -748,7 +700,7 @@ trackio.finish()
 
 Trackio auto-generates loss curves and accuracy plots in its local dashboard.
 
-> Notebook Part 8b-8c: Log training curves and neural network runs.
+> Notebook Part 8: Log training curves and neural network runs.
 
 ---
 
@@ -787,7 +739,7 @@ trackio.finish()
 
 Open the local dashboard to see both runs side-by-side with their configs, metrics, and curves.
 
-> Notebook Part 8d: Compare multiple learning rates visually.
+> Notebook Part 8: Compare multiple learning rates visually.
 
 ---
 
@@ -826,8 +778,7 @@ Pick based on your needs. Start with Trackio, graduate to MLflow or W&B for team
 |---------|----------|
 | Grid search | Exhaustive but doesn't scale (curse of dimensionality) |
 | Random search | Better coverage, you control the budget |
-| GP-based BayesOpt | Models the function, uses uncertainty |
-| Optuna (TPE) | Scales well, handles categorical, supports pruning |
+| Optuna (Bayesian) | Learns from past results, handles categorical, supports pruning |
 | Nested CV | Advanced: tune inside, evaluate outside — unbiased estimate for papers |
 
 ---
@@ -854,9 +805,9 @@ Pick based on your needs. Start with Trackio, graduate to MLflow or W&B for team
 
 # Exam Questions (2/3)
 
-**Q2**: What is the difference between GP-based and TPE-based Bayesian optimization?
+**Q2**: Why is Bayesian optimization (e.g., Optuna) more efficient than grid or random search?
 
-> GP models the objective function directly with uncertainty. TPE models the distribution of good vs bad configurations. GP works better for small, continuous spaces; TPE scales to more parameters and handles categorical.
+> Bayesian optimization learns from previous evaluations — it builds a model of which hyperparameter regions are promising and focuses the search there. Grid and random search are blind — they don't use past results to guide future trials.
 
 **Q3**: What is nested CV and when might you use it?
 
