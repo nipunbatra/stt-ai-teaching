@@ -21,20 +21,12 @@ math: mathjax
 
 # Previously on CS 203...
 
-| Week | What We Built | Tools |
-|------|---------------|-------|
-| Week 1 | Collected data from the web | `requests`, `BeautifulSoup`, APIs |
-| Week 2 | Validated and cleaned the data | `pandas`, `great_expectations` |
-| Week 3 | Labeled data for ML | Label Studio, annotation guides |
-| Week 4 | Optimized labeling (AL + weak supervision) | `modAL`, Snorkel |
-| Week 5 | Augmented the dataset | `imgaug`, `nlpaug`, `audiomentations` |
-| Week 6 | Used foundation models via APIs | OpenAI, Gemini, multimodal AI |
+| Week | What We Did |
+|------|------------|
+| 1-5 | Built a complete data pipeline: collect → validate → label → augment |
+| 6 | Used foundation models (LLM APIs, multimodal AI) |
 
-**We have clean, labeled, augmented data. Now what?**
-
----
-
-# The Model Development Journey
+**We have clean, labeled, augmented data and models. Now what?**
 
 ```
 Data (Weeks 1-5)  →  Models (Weeks 6-8)  →  Engineering (Weeks 9-13)
@@ -42,41 +34,9 @@ Data (Weeks 1-5)  →  Models (Weeks 6-8)  →  Engineering (Weeks 9-13)
                     You are here
 ```
 
-We need to answer three questions:
+**This week**: How do we know if a model is good? How do we trust a number like "92% accuracy"?
 
-1. **How do we know if a model is good?** ← This week (Evaluation)
-2. How do we make it better? ← Week 8 (Tuning & AutoML)
-3. How do we track what we tried? ← Week 8 (Experiment Tracking)
-
----
-
-# What Caveats Exist in Model Development?
-
-Training a model is easy. **Trusting it** is hard.
-
-- How do you know your 92% accuracy is real?
-- What if it drops to 75% on new data?
-- How do you compare two models fairly?
-- How do you pick the right hyperparameters without cheating?
-
-**This lecture gives you the tools to answer these questions rigorously.**
-
----
-
-# Where We Are
-
-```
-Part I: Data
-  Week 1-5: Collection, validation, labeling, augmentation     ✓
-
-Part II: Models
-  Week 6:  LLM APIs & multimodal AI                            ✓
-  Week 7:  Model Evaluation                                    ← you are here
-  Week 8:  Tuning, AutoML & Experiment Tracking
-
-Part III: Engineering
-  Week 9-13: Git, reproducibility, CI/CD, APIs, profiling
-```
+**Companion notebook**: [Week 7 Evaluation Notebook](../lecture-demos/week07/week07_evaluation_notebook.html)
 
 ---
 
@@ -84,81 +44,114 @@ Part III: Engineering
 
 | Section | Topic |
 |---------|-------|
-| 1 | Motivation: why evaluation matters |
+| 1 | The Data Distribution & i.i.d. |
 | 2 | Train/Test Split |
 | 3 | Model Complexity: underfitting & overfitting |
 | 4 | The Validation Set |
-| 5 | Cross-Validation |
-| 6 | Putting it all together |
+| 5 | Cross-Validation (manual, sklearn, stratified, time series, grouped) |
+| 6 | The Correct 5-Step Protocol |
 | 7 | Bridge to Week 8 |
-
-**Companion notebook**: [Week 7 Evaluation Notebook](../lecture-demos/week07/week07_evaluation_notebook.html)
 
 ---
 
 <!-- _class: lead -->
 
-# Section 1: Motivation
+# Section 1: Where Does Data Come From?
 
-*Why evaluation matters*
+*The distribution, i.i.d., and generalization*
 
 <!--
 INSTRUCTOR NOTES:
-- Start with a story: "Imagine you built a spam filter. It gets 99% on your data. You deploy it. It fails miserably. Why?"
-- Key concept: generalization. We want to know how the model will do on NEW data it has never seen.
+- This is foundational. Students need to understand distributions and i.i.d. before anything else.
+- Use the distribution diagram. Draw on the board.
+- Spend time here. If students don't get this, the rest won't make sense.
 -->
 
 ---
 
-# Why Evaluate Models?
+# The Data Distribution
 
-**Scenario**: You train a decision tree on 1000 emails.
+![w:750](images/week07/distribution.png)
 
-```
-Training accuracy: 99%
-Test accuracy:     60%
-```
+All our data comes from some **unknown probability distribution** $D$ over $(x, y)$ pairs.
 
-**What happened?**
-
-The model **memorized** the training data — including noise, typos, and quirks that won't appear in new emails.
-
-<!--
-INSTRUCTOR NOTES:
-- Analogy: A student who memorizes answers vs one who understands concepts.
-  The memorizer scores 100% on practice problems but fails the exam.
-- Ask students: "Would you trust a model that gets 99% on data it's already seen?"
--->
+We never see $D$ directly — we only get **samples** drawn from it.
 
 ---
 
-# Training Accuracy Is Misleading
+# What Is a Distribution?
 
-Training accuracy tells you how well the model **remembers**. It says nothing about how well it will **generalize**.
+Think of $D$ as the **entire population** of possible data points:
 
-```
-A student who memorizes exam answers:
-  Practice test score:  100%  ← perfect recall
-  Actual exam score:     55%  ← can't generalize
+| Example | Distribution $D$ | Samples |
+|---------|-----------------|---------|
+| Email spam detection | All emails ever sent + will be sent | The 1000 emails in your dataset |
+| Medical diagnosis | All patients with this condition | The 200 patients in your study |
+| Stock prediction | All trading days past and future | The 5 years of historical data |
 
-A model that memorizes training data:
-  Training accuracy:    99%   ← perfect recall
-  Test accuracy:        60%   ← can't generalize
-```
+Your dataset is a **tiny window** into a much larger reality.
 
-**The goal of ML is NOT to memorize — it's to learn patterns that transfer to new data.**
-
-> Notebook Section 3: See how a decision tree gets 100% train accuracy but much lower test accuracy.
+The question: can we learn something from this window that applies to the full distribution?
 
 ---
 
-# What We Actually Want
+# The i.i.d. Assumption
 
-We want to know: **how well will this model do on NEW data?**
+We assume our data points are **i.i.d.**: **independent and identically distributed**.
 
-This is called the **generalization error** — how the model performs on data drawn from the same distribution but never seen during training:
+**Identically distributed**: Every data point comes from the **same** distribution $D$.
+- Monday's emails and Friday's emails follow the same pattern
+- Patient 1 and Patient 100 are drawn from the same population
+
+**Independent**: Knowing one data point tells you nothing about another.
+- Seeing one email doesn't change the probability of the next email
+- One patient's diagnosis doesn't affect another's
+
+---
+
+# i.i.d. in Code: Sampling from a Distribution
+
+```python
+import torch
+
+# The "true" distribution (unknown in real life, we define it here)
+D = torch.distributions.Normal(loc=5.0, std=2.0)
+
+# Draw i.i.d. samples — each draw is independent, same distribution
+sample1 = D.sample((100,))  # 100 training samples
+sample2 = D.sample((50,))   # 50 test samples
+
+print(f"Training mean: {sample1.mean():.2f}")  # ≈ 5.0
+print(f"Test mean:     {sample2.mean():.2f}")  # ≈ 5.0
+```
+
+Both sets are drawn from the **same** $D$. This is why we can use training data to learn patterns that apply to test data.
+
+> Notebook: See the i.i.d. demo with PyTorch distributions.
+
+---
+
+# When i.i.d. Breaks Down
+
+| Violation | Example | Consequence |
+|-----------|---------|-------------|
+| **Not identical** | Train on summer, test on winter | Model fails on new season |
+| **Not independent** | Time series: today depends on yesterday | Random splits leak future info |
+| **Distribution shift** | Train in lab, deploy in the wild | Model accuracy drops |
+
+**Most of this lecture assumes i.i.d. holds.** When it doesn't (time series, grouped data), we need special CV strategies — covered in Section 5.
+
+---
+
+# What We Want: Generalization Error
+
+Given samples from $D$, we train a model $f$.
+
+We want to know: **how well will $f$ do on NEW samples from $D$?**
 
 $$E_{\text{test}} = \mathbb{E}_{(x,y) \sim D}\left[\mathcal{L}(f(x), y)\right]$$
+
+This is the **expected loss on a randomly drawn new data point** — the generalization error.
 
 ---
 
@@ -169,65 +162,28 @@ $$E_{\text{test}} = \mathbb{E}_{(x,y) \sim D}\left[\mathcal{L}(f(x), y)\right]$$
 | Symbol | Meaning |
 |--------|---------|
 | $f(x)$ | Our trained model's prediction for input $x$ |
-| $y$ | The true label |
-| $\mathcal{L}(f(x), y)$ | Loss: how wrong is the prediction? |
-| $(x, y) \sim D$ | A new data point from the real-world distribution $D$ |
-| $\mathbb{E}[\cdot]$ | Expected value — average over all possible new data points |
+| $y$ | The true label for that input |
+| $\mathcal{L}(f(x), y)$ | Loss function: how wrong is the prediction? (e.g., 0-1 loss, MSE) |
+| $(x, y) \sim D$ | A new data point drawn from the real-world distribution $D$ |
+| $\mathbb{E}[\cdot]$ | Expected value — average over **all possible** new data points |
 
----
-
-# What Does the Loss Function Look Like?
-
-Common choices for $\mathcal{L}(f(x), y)$:
-
-| Task | Loss | Formula |
-|------|------|---------|
-| Classification | 0-1 loss | $\mathcal{L} = \mathbf{1}[f(x) \neq y]$ |
-| Classification | Log loss | $\mathcal{L} = -y \log f(x) - (1-y)\log(1-f(x))$ |
-| Regression | MSE | $\mathcal{L} = (f(x) - y)^2$ |
-| Regression | MAE | $\mathcal{L} = |f(x) - y|$ |
-
-**In plain English**: "On average, how much error will our model make on a randomly drawn new data point?"
+**In plain English**: "On average, how much error will our model make on data it has never seen?"
 
 ---
 
 # From Theory to Practice
 
-**Theory** (impossible): Average loss over ALL possible data points
+**Theory** (impossible): Average loss over ALL possible data from $D$
 
 $$E_{\text{test}} = \mathbb{E}_{(x,y) \sim D}\left[\mathcal{L}(f(x), y)\right]$$
 
-We can't compute this — we'd need infinite data from $D$.
+We can't compute this — we'd need infinite data.
 
-**Practice** (what we do): Average loss over a finite held-out test set
+**Practice** (what we do): Average loss over a **finite held-out set**
 
 $$\hat{E}_{\text{test}} = \frac{1}{n_{\text{test}}} \sum_{i=1}^{n_{\text{test}}} \mathcal{L}(f(x_i), y_i)$$
 
-**The entire lecture is about making this approximation as good as possible.**
-
----
-
-# Visualizing Generalization
-
-![w:700](images/week07/generalization_curve.png)
-
-The gap between training and test loss is the **generalization gap**. Our goal: minimize test loss, not training loss.
-
-*Diagram inspired by [Google ML Crash Course](https://developers.google.com/machine-learning/crash-course) (CC BY 4.0)*
-
----
-
-# The Evaluation Pipeline (Preview)
-
-![w:750](images/week07/evaluation_pipeline.png)
-
-```
-Train      → model learns parameters (weights, thresholds)
-Validation → choose between models / hyperparameters
-Test       → final unbiased evaluation (touch ONCE)
-```
-
-We'll build up to this pipeline step by step.
+**The entire lecture is about making $\hat{E}$ a good approximation of $E$.**
 
 ---
 
@@ -240,25 +196,8 @@ We'll build up to this pipeline step by step.
 <!--
 INSTRUCTOR NOTES:
 - Key message: never evaluate on training data.
-- Build intuition FIRST with a simple example, THEN show code.
+- Build intuition with the exam analogy.
 -->
-
----
-
-# The Basic Idea: Split Your Data
-
-Divide the dataset into two non-overlapping parts:
-
-$$D = D_{\text{train}} \cup D_{\text{test}}, \quad D_{\text{train}} \cap D_{\text{test}} = \emptyset$$
-
-Common ratios:
-- **80/20** (most common)
-- 70/30 (when data is plentiful)
-- 90/10 (when data is scarce — more for training)
-
-The model **trains** on one part and is **evaluated** on the other.
-
-**Key rule**: The test set must NEVER influence training — not even indirectly.
 
 ---
 
@@ -274,28 +213,46 @@ pass_fail = (hours + noise > 5).astype(int)
 
 X = hours.reshape(-1, 1)
 y = pass_fail
-
-print(f"Students: {len(y)}, Pass rate: {y.mean():.0%}")
 ```
 
 A dataset students can relate to — study hours predict exam outcome.
 
-> Notebook Section 2: Build this dataset yourself and visualize the scatter plot.
+> Notebook Section 1: Build this dataset, visualize the scatter plot, see the decision boundary.
 
 ---
 
-# Train/Test Split in Code
+# Why Not Evaluate on Training Data?
 
 ```python
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
+dt = DecisionTreeClassifier()  # no depth limit!
+dt.fit(X, y)
+print(f"Training accuracy: {dt.score(X, y):.3f}")  # 1.000
+```
 
+**100% accuracy!** Should we celebrate?
+
+**No.** The model **memorized** every training example. It's like a student who memorizes all practice questions word-for-word:
+
+```
+Practice test:  100%  ← memorization
+Actual exam:     60%  ← can't generalize
+```
+
+**Training accuracy measures memorization, not generalization.**
+
+> Notebook Section 2: See this yourself — unlimited depth tree gets 100% train but much lower test.
+
+---
+
+# The Basic Idea: Hold Out Test Data
+
+Divide the dataset into two **non-overlapping** parts:
+
+$$D = D_{\text{train}} \cup D_{\text{test}}, \quad D_{\text{train}} \cap D_{\text{test}} = \emptyset$$
+
+```python
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-print(f"Training: {len(X_train)} students")
-print(f"Testing:  {len(X_test)} students")
+    X, y, test_size=0.2, random_state=42)
 
 model = DecisionTreeClassifier(max_depth=3)
 model.fit(X_train, y_train)
@@ -304,42 +261,9 @@ print(f"Train accuracy: {model.score(X_train, y_train):.3f}")
 print(f"Test accuracy:  {model.score(X_test, y_test):.3f}")
 ```
 
-> Notebook Section 4: Try this with different `test_size` and `random_state`.
+The model trains on 80%, is evaluated on the other 20% it has **never seen**.
 
----
-
-# Why Not Evaluate on Training Data?
-
-```python
-dt = DecisionTreeClassifier()  # no depth limit!
-dt.fit(X_train, y_train)
-
-print(f"Train accuracy: {dt.score(X_train, y_train):.3f}")  # 1.000
-print(f"Test accuracy:  {dt.score(X_test, y_test):.3f}")    # 0.750
-```
-
-An unbounded decision tree **memorizes** every training example.
-
-```
-Train accuracy = 100%   ← means nothing
-Test accuracy  = 75%    ← actual performance
-```
-
----
-
-# The Exam Analogy
-
-It's like grading a student on the *exact questions they practiced*.
-
-```
-Student memorizes 100 practice questions:
-  Score on those exact questions:  100%
-  Score on the actual exam:         60%
-```
-
-The practice score is meaningless. Only the exam score matters.
-
-**Same with ML**: Training accuracy = practice score. Test accuracy = exam score.
+> Notebook Section 3: Try different `test_size` values and `random_state` seeds.
 
 ---
 
@@ -359,9 +283,7 @@ Split 2 → 78%     Split 5 → 84%
 Split 3 → 86%
 ```
 
-**Which is the real accuracy? 74%? 86%?**
-
-The evaluation depends on *which* 20 samples ended up in the test set.
+**Which is the real accuracy?** It depends on which 20 samples ended up in the test set.
 
 ---
 
@@ -369,11 +291,11 @@ The evaluation depends on *which* 20 samples ended up in the test set.
 
 ![w:700](images/week07/split_variance.png)
 
-Same model, same data, **50 different accuracy numbers**. The range can span 10+ percentage points.
+Same model, same data, **50 different accuracy numbers**. Range: 10+ percentage points.
 
-**One split = one sample. Samples have variance.**
+**One split = one sample from the distribution of possible test sets. Samples have variance.**
 
-> Notebook Section 5: Run 50 random splits yourself and plot the histogram.
+> Notebook Section 4: Run 50 random splits, plot the histogram, compute the std.
 
 ---
 
@@ -382,12 +304,6 @@ Same model, same data, **50 different accuracy numbers**. The range can span 10+
 # Section 3: Model Complexity
 
 *Underfitting, overfitting, and the sweet spot*
-
-<!--
-INSTRUCTOR NOTES:
-- This section builds intuition for WHY we need careful evaluation.
-- Use a regression example: temperature → electricity usage.
--->
 
 ---
 
@@ -406,63 +322,19 @@ Every model has **knobs** that control how flexible it is:
 
 ---
 
-# Why Does Complexity Matter?
-
-**Too simple (underfitting)**:
-- Model can't capture the real pattern
-- High error on BOTH train and test
-- "Straight line through a curved relationship"
-
-**Too complex (overfitting)**:
-- Model memorizes noise in training data
-- Low train error, HIGH test error
-- "Wiggly curve that passes through every point"
-
-**Just right**:
-- Model captures the pattern, ignores the noise
-- Low error on both train and test
-
----
-
-# Example: Temperature → Electricity Usage
-
-```python
-np.random.seed(42)
-temp = np.sort(np.random.uniform(10, 40, 30))
-electricity = 0.5 * (temp - 25)**2 + 50 + np.random.normal(0, 8, 30)
-```
-
-A realistic relationship: electricity usage is high when it's very cold (heating) or very hot (AC), creating a **U-shaped curve**.
-
-> Notebook Section 6: Generate this dataset and plot it. Before fitting any model, sketch what you think the relationship looks like.
-
----
-
-# Fitting Polynomials: Degree 1, 3, and 15
+# Polynomial Fits: Degree 1, 3, and 15
 
 ![w:800](images/week07/polynomial_complexity.png)
 
----
-
-# Interpreting the Polynomial Fits
-
-**Degree 1** (linear): Too simple — misses the U-shaped curve entirely. This is **underfitting**.
-
-**Degree 3** (cubic): Captures the parabolic pattern without memorizing individual noise. This is a **good fit**.
-
-**Degree 15**: Passes through every data point — it memorized the noise. This is **overfitting**. It will make wild predictions on new data.
-
-> Notebook Section 6: Fit polynomials of degree 1, 3, 7, 10, 15 and compare train vs test R².
+**Degree 1**: Misses the curve entirely (**underfitting**)
+**Degree 3**: Captures the pattern, ignores noise (**good fit**)
+**Degree 15**: Passes through every point — memorizes noise (**overfitting**)
 
 ---
 
-# Polynomial Fits in Code
+# Polynomial Fits in Numbers
 
 ```python
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-from sklearn.pipeline import Pipeline
-
 for degree in [1, 3, 15]:
     pipe = Pipeline([
         ('poly', PolynomialFeatures(degree=degree)),
@@ -474,32 +346,17 @@ for degree in [1, 3, 15]:
           f"Test R²={pipe.score(X_test, y_test):.3f}")
 ```
 
----
-
-# Polynomial Results
-
 ```
-Degree  1: Train R²=0.421  Test R²=0.398   ← underfitting
-Degree  3: Train R²=0.891  Test R²=0.872   ← good
-Degree 15: Train R²=0.999  Test R²=0.214   ← overfitting!
+Degree  1: Train R²=0.421  Test R²=0.398   ← both low = underfitting
+Degree  3: Train R²=0.891  Test R²=0.872   ← both high = good
+Degree 15: Train R²=0.999  Test R²=0.214   ← gap = overfitting!
 ```
 
-Notice the pattern:
-- **Degree 1**: Train and test are both low → model is too simple
-- **Degree 3**: Train and test are both high and close → good fit
-- **Degree 15**: Train is nearly perfect, test collapses → overfitting
+> Notebook Section 5: Fit degrees 1-15, plot train vs test R² to see the full curve.
 
 ---
 
-# Decision Tree Depth: Same Idea
-
-![w:750](images/week07/decision_tree_depth.png)
-
-Decision trees have `max_depth` as their complexity knob. Deeper trees create more specific rules — eventually memorizing individual data points.
-
----
-
-# Tree Depth in Code
+# Decision Trees: Same Story
 
 ```python
 for depth in [1, 4, 20, None]:
@@ -513,7 +370,6 @@ for depth in [1, 4, 20, None]:
 ```
 depth=   1: Train=0.731  Test=0.720   ← underfitting
 depth=   4: Train=0.862  Test=0.845   ← good
-depth=  20: Train=0.998  Test=0.781   ← overfitting
 depth=None: Train=1.000  Test=0.762   ← severe overfitting
 ```
 
@@ -521,72 +377,40 @@ depth=None: Train=1.000  Test=0.762   ← severe overfitting
 
 ---
 
-# The U-Shaped Curve: Error vs Complexity
+# The U-Shaped Curve
 
-![w:750](images/week07/underfit_overfit_curve.png)
+![w:700](images/week07/underfit_overfit_curve.png)
 
-**Training error always decreases** as complexity increases.
-**Test error decreases then increases.**
-
----
-
-# Reading the U-Shaped Curve
-
-The gap between training and test error is your **overfitting detector**:
-
-- **Left side** (gap is small, both errors high): Underfitting
-- **Sweet spot** (gap is small, both errors low): Good fit
-- **Right side** (gap is large): Overfitting
-
-Every model has this curve. The x-axis changes (degree, depth, epochs, etc.) but the shape is universal.
+As complexity increases: **training error always goes down**, but **test error goes down then back up**. The gap between them = overfitting.
 
 ---
 
-# The Bias-Variance Tradeoff
+# Bias-Variance Tradeoff
 
-![w:650](images/week07/bias_variance_curve.png)
+![w:600](images/week07/bias_variance_curve.png)
 
 $$\text{Total Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise}$$
 
----
+**Bias** = consistently wrong (model too simple). Like a broken clock.
+**Variance** = inconsistent across datasets (model too complex). Like a nervous student.
 
-# Understanding Bias and Variance
-
-**Bias** = error from wrong assumptions (model too simple)
-- A linear model fitting a quadratic relationship
-- High bias → consistent but consistently *wrong*
-- Like a broken watch: always shows the same wrong time
-
-**Variance** = error from sensitivity to training data (model too complex)
-- A degree-15 polynomial changes dramatically with different training samples
-- High variance → different training sets give wildly different models
-- Like a nervous student: answer changes every time you ask
+The **sweet spot** minimizes their sum.
 
 ---
 
-# Diagnosing Your Model
+# Diagnosing and Fixing Your Model
 
-| Train Acc | Test Acc | Gap | Diagnosis |
-|-----------|----------|-----|-----------|
-| 70% | 68% | 2% | **Underfitting** — model too simple |
-| 85% | 83% | 2% | **Good fit** |
-| 99% | 65% | 34% | **Severe overfitting** — model too complex |
+| Train Acc | Test Acc | Gap | Diagnosis | Fix |
+|-----------|----------|-----|-----------|-----|
+| 70% | 68% | 2% | Underfitting | More complex model, more features |
+| 85% | 83% | 2% | Good fit | Ship it! |
+| 99% | 65% | 34% | Overfitting | Simpler model, more data, regularization |
 
 **Rule of thumb**: Train-test gap > 10% → you're probably overfitting.
 
----
-
-# What to Do About It
-
-| Diagnosis | Fix |
-|-----------|-----|
-| Underfitting (high bias) | More complex model, more features, less regularization |
-| Overfitting (high variance) | Simpler model, more data, regularization, dropout |
-| Good fit | Verify with proper evaluation, then ship it! |
-
 **Question**: How do we *choose* the right complexity? We need a validation set.
 
-> Notebook Section 6: Experiment with different tree depths and polynomial degrees.
+> Notebook Section 5: Experiment with different depths and degrees. Find the sweet spot.
 
 ---
 
@@ -598,44 +422,32 @@ $$\text{Total Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise
 
 ---
 
-# The Problem: Choosing Between Models
+# The Problem: Using Test Set for Decisions
 
-You've trained two decision trees:
-
-```
-Tree (depth=3):  Test accuracy = 82%
-Tree (depth=10): Test accuracy = 85%
-```
-
-You pick depth=10. **But now your test score is biased** — you used the test set to make a decision!
-
----
-
-# Why This Is a Problem
-
-If you tried 100 hyperparameter values and picked the best test score, you've *fit to the test set*.
+You try 100 tree depths and pick the one with the best **test** score:
 
 ```
 depth=1:   test=72%
 depth=2:   test=76%
-depth=3:   test=82%
 ...
 depth=47:  test=87%  ← "Best! Let's report this!"
 ```
 
-That 87% is **optimistically biased**. The model doesn't actually perform that well — you just found a depth that got lucky on this particular test set.
+That 87% is **optimistically biased**. You searched 100 options and picked the luckiest. The model doesn't actually perform that well on new data.
+
+**Using the test set for ANY decision contaminates your evaluation.**
 
 ---
 
 # Solution: Three-Way Split
-
-![w:750](images/week07/train_validate_test.png)
 
 ```
 Training set   (60%) → model learns parameters
 Validation set (20%) → choose best hyperparameters
 Test set       (20%) → final one-time evaluation
 ```
+
+![w:650](images/week07/train_validate_test.png)
 
 **The test set is a sealed envelope.** Open it once, at the end.
 
@@ -644,13 +456,15 @@ Test set       (20%) → final one-time evaluation
 # Three-Way Split in Code
 
 ```python
-# Split: 60% train, 20% validation, 20% test
+# Two nested splits: first test, then validation
 X_trainval, X_test, y_trainval, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42)
 X_train, X_val, y_train, y_val = train_test_split(
     X_trainval, y_trainval, test_size=0.25, random_state=42)
+```
 
-# Try hyperparameters on VALIDATION set
+```python
+# Search hyperparameters on VALIDATION set
 best_depth, best_score = None, 0
 for depth in [1, 2, 3, 5, 10, 20]:
     dt = DecisionTreeClassifier(max_depth=depth)
@@ -660,37 +474,35 @@ for depth in [1, 2, 3, 5, 10, 20]:
         best_depth, best_score = depth, val_acc
 ```
 
-> Notebook Section 7: Implement this three-way split and find the best tree depth.
+> Notebook Section 6: Implement three-way split and find the best depth.
 
 ---
 
-# Final Evaluation with Three-Way Split
+# Final Evaluation
 
 ```python
-# Retrain on ALL non-test data (train + validation)
+# Retrain on ALL non-test data (train + validation combined)
 final = DecisionTreeClassifier(max_depth=best_depth)
 final.fit(X_trainval, y_trainval)
 
-print(f"Best depth: {best_depth}")
 print(f"Final test accuracy: {final.score(X_test, y_test):.3f}")
 ```
 
-**Key detail**: Retrain on `X_trainval` (train + validation) — don't waste the validation data once you've chosen your hyperparameters.
+**Key**: Retrain on `X_trainval` — don't waste validation data after you've chosen.
 
 ---
 
 # Problem: We're Wasting Data
 
-With 1000 samples:
 ```
 Train:      600 samples  (60%)
-Validation: 200 samples  (20%)
-Test:       200 samples  (20%)
+Validation: 200 samples  (20%)  ← only used for selection
+Test:       200 samples  (20%)  ← only used once
 ```
 
-**Only training on 60% of data.** With small datasets, this hurts.
+**Only training on 60% of data.** With small datasets, this hurts model quality.
 
-Also: the validation score still depends on *which* 200 samples ended up in the validation set. Same variance problem as before!
+Also: the validation score depends on *which* 200 samples landed in validation. Same variance problem!
 
 **Can we do better?** Yes — cross-validation.
 
@@ -702,33 +514,14 @@ Also: the validation score still depends on *which* 200 samples ended up in the 
 
 *Use ALL data for both training and validation*
 
-<!--
-INSTRUCTOR NOTES:
-- This is the most important section.
-- Manual CV first (understand the algorithm), then sklearn (the shortcut).
--->
-
 ---
 
-# The Idea Behind Cross-Validation
+# K-Fold Cross-Validation
 
-With a single validation split:
-- Validation set is small → high variance
-- Results change depending on which samples are in validation
-- We "waste" data that never gets used for training
+![w:750](images/week07/kfold_diagram.png)
 
-**Idea**: Use **K different splits** and average the scores.
-
-This is **K-fold cross-validation**.
-
----
-
-# K-Fold Cross-Validation: Visual
-
-![w:800](images/week07/kfold_diagram.png)
-
-1. Split data into K equal parts (folds)
-2. For each fold: use it as validation, train on the remaining K-1 folds
+1. Split data into K equal **folds**
+2. For each fold: use it as validation, train on the other K-1
 3. Average the K scores
 
 ---
@@ -737,58 +530,41 @@ This is **K-fold cross-validation**.
 
 $$\text{CV Score} = \frac{1}{K} \sum_{k=1}^{K} \text{score}_k$$
 
-Every data point is used for testing **exactly once** and for training **K-1 times**.
+Every data point is used for validation **exactly once** and for training **K-1 times**.
 
-With K=5: each model trains on 80% of data (vs 60% in a three-way split).
-
----
-
-# The Algorithm (Pseudocode)
-
-```
-Given: dataset of N samples, model, K folds
-
-Step 1: Shuffle and divide data into K equal parts
-Step 2: For k = 1, 2, ..., K:
-           - Set fold k aside as validation
-           - Train model on remaining K-1 folds
-           - Evaluate on fold k → store score_k
-Step 3: Return mean(score_1, ..., score_K)
-```
-
-This is what happens inside `cross_val_score`. Let's implement it ourselves first.
-
-> Notebook Section 8: Implement CV manually before using sklearn.
+With K=5: each model trains on **80%** of data (vs 60% in three-way split). Every sample gets evaluated.
 
 ---
 
-# Implementing CV Yourself
+# Implementing K-Fold From Scratch
 
 ```python
 K = 5
 indices = np.arange(len(X))
 np.random.shuffle(indices)
 folds = np.array_split(indices, K)
+```
 
+```python
 scores = []
 for k in range(K):
     val_idx = folds[k]
     train_idx = np.concatenate(
         [folds[j] for j in range(K) if j != k])
-
     model = DecisionTreeClassifier(max_depth=5)
     model.fit(X[train_idx], y[train_idx])
     scores.append(model.score(X[val_idx], y[val_idx]))
+```
 
-print(f"Fold scores: {[f'{s:.3f}' for s in scores]}")
+```python
 print(f"Mean: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
 ```
 
+> Notebook Section 7: Implement this yourself. Verify it matches sklearn.
+
 ---
 
-# sklearn Cross-Validation: The Shortcut
-
-All of that in **two lines**:
+# sklearn: Two Lines
 
 ```python
 from sklearn.model_selection import cross_val_score
@@ -807,45 +583,52 @@ Mean: 0.828 ± 0.017
 
 **Report as**: "82.8% ± 1.7% accuracy (5-fold CV)"
 
-> Notebook Section 9: Compare your manual CV with sklearn's `cross_val_score`.
+> Notebook Section 8: Compare manual CV vs `cross_val_score`.
 
 ---
 
-# Why CV Is Better Than a Single Split
+# Why CV Is Better
 
 ```
 Single split:  82%     (but could be 74% or 88%)
-5-fold CV:     82.8%   ± 1.7% (we know the uncertainty!)
+5-fold CV:     82.8%   ± 1.7% (stable + uncertainty!)
 ```
 
-CV gives you:
-
-1. **A more stable estimate** — averaged over K splits
-2. **An uncertainty estimate** — the ± std tells you how trustworthy the score is
-3. **Better data usage** — each sample is used for both training and validation
+1. **More stable** — averaged over K splits
+2. **Uncertainty estimate** — the ± std tells you how trustworthy the score is
+3. **Better data usage** — every sample used for both training and validation
 
 ---
 
 # Choosing K
 
-| K | Train Size | Pros | Cons |
-|---|------------|------|------|
-| 2 | 50% | Fast | High bias (small train set) |
-| **5** | **80%** | **Good balance** | **Standard default** |
-| 10 | 90% | Low bias | Slower, higher variance |
-| N (LOO) | N-1 | Lowest bias | Very slow, high variance |
+| K | Train % | Notes |
+|---|---------|-------|
+| 2 | 50% | Fast but small train set → estimate has **high bias** |
+| **5** | **80%** | **Standard default. Good balance.** |
+| 10 | 90% | Larger train set → lower bias, but more computation and **higher variance between folds** |
+| N (LOO) | N-1 | Minimal bias but very slow and high variance |
 
-**Default**: K=5 or K=10.
-
-Use LOO only for very small datasets (< 100 samples).
+Note: "bias" and "variance" here refer to **properties of the CV estimate**, not the model's bias-variance tradeoff from Section 3. K=2 underestimates performance (biased) because each fold only trains on 50% of data.
 
 ---
 
-# Stratified Cross-Validation
+# Stratified K-Fold: The Problem
 
-**Problem**: If dataset is 70% class A, 30% class B, random splits might create folds with 90% class A.
+If your dataset is 70% class A, 30% class B:
 
-**Stratified K-Fold**: Ensures every fold maintains the original class ratio.
+```
+Random Fold 1:  [A A A A A A A A A B]  → 90% A, 10% B  ← unrepresentative!
+Random Fold 2:  [A B B B B A A A A A]  → 60% A, 40% B  ← also wrong!
+```
+
+Some folds might have almost no minority class. The model trained on that fold sees a distorted world.
+
+---
+
+# Stratified K-Fold: The Solution
+
+**Stratified K-Fold** ensures every fold has the **same class ratio** as the full dataset.
 
 ```python
 from sklearn.model_selection import StratifiedKFold
@@ -854,34 +637,58 @@ skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 scores = cross_val_score(model, X, y, cv=skf)
 ```
 
----
+![w:600](images/week07/stratified_cv.png)
 
-# Stratified CV: Visual
-
-![w:700](images/week07/stratified_cv.png)
-
-`cross_val_score` uses stratified folds **by default** for classifiers.
-
-> Notebook Section 10: Compare standard KFold vs StratifiedKFold on an imbalanced dataset.
+`cross_val_score` uses stratified folds **by default** for classifiers!
 
 ---
 
-# Other CV Variants
+# Stratified K-Fold: From Scratch
 
-| Data Type | Problem | CV Strategy |
-|-----------|---------|------------|
-| Classification | Class imbalance | `StratifiedKFold` (default) |
-| Time series | Can't use future to predict past | `TimeSeriesSplit` |
-| Grouped data | Same patient in train & test | `GroupKFold` |
-| Very small data | Can't afford to waste data | `LeaveOneOut` |
+```python
+def stratified_kfold(y, K, seed=42):
+    np.random.seed(seed)
+    classes = np.unique(y)
+    folds = [[] for _ in range(K)]
+    for cls in classes:
+        cls_indices = np.where(y == cls)[0]
+        np.random.shuffle(cls_indices)
+        # Deal indices round-robin to folds
+        for i, idx in enumerate(cls_indices):
+            folds[i % K].append(idx)
+    return [np.array(f) for f in folds]
+
+folds = stratified_kfold(y, K=5)
+# Check: each fold has same class ratio
+for k, f in enumerate(folds):
+    print(f"Fold {k}: {y[f].mean():.1%} positive")
+```
+
+> Notebook Section 9: Implement stratified K-Fold from scratch, compare class ratios.
 
 ---
 
-# Time Series Split
+# Time Series: When i.i.d. Breaks
+
+With time series data, the i.i.d. assumption doesn't hold — tomorrow depends on today. Random splits let the model **peek at the future**:
+
+```
+BAD (random split):
+  Train: [Jan, Mar, Jun, Aug]  Test: [Feb, May]  ← model sees the future!
+
+GOOD (temporal split):
+  Train: [Jan, Feb, Mar]  Test: [Apr]  ← always past → future
+```
+
+---
+
+# Time Series Split in Code
 
 ```python
 from sklearn.model_selection import TimeSeriesSplit
+
 tscv = TimeSeriesSplit(n_splits=5)
+scores = cross_val_score(model, X_timeseries, y_timeseries, cv=tscv)
 ```
 
 ```
@@ -892,34 +699,90 @@ Split 4: Train [Jan-Jun]       → Test [Jul]
 Split 5: Train [Jan-Jul]       → Test [Aug]
 ```
 
-**Always: past predicts future. Never the reverse.** Random splits would let the model "peek" at future data — that's **data leakage**.
+**Training window grows. Always: past predicts future.**
 
 ---
 
-# Group K-Fold
+# Time Series Example: Stock Prices
 
-When samples are grouped (e.g., multiple images from the same patient):
+```python
+# Simple stock prediction: will tomorrow be up or down?
+np.random.seed(42)
+prices = np.cumsum(np.random.randn(200)) + 100  # random walk
+returns = np.diff(prices)
+X_stock = returns[:-1].reshape(-1, 1)  # today's return
+y_stock = (returns[1:] > 0).astype(int)  # tomorrow up?
+
+# WRONG: random split
+wrong_cv = cross_val_score(model, X_stock, y_stock, cv=5)
+
+# RIGHT: time series split
+right_cv = cross_val_score(model, X_stock, y_stock,
+                           cv=TimeSeriesSplit(n_splits=5))
+print(f"Random CV:      {wrong_cv.mean():.3f}  ← optimistic!")
+print(f"TimeSeries CV:  {right_cv.mean():.3f}  ← realistic")
+```
+
+> Notebook Section 9: Run both CV types on stock data and see the difference.
+
+---
+
+# Group K-Fold: When Samples Are Not Independent
+
+Multiple data points from the same source violate independence:
+
+| Domain | Group | Problem if split randomly |
+|--------|-------|--------------------------|
+| Medical imaging | Patient ID | Model recognizes the patient, not the disease |
+| NLP | Document ID | Model memorizes writing style |
+| Audio | Speaker ID | Model recognizes the voice, not the word |
+
+---
+
+# Group K-Fold in Code
 
 ```python
 from sklearn.model_selection import GroupKFold
 
+# Each patient has multiple scans
+patient_ids = np.array([1,1,1, 2,2, 3,3,3,3, 4,4, 5,5,5])
+
 gkf = GroupKFold(n_splits=5)
-scores = cross_val_score(model, X, y, cv=gkf, groups=patient_ids)
+for train_idx, test_idx in gkf.split(X, y, groups=patient_ids):
+    train_patients = set(patient_ids[train_idx])
+    test_patients = set(patient_ids[test_idx])
+    print(f"Train patients: {train_patients}, "
+          f"Test patients: {test_patients}")
+    # No patient appears in both!
 ```
 
-If Patient A appears in both train and test, the model might just recognize the patient rather than learn the disease pattern. GroupKFold keeps all of a patient's data in the same fold.
+**All of a patient's data stays together.** No leakage across groups.
+
+> Notebook Section 9: Implement GroupKFold with a patient dataset.
+
+---
+
+# CV Variant Cheat Sheet
+
+| Your Data | Use | Why |
+|-----------|-----|-----|
+| Classification (default) | `StratifiedKFold` | Maintains class balance |
+| Time series | `TimeSeriesSplit` | Respects temporal order |
+| Grouped samples | `GroupKFold` | Prevents group leakage |
+| Tiny dataset (< 50) | `LeaveOneOut` | Maximum data for training |
+| Everything else | `KFold` | Simple, effective |
 
 ---
 
 <!-- _class: lead -->
 
-# Section 6: Putting It All Together
+# Section 6: The Correct 5-Step Protocol
 
-*The correct evaluation protocol*
+*Putting it all together*
 
 ---
 
-# The Correct 5-Step Protocol
+# The Gold Standard Protocol
 
 ```
 Step 1:  Split off a TEST set (20%). Lock it away.
@@ -927,28 +790,25 @@ Step 1:  Split off a TEST set (20%). Lock it away.
 Step 2:  On the remaining 80%, use K-fold CV to:
          - Compare models (tree vs forest vs SVM)
          - Choose hyperparameters (depth=3 vs depth=10)
+         (This is where StratifiedKFold, cross_val_score live)
 
 Step 3:  Pick the best model + hyperparameters.
 
-Step 4:  Train the final model on ALL non-test data (80%).
+Step 4:  Retrain the best model on ALL non-test data (80%).
 
 Step 5:  Evaluate ONCE on the test set. Report this number.
 ```
 
-**This is the gold standard.**
+Step 2 uses **K-fold CV** internally — that's why you learned it!
 
 ---
 
-# Full Example: Steps 1-2
+# Full Example in Code
 
 ```python
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-
 # Step 1: Hold out test set
 X_dev, X_test, y_dev, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42)
+    X, y, test_size=0.2, random_state=42, stratify=y)
 
 # Step 2: CV on dev set to compare models
 for name, model in [
@@ -957,47 +817,71 @@ for name, model in [
     ("RF(100)", RandomForestClassifier(n_estimators=100))]:
     scores = cross_val_score(model, X_dev, y_dev, cv=5)
     print(f"{name:12s}  CV={scores.mean():.3f} ± {scores.std():.3f}")
-```
 
----
-
-# Full Example: Steps 3-5
-
-```python
-# Step 3-4: Train best model on ALL dev data
+# Steps 3-5: Pick best, retrain on ALL dev, evaluate ONCE
 best = RandomForestClassifier(n_estimators=100)
 best.fit(X_dev, y_dev)
-
-# Step 5: Final evaluation
-print(f"Final test accuracy: {best.score(X_test, y_test):.3f}")
+print(f"\nFinal test accuracy: {best.score(X_test, y_test):.3f}")
 ```
-
-**Key detail**: In Step 4, retrain on ALL of `X_dev` (not just the last fold's training set).
 
 > Notebook Section 10: Follow the complete 5-step protocol end-to-end.
 
 ---
 
-# Common Mistakes to Avoid
+# Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Evaluate on training data | Always use held-out data |
-| Use test set to pick hyperparameters | Use validation set or CV |
-| Report best of many random splits | Use CV, report mean ± std |
-| Shuffle time series data | Use `TimeSeriesSplit` |
+| Mistake | Why It's Wrong | Fix |
+|---------|---------------|-----|
+| Evaluate on training data | Measures memorization | Hold out test data |
+| Use test set to pick hyperparameters | Contaminates evaluation | Use validation / CV |
+| Report best of many random splits | Cherry-picking | Use CV, report mean ± std |
+| Shuffle time series | Data leakage | Use `TimeSeriesSplit` |
+| Same patient in train and test | Data leakage | Use `GroupKFold` |
 
 ---
 
-# More Common Mistakes
+# The Lucky Seed Problem
 
-| Mistake | Fix |
-|---------|-----|
-| Forget to scale test data separately | Use `Pipeline` so preprocessing is part of the model |
-| Feature selection on full dataset | Do feature selection INSIDE CV |
-| Report accuracy on imbalanced data | Use F1, AUC-ROC, or balanced accuracy |
+```python
+# "Researcher" tries 1000 random seeds, reports the best one
+best_acc = 0
+for seed in range(1000):
+    X_tr, X_te, y_tr, y_te = train_test_split(
+        X, y, test_size=0.2, random_state=seed)
+    model.fit(X_tr, y_tr)
+    acc = model.score(X_te, y_te)
+    if acc > best_acc:
+        best_acc, best_seed = acc, seed
 
-**All of these are forms of data leakage** — information from the test set leaking into the training process.
+print(f"Best accuracy: {best_acc:.1%} (seed={best_seed})")
+# Looks great! But it's just the luckiest split.
+```
+
+This is a real problem in ML research. Dodge et al. (2020) showed that just varying random seeds can change model rankings.
+
+**Fix**: Always report mean ± std over multiple seeds or use CV.
+
+---
+
+# Data Leakage: The Silent Killer
+
+**Data leakage** = information from the test/future leaking into training.
+
+```python
+# WRONG: Scale before splitting
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)  # Uses ALL data including test!
+X_train, X_test = train_test_split(X_scaled, ...)
+
+# RIGHT: Scale inside the pipeline
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', DecisionTreeClassifier())
+])
+scores = cross_val_score(pipe, X, y, cv=5)  # scaling per fold
+```
+
+**Rule**: Anything learned from data (`fit`) must happen **inside** the CV loop.
 
 ---
 
@@ -1013,13 +897,13 @@ This week: **How to evaluate** a model correctly.
 
 Next week: **How to find the best model** automatically.
 
-| Topic | Tool |
-|-------|------|
-| Grid search | Try all hyperparameter combinations |
-| Random search | Sample combinations randomly |
-| Bayesian optimization | Use past results to pick next trial |
-| AutoML | Automate the whole pipeline |
-| Experiment tracking | Log and compare all runs |
+| Topic | What It Does |
+|-------|-------------|
+| Grid search | Try all hyperparameter combos (nested for-loops) |
+| Random search | Sample combos randomly (often better!) |
+| Bayesian optimization | Learn from past results to pick next trial |
+| AutoML | Automate the whole model + hyperparameter search |
+| Experiment tracking | Log and compare 100+ runs |
 
 All of these use **cross-validation internally**. Week 7 is the foundation for Week 8.
 
@@ -1029,11 +913,12 @@ All of these use **cross-validation internally**. Week 7 is the foundation for W
 
 | Concept | Key Idea |
 |---------|----------|
-| Generalization | We want performance on *unseen* data |
+| Distribution $D$ | Data comes from an unknown distribution; we only see samples |
+| i.i.d. | Samples are independent and identically distributed |
+| Generalization | We want $E_{\text{test}}$, not training error |
 | Train/test split | Never evaluate on training data |
 | Split variance | One split is unreliable; scores vary by 10%+ |
 | Model complexity | Degree, depth, layers control under/overfitting |
-| Bias-variance | Simple models → bias; complex → variance |
 
 ---
 
@@ -1041,11 +926,13 @@ All of these use **cross-validation internally**. Week 7 is the foundation for W
 
 | Concept | Key Idea |
 |---------|----------|
+| Bias-variance | Simple → bias; complex → variance; sweet spot in between |
 | Validation set | Third split to choose hyperparameters |
 | K-fold CV | All data used for training AND validation |
 | Stratified CV | Maintain class ratios in each fold |
 | Time series CV | Always train on past, predict future |
-| 5-step protocol | Train → CV (choose model) → test (report once) |
+| Group CV | Keep grouped samples together |
+| 5-step protocol | Hold out test → CV to select → retrain → evaluate once |
 
 ---
 
@@ -1053,31 +940,31 @@ All of these use **cross-validation internally**. Week 7 is the foundation for W
 
 **Q1**: You train a model and get 99% training accuracy and 60% test accuracy. What happened?
 
-> The model memorized the training data (overfitting). Fix: reduce complexity, add regularization, or get more data.
+> Overfitting — the model memorized training data. Fix: reduce complexity, add regularization, or get more data.
 
 ---
 
 # Exam Questions (2/4)
 
-**Q2**: You run your model 50 times with different random splits and get accuracies ranging from 74% to 88%. What's the problem?
+**Q2**: What does i.i.d. mean and why does it matter for evaluation?
 
-> A single train/test split has high variance. Fix: use K-fold CV to average over multiple splits and report mean ± std.
+> Independent and Identically Distributed. Each sample comes from the same distribution D and doesn't depend on others. It matters because our evaluation assumes test data follows the same distribution as training data.
 
 **Q3**: Why can't you use the test set to pick hyperparameters?
 
-> Using the test set for decisions contaminates your final evaluation. The reported test score would be optimistically biased.
+> Using the test set for decisions contaminates your final evaluation. The reported score would be optimistically biased.
 
 ---
 
 # Exam Questions (3/4)
 
-**Q4**: You have a dataset with 90% class A and 10% class B. Why might standard K-fold CV give misleading results?
+**Q4**: You have patient data with multiple scans per patient. Why is standard K-fold wrong?
 
-> Random splits might create folds with 100% class A. Use `StratifiedKFold` to maintain the 90/10 ratio.
+> If the same patient appears in train and test, the model might recognize the patient rather than learn the disease pattern. Use `GroupKFold` with patient ID as the group.
 
-**Q5**: Explain the bias-variance tradeoff.
+**Q5**: You're predicting stock prices. Why can't you use standard K-fold?
 
-> Simple models: high bias (wrong assumptions), low variance (stable). Complex models: low bias, high variance (sensitive to training data). Optimal = minimize bias² + variance.
+> Stock prices are time-dependent (not i.i.d.). Random splits let the model see future data. Use `TimeSeriesSplit` — always train on past, predict future.
 
 ---
 
@@ -1085,11 +972,11 @@ All of these use **cross-validation internally**. Week 7 is the foundation for W
 
 **Q6**: Write the correct 5-step evaluation protocol.
 
-> 1) Split off test set. 2) CV on remaining data. 3) Pick best model. 4) Train on all non-test data. 5) Evaluate once on test set.
+> 1) Split off test set. 2) Use K-fold CV on the rest to compare models/hyperparameters. 3) Pick the best. 4) Retrain on all non-test data. 5) Evaluate once on test set.
 
-**Q7**: Difference between `model.score(X_train, y_train)` and 5-fold CV?
+**Q7**: Implement stratified K-fold from scratch (pseudocode).
 
-> Training score = memorization. CV score = generalization estimate.
+> For each class: get indices, shuffle, deal round-robin into K folds. This ensures each fold has the same class ratio as the full dataset.
 
 ---
 
