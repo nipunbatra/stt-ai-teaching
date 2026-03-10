@@ -336,11 +336,18 @@ The acquisition function is highest where the model predicts **high score AND hi
 
 ---
 
-# BayesOpt in Practice: Optuna
+# Optuna = BayesOpt You Can Actually Use
 
-You don't need to implement BayesOpt yourself. **Optuna** does it for you:
+You define the knobs. Optuna picks smart values based on past trials.
 
-> Notebook Part 2: Visualize the surrogate model step by step as it learns.
+| BayesOpt concept | Optuna object |
+|-----------------|---------------|
+| One candidate setting | `trial` |
+| Score function | `objective(trial)` — you write this |
+| Search history | `study` |
+| Best setting found | `study.best_params` |
+
+> Notebook Part 2: Visualize how Optuna learns from past trials.
 
 ---
 
@@ -368,30 +375,27 @@ print(f"Params: {study.best_params}")
 
 ---
 
-# Optuna: Pruning (Early Stopping Bad Trials)
+# Optuna: Pruning (Stop Bad Trials Early)
+
+Some models train step by step (epochs, boosting rounds). If a trial is clearly losing early, **stop it and move on**.
 
 ```python
-def objective(trial):
-    lr = trial.suggest_float('lr', 1e-5, 1e-1, log=True)
-    hidden = trial.suggest_int('hidden_size', 32, 512)
-
-    model = build_network(hidden)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-
-    for epoch in range(50):
-        train_loss = train_one_epoch(model, optimizer)
-        val_acc = evaluate(model)
-
-        trial.report(val_acc, epoch)
-        if trial.should_prune():
-            raise optuna.TrialPruned()  # stop early!
-
-    return val_acc
+for step in range(max_steps):
+    score = train_one_step_and_validate()
+    trial.report(score, step)      # tell Optuna how it's going
+    if trial.should_prune():
+        raise optuna.TrialPruned() # give up on this trial
 ```
 
-Optuna monitors intermediate results and kills unpromising trials, saving compute.
+```
+Trial 1:  epoch 1=72%, epoch 2=75%, epoch 3=78% ... epoch 50=84%  ✓
+Trial 2:  epoch 1=45%, epoch 2=46%  ← PRUNED (clearly bad)
+Trial 3:  epoch 1=70%, epoch 2=74%, epoch 3=77% ... epoch 50=83%  ✓
+```
 
-> Notebook Part 6: Optuna with pruning for neural networks — see how it skips bad trials.
+**Saved 48 epochs of compute on Trial 2!** Most useful for neural nets and boosting.
+
+> Notebook Part 6: Optuna with pruning — see how it skips bad trials.
 
 ---
 
@@ -409,7 +413,7 @@ Optuna monitors intermediate results and kills unpromising trials, saving comput
 
 ---
 
-# Aside: Is `best_score_` Trustworthy?
+# A Note on `best_score_`
 
 ```python
 grid = GridSearchCV(model, params, cv=5)
@@ -417,41 +421,28 @@ grid.fit(X, y)
 print(f"Best score: {grid.best_score_:.3f}")  # Slightly optimistic!
 ```
 
-**Why?** You tried many configs and picked the best. By definition, it's the luckiest.
+**Why optimistic?** You tried many configs and picked the best. By definition, it's the luckiest.
 
-`GridSearchCV.best_score_` has a small **selection bias**. In practice, with a reasonable number of candidates, this bias is small. But for papers or high-stakes settings, use nested CV.
+In practice, this bias is small. Just be aware: **`best_score_` is a bit better than reality.**
 
 ---
 
-# Advanced: Nested Cross-Validation
+# Optional Advanced: Nested Cross-Validation
 
-For rigorous reporting (e.g., academic papers), separate tuning from evaluation:
+For research papers, you can separate tuning from evaluation using **nested CV**:
 
 ![w:600](images/week07/nested_cross_validation.png)
 
-- **Inner loop** (3-fold): Tunes hyperparameters via GridSearchCV
-- **Outer loop** (5-fold): Evaluates the *tuned* model on truly held-out data
-
----
-
-# Nested CV in Code
+- **Inner loop** (3-fold): Tunes hyperparameters
+- **Outer loop** (5-fold): Evaluates the tuning process on truly held-out data
 
 ```python
-from sklearn.model_selection import cross_val_score, GridSearchCV
-
-# Inner loop: tune hyperparameters
-inner_cv = GridSearchCV(
-    RandomForestClassifier(),
-    param_grid={'max_depth': [5, 10, 15],
-                'n_estimators': [100, 200]},
-    cv=3, n_jobs=-1)
-
-# Outer loop: evaluate the tuned model
+inner_cv = GridSearchCV(RandomForestClassifier(),
+    param_grid={'max_depth': [5, 10, 15]}, cv=3, n_jobs=-1)
 outer_scores = cross_val_score(inner_cv, X, y, cv=5)
-print(f"Nested CV: {outer_scores.mean():.3f} ± {outer_scores.std():.3f}")
 ```
 
-This gives an **unbiased estimate** of how well the tuning + training process generalizes.
+*Not required for course projects — just good to know exists.*
 
 > Notebook Part 4: Compare `grid.best_score_` vs nested CV scores.
 
@@ -561,6 +552,28 @@ print(f"Best RF: {search.best_score_:.3f}")
 
 ---
 
+# Project Tuning Checklist
+
+1. Pick your **metric** before tuning (accuracy? F1? RMSE?)
+2. Put preprocessing inside a **Pipeline** (prevents data leakage!)
+3. Start with **2-4 important hyperparameters** — don't tune everything
+4. Use **log scale** for learning rate, regularization (`C`, `alpha`)
+5. Set a **budget**: 20-50 random trials is often enough
+6. Retrain the best config on **all training data**
+
+```python
+from sklearn.pipeline import Pipeline
+
+pipe = Pipeline([
+    ("scale", StandardScaler()),
+    ("model", LogisticRegression())
+])
+search = GridSearchCV(pipe, {"model__C": [0.01, 0.1, 1, 10]}, cv=5)
+search.fit(X, y)
+```
+
+---
+
 <!-- _class: lead -->
 
 # Part 3: Reproducibility
@@ -596,7 +609,7 @@ sklearn uses NumPy's random number generator, which is fully deterministic given
 
 ---
 
-# PyTorch: Seeds Aren't Enough
+# Optional: PyTorch Seeds Aren't Enough
 
 PyTorch has **many sources of randomness**:
 
@@ -620,7 +633,7 @@ def set_seed(seed=42):
 
 ---
 
-# Why So Many Seeds?
+# Optional: Why So Many Seeds?
 
 | Source | What It Affects | Setting |
 |--------|----------------|---------|
@@ -811,7 +824,6 @@ Pick based on your needs. Start with Trackio, graduate to MLflow or W&B for team
 | Grid search | Exhaustive but doesn't scale (curse of dimensionality) |
 | Random search | Better coverage, you control the budget |
 | Optuna (Bayesian) | Learns from past results, handles categorical, supports pruning |
-| Nested CV | Advanced: tune inside, evaluate outside — unbiased estimate for papers |
 
 ---
 
@@ -821,7 +833,7 @@ Pick based on your needs. Start with Trackio, graduate to MLflow or W&B for team
 |---------|----------|
 | DIY AutoML | Loop over model families + GridSearchCV |
 | sklearn reproducibility | `random_state=42` is enough |
-| PyTorch reproducibility | 8 settings needed for full determinism |
+| PyTorch reproducibility | Many seeds needed (optional advanced topic) |
 | Multi-seed reporting | Report mean ± std across 5 seeds |
 | Trackio | Local-first, free experiment tracking |
 
@@ -841,9 +853,9 @@ Pick based on your needs. Start with Trackio, graduate to MLflow or W&B for team
 
 > Bayesian optimization learns from previous evaluations — it builds a model of which hyperparameter regions are promising and focuses the search there. Grid and random search are blind — they don't use past results to guide future trials.
 
-**Q3**: What is nested CV and when might you use it?
+**Q3**: Why should you put preprocessing (e.g., `StandardScaler`) inside a `Pipeline` when tuning?
 
-> Inner loop tunes hyperparameters, outer loop evaluates. Useful for academic papers or high-stakes settings where you need an unbiased estimate of the tuning + training process. `GridSearchCV.best_score_` has a small selection bias from picking the luckiest result.
+> If you scale before splitting, the scaler sees test/validation data — that's data leakage. Putting it inside a Pipeline ensures scaling happens independently within each CV fold.
 
 ---
 
