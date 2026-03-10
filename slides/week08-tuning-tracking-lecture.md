@@ -265,54 +265,91 @@ search.fit(X, y)
 
 ---
 
-# The Key Idea: Learn a Surrogate
+# The Gold Mining Analogy
+
+Imagine you're searching for gold in an unknown field. Each drill is **expensive** (= one CV evaluation).
+
+```
+Random search:   Drill at random locations. Hope for the best.
+Bayesian opt:    Look at past drill results. Build a map.
+                 Drill where the map says gold is likely.
+```
 
 Grid and Random are **blind** — they don't learn from previous evaluations.
 
-**Bayesian Optimization**:
-1. Evaluate a few random points
-2. Fit a **surrogate model** (GP or tree) to results so far
-3. Use an **acquisition function** to pick the most promising next point
-4. Evaluate, update surrogate, repeat
+Bayesian optimization **uses past results** to decide where to look next.
+
+*Analogy from: [Exploring Bayesian Optimization](https://distill.pub/2020/bayesian-optimization/)*
 
 ---
 
-# The Surrogate Model
+# You Already Know This: Active Learning!
 
-The surrogate predicts both:
-- **Mean**: what score to expect at a given point
-- **Uncertainty**: how confident we are
+Remember active learning from earlier weeks?
+
+| | Active Learning | Bayesian Optimization |
+|--|----------------|----------------------|
+| **Goal** | Reduce uncertainty everywhere | Find the **maximum** |
+| **Strategy** | Sample where model is most uncertain | Sample where score is likely **highest** |
+| **Focus** | Exploration | Exploitation + Exploration |
+
+Both use a surrogate model. Both pick the next point intelligently. BayesOpt just asks a different question: **"where is the best score?"** instead of "where am I most uncertain?"
+
+---
+
+# How BayesOpt Works
+
+1. Evaluate a few **random** points (just like random search)
+2. Fit a **surrogate model** to results so far
+3. The surrogate predicts both **mean** (expected score) and **uncertainty**
+4. Use an **acquisition function** to pick the most promising next point
+5. Evaluate, update surrogate, repeat
+
+The surrogate gets better with each evaluation → search gets smarter over time.
+
+---
+
+# The Surrogate Model: Mean + Uncertainty
+
+The surrogate doesn't just predict "this config will score 85%."
+
+It predicts: "this config will score **85% ± 8%**."
 
 This lets us balance:
 - **Exploitation**: try near the current best (high mean)
 - **Exploration**: try where we're uncertain (high uncertainty)
 
-The acquisition function (e.g., Expected Improvement) combines both.
+The **acquisition function** (e.g., Expected Improvement) combines both.
+
+*See the interactive GP visualization: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
 
 ---
 
-# 1D Example: Bayesian Optimization in Action
+# Expected Improvement: The Intuition
 
-```python
-from bayes_opt import BayesianOptimization
+At each candidate point, ask: **"how much better could this be than my current best?"**
 
-def black_box(x):
-    return -((x - 2)**2) + 1  # unknown to optimizer
+```
+Current best score: 87%
 
-optimizer = BayesianOptimization(
-    f=black_box,
-    pbounds={'x': (-5, 5)},
-    random_state=42)
-optimizer.maximize(init_points=3, n_iter=7)
+Candidate A:  mean=86%, uncertainty=±1%  → probably worse
+Candidate B:  mean=88%, uncertainty=±2%  → likely improvement!
+Candidate C:  mean=84%, uncertainty=±10% → uncertain, maybe great!
 ```
 
-After 3 random points, the surrogate model "sees" the landscape and focuses on the peak.
+**Expected Improvement** weights both the probability of improvement and its magnitude. It automatically balances exploration vs exploitation.
+
+---
+
+# BayesOpt in Practice: Optuna
+
+You don't need to implement BayesOpt yourself. **Optuna** does it for you:
 
 > Notebook Part 2: Visualize the surrogate model step by step as it learns.
 
 ---
 
-# Optuna: Bayesian Optimization Made Easy
+# Optuna: Code
 
 ```python
 import optuna
