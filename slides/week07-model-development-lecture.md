@@ -49,7 +49,7 @@ Data (Weeks 1-5)  →  Models (Weeks 6-8)  →  Engineering (Weeks 9-13)
 | 3 | Model Complexity: underfitting & overfitting |
 | 4 | The Validation Set |
 | 5 | Cross-Validation (manual, sklearn, stratified, time series, grouped) |
-| 6 | The Correct 5-Step Protocol |
+| 6 | Putting It All Together |
 | 7 | Bridge to Week 8 |
 
 ---
@@ -643,7 +643,16 @@ scores = cross_val_score(model, X, y, cv=skf)
 
 ---
 
-# Stratified K-Fold: From Scratch
+# Stratified K-Fold: From Scratch (Diagram)
+
+![w:900](images/week07/stratified_kfold_scratch.png)
+
+**Key idea**: Separate by class → shuffle within each class → deal round-robin into K folds.
+Each fold preserves the original class ratio.
+
+---
+
+# Stratified K-Fold: From Scratch (Code)
 
 ```python
 def stratified_kfold(y, K, seed=42):
@@ -682,21 +691,23 @@ GOOD (temporal split):
 
 ---
 
-# Time Series Split in Code
+# Time Series Split
 
 ```python
 from sklearn.model_selection import TimeSeriesSplit
 
 tscv = TimeSeriesSplit(n_splits=5)
-scores = cross_val_score(model, X_timeseries, y_timeseries, cv=tscv)
+for train_idx, test_idx in tscv.split(X_stock):
+    print(f"Train: [{train_idx[0]}..{train_idx[-1]}] "
+          f"→ Test: [{test_idx[0]}..{test_idx[-1]}]")
 ```
 
 ```
-Split 1: Train [Jan-Mar]       → Test [Apr]
-Split 2: Train [Jan-Apr]       → Test [May]
-Split 3: Train [Jan-May]       → Test [Jun]
-Split 4: Train [Jan-Jun]       → Test [Jul]
-Split 5: Train [Jan-Jul]       → Test [Aug]
+Train: [0..38]    → Test: [39..65]
+Train: [0..65]    → Test: [66..98]
+Train: [0..98]    → Test: [99..131]
+Train: [0..131]   → Test: [132..164]
+Train: [0..164]   → Test: [165..197]
 ```
 
 **Training window grows. Always: past predicts future.**
@@ -776,55 +787,70 @@ for train_idx, test_idx in gkf.split(X, y, groups=patient_ids):
 
 <!-- _class: lead -->
 
-# Section 6: The Correct 5-Step Protocol
+# Section 6: Putting It All Together
 
-*Putting it all together*
-
----
-
-# The Gold Standard Protocol
-
-```
-Step 1:  Split off a TEST set (20%). Lock it away.
-
-Step 2:  On the remaining 80%, use K-fold CV to:
-         - Compare models (tree vs forest vs SVM)
-         - Choose hyperparameters (depth=3 vs depth=10)
-         (This is where StratifiedKFold, cross_val_score live)
-
-Step 3:  Pick the best model + hyperparameters.
-
-Step 4:  Retrain the best model on ALL non-test data (80%).
-
-Step 5:  Evaluate ONCE on the test set. Report this number.
-```
-
-Step 2 uses **K-fold CV** internally — that's why you learned it!
+*Comparing models with cross-validation*
 
 ---
 
-# Full Example in Code
+# The Gold Standard: Compare Models with CV
+
+You have data and several candidate models. How do you choose?
+
+```
+Step 1:  Define candidate models + hyperparameters.
+
+Step 2:  Run K-fold CV on each candidate.
+         (Use StratifiedKFold for classification)
+
+Step 3:  Compare CV scores (mean ± std).
+         Pick the best.
+
+Step 4:  Retrain the best model on ALL data.
+         Deploy.
+```
+
+**That's it.** Cross-validation gives you a reliable, low-variance estimate for each candidate. Pick the winner.
+
+---
+
+# Comparing Models in Code
 
 ```python
-# Step 1: Hold out test set
-X_dev, X_test, y_dev, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y)
+from sklearn.model_selection import cross_val_score
 
-# Step 2: CV on dev set to compare models
-for name, model in [
-    ("Tree(d=3)", DecisionTreeClassifier(max_depth=3)),
+candidates = [
+    ("Tree(d=3)",  DecisionTreeClassifier(max_depth=3)),
     ("Tree(d=10)", DecisionTreeClassifier(max_depth=10)),
-    ("RF(100)", RandomForestClassifier(n_estimators=100))]:
-    scores = cross_val_score(model, X_dev, y_dev, cv=5)
-    print(f"{name:12s}  CV={scores.mean():.3f} ± {scores.std():.3f}")
+    ("RF(100)",    RandomForestClassifier(n_estimators=100)),
+    ("SVM",        SVC()),
+]
 
-# Steps 3-5: Pick best, retrain on ALL dev, evaluate ONCE
-best = RandomForestClassifier(n_estimators=100)
-best.fit(X_dev, y_dev)
-print(f"\nFinal test accuracy: {best.score(X_test, y_test):.3f}")
+for name, model in candidates:
+    scores = cross_val_score(model, X, y, cv=5)  # stratified by default
+    print(f"{name:12s}  CV = {scores.mean():.3f} ± {scores.std():.3f}")
 ```
 
-> Notebook Section 10: Follow the complete 5-step protocol end-to-end.
+```
+Tree(d=3)     CV = 0.788 ± 0.024
+Tree(d=10)    CV = 0.762 ± 0.031   ← overfitting (high variance)
+RF(100)       CV = 0.841 ± 0.018   ← winner!
+SVM           CV = 0.822 ± 0.021
+```
+
+---
+
+# After Choosing: Retrain on All Data
+
+```python
+# Best model chosen by CV: Random Forest
+best = RandomForestClassifier(n_estimators=100)
+best.fit(X, y)  # retrain on ALL data — maximize what the model learns
+```
+
+**Why retrain?** During CV, each fold only trained on 80% of data. Now that we've made our choice, give the model **everything**.
+
+> Notebook Section 10: Compare multiple models with CV, pick the best, retrain.
 
 ---
 
@@ -832,8 +858,8 @@ print(f"\nFinal test accuracy: {best.score(X_test, y_test):.3f}")
 
 | Mistake | Why It's Wrong | Fix |
 |---------|---------------|-----|
-| Evaluate on training data | Measures memorization | Hold out test data |
-| Use test set to pick hyperparameters | Contaminates evaluation | Use validation / CV |
+| Evaluate on training data | Measures memorization | Use cross-validation |
+| Use test set to pick hyperparameters | Contaminates evaluation | Use CV to compare |
 | Report best of many random splits | Cherry-picking | Use CV, report mean ± std |
 | Shuffle time series | Data leakage | Use `TimeSeriesSplit` |
 | Same patient in train and test | Data leakage | Use `GroupKFold` |
@@ -932,7 +958,7 @@ All of these use **cross-validation internally**. Week 7 is the foundation for W
 | Stratified CV | Maintain class ratios in each fold |
 | Time series CV | Always train on past, predict future |
 | Group CV | Keep grouped samples together |
-| 5-step protocol | Hold out test → CV to select → retrain → evaluate once |
+| Model comparison | CV all candidates → pick best → retrain on all data |
 
 ---
 
@@ -970,9 +996,9 @@ All of these use **cross-validation internally**. Week 7 is the foundation for W
 
 # Exam Questions (4/4)
 
-**Q6**: Write the correct 5-step evaluation protocol.
+**Q6**: How do you compare multiple models and pick the best one?
 
-> 1) Split off test set. 2) Use K-fold CV on the rest to compare models/hyperparameters. 3) Pick the best. 4) Retrain on all non-test data. 5) Evaluate once on test set.
+> Run K-fold CV on each candidate model. Compare mean ± std of CV scores. Pick the model with the best CV score. Retrain it on all available data.
 
 **Q7**: Implement stratified K-fold from scratch (pseudocode).
 
@@ -987,6 +1013,6 @@ All of these use **cross-validation internally**. Week 7 is the foundation for W
 
 > Don't trust a single number. Cross-validate.
 > Understand your model's complexity knobs.
-> The test set is a sealed envelope — open it once.
+> Compare candidates with CV, pick the best, retrain on all data.
 
 **Next week**: Hyperparameter Tuning, AutoML & Experiment Tracking
