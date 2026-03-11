@@ -127,7 +127,7 @@ print(f"Test mean:     {sample2.mean():.2f}")  # ≈ 5.0
 
 Both sets are drawn from the **same** $D$. This is why we can use training data to learn patterns that apply to test data.
 
-> Notebook: See the i.i.d. demo with PyTorch distributions.
+> Notebook Section 2: See the i.i.d. demo with PyTorch distributions.
 
 ---
 
@@ -240,7 +240,7 @@ Actual exam:     60%  ← can't generalize
 
 **Training accuracy measures memorization, not generalization.**
 
-> Notebook Section 2: See this yourself — unlimited depth tree gets 100% train but much lower test.
+> Notebook Section 3: See this yourself — unlimited depth tree gets 100% train but much lower test.
 
 ---
 
@@ -263,7 +263,7 @@ print(f"Test accuracy:  {model.score(X_test, y_test):.3f}")
 
 The model trains on 80%, is evaluated on the other 20% it has **never seen**.
 
-> Notebook Section 3: Try different `test_size` values and `random_state` seeds.
+> Notebook Section 4: Try different `test_size` values and `random_state` seeds.
 
 ---
 
@@ -295,7 +295,7 @@ Same model, same data, **50 different accuracy numbers**. Range: 10+ percentage 
 
 **One split = one sample from the distribution of possible test sets. Samples have variance.**
 
-> Notebook Section 4: Run 50 random splits, plot the histogram, compute the std.
+> Notebook Section 5: Run 50 random splits, plot the histogram, compute the std.
 
 ---
 
@@ -359,7 +359,7 @@ Degree  3: Train R²=0.891  Test R²=0.872   ← both high = good
 Degree 15: Train R²=0.999  Test R²=0.214   ← gap = overfitting!
 ```
 
-> Notebook Section 5: Fit degrees 1-15, plot train vs test R² to see the full curve.
+> Notebook Section 6: Fit degrees 1-15, plot train vs test R² to see the full curve.
 
 ---
 
@@ -417,7 +417,7 @@ The **sweet spot** minimizes their sum.
 
 **Question**: How do we *choose* the right complexity? We need a validation set.
 
-> Notebook Section 5: Experiment with different depths and degrees. Find the sweet spot.
+> Notebook Section 6: Experiment with different depths and degrees. Find the sweet spot.
 
 ---
 
@@ -481,7 +481,7 @@ for depth in [1, 2, 3, 5, 10, 20]:
         best_depth, best_score = depth, val_acc
 ```
 
-> Notebook Section 6: Implement three-way split and find the best depth.
+> Notebook Section 7: Implement three-way split and find the best depth.
 
 ---
 
@@ -575,7 +575,7 @@ for k in range(K):
 print(f"Mean: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
 ```
 
-> Notebook Section 7: Implement this yourself. Verify it matches sklearn.
+> Notebook Section 8: Implement this yourself. Verify it matches sklearn.
 
 ---
 
@@ -598,7 +598,7 @@ Mean: 0.828 ± 0.017
 
 **Report as**: "82.8% ± 1.7% accuracy (5-fold CV)"
 
-> Notebook Section 8: Compare manual CV vs `cross_val_score`.
+> Notebook Section 9: Compare manual CV vs `cross_val_score`.
 
 ---
 
@@ -681,7 +681,7 @@ for k, f in enumerate(folds):
     print(f"Fold {k}: {y[f].mean():.1%} positive")
 ```
 
-> Notebook Section 9: Implement stratified K-Fold from scratch, compare class ratios.
+> Notebook Section 10: Implement stratified K-Fold from scratch, compare class ratios.
 
 ---
 
@@ -759,7 +759,7 @@ print(f"Random CV:      {wrong_cv.mean():.3f}  ← optimistic!")
 print(f"TimeSeries CV:  {right_cv.mean():.3f}  ← realistic")
 ```
 
-> Notebook Section 9: Run both CV types on stock data and see the difference.
+> Notebook Section 10: Run both CV types on stock data and see the difference.
 
 ---
 
@@ -772,6 +772,14 @@ Multiple data points from the same source violate independence:
 | Medical imaging | Patient ID | Model recognizes the patient, not the disease |
 | NLP | Document ID | Model memorizes writing style |
 | Audio | Speaker ID | Model recognizes the voice, not the word |
+
+---
+
+# Group K-Fold: How It Works
+
+![w:800](images/week07/group_kfold_diagram.png)
+
+All samples from a patient go into the **same fold**. When that fold is the test set, the model has **never seen** that patient.
 
 ---
 
@@ -794,7 +802,27 @@ for train_idx, test_idx in gkf.split(X, y, groups=patient_ids):
 
 **All of a patient's data stays together.** No leakage across groups.
 
-> Notebook Section 9: Implement GroupKFold with a patient dataset.
+> Notebook Section 10: Implement GroupKFold with a patient dataset.
+
+---
+
+# Leave-One-Subject-Out (LOSO)
+
+A special case of Group K-Fold where **K = number of subjects**.
+
+```python
+from sklearn.model_selection import LeaveOneGroupOut
+
+logo = LeaveOneGroupOut()
+for train_idx, test_idx in logo.split(X, y, groups=patient_ids):
+    # Test on ONE patient, train on all others
+    test_patient = set(patient_ids[test_idx])
+    print(f"Test patient: {test_patient}")
+```
+
+**Very common in medical/wearable data**: train on 9 patients, test on the 10th, rotate.
+
+Gives the most thorough evaluation but expensive if you have many subjects.
 
 ---
 
@@ -805,6 +833,7 @@ for train_idx, test_idx in gkf.split(X, y, groups=patient_ids):
 | Classification (default) | `StratifiedKFold` | Maintains class balance |
 | Time series | `TimeSeriesSplit` | Respects temporal order |
 | Grouped samples | `GroupKFold` | Prevents group leakage |
+| Medical/wearable | `LeaveOneGroupOut` | LOSO — test on each subject |
 | Tiny dataset (< 50) | `LeaveOneOut` | Maximum data for training |
 | Everything else | `KFold` | Simple, effective |
 
@@ -818,24 +847,26 @@ for train_idx, test_idx in gkf.split(X, y, groups=patient_ids):
 
 ---
 
-# The Gold Standard: Compare Models with CV
+# The Gold Standard: Compare Model Families with CV
 
-You have data and several candidate models. How do you choose?
+You have data and several candidate **model types**. Which family works best?
+
+*(Not tuning hyperparameters — that's Week 8.)*
 
 ```
-Step 1:  Define candidate models + hyperparameters.
+Step 1:  Pick candidate model families
+         (e.g., Decision Tree vs Random Forest vs SVM).
 
-Step 2:  Run K-fold CV on each candidate.
+Step 2:  Run K-fold CV on each (default hyperparameters).
          (Use StratifiedKFold for classification)
 
 Step 3:  Compare CV scores (mean ± std).
-         Pick the best.
+         Pick the best family.
 
-Step 4:  Retrain the best model on ALL data.
-         Deploy.
+Step 4:  Retrain the winner on ALL data. Deploy.
 ```
 
-**That's it.** Cross-validation gives you a reliable, low-variance estimate for each candidate. Pick the winner.
+**That's it.** CV tells you which model *type* fits your problem. Hyperparameter tuning (Week 8) squeezes more performance later.
 
 ---
 
@@ -875,7 +906,7 @@ best.fit(X, y)  # retrain on ALL data — maximize what the model learns
 
 **Why retrain?** During CV, each fold only trained on 80% of data. Now that we've made our choice, give the model **everything**.
 
-> Notebook Section 10: Compare multiple models with CV, pick the best, retrain.
+> Notebook Section 11: Compare multiple model families with CV, pick the best, retrain.
 
 ---
 
@@ -908,31 +939,11 @@ print(f"Best accuracy: {best_acc:.1%} (seed={best_seed})")
 # Looks great! But it's just the luckiest split.
 ```
 
-This is a real problem in ML research. Dodge et al. (2020) showed that just varying random seeds can change model rankings.
+This is a real problem in ML research.
+
+📄 **Dodge et al. (2020)** *"Fine-Tuning Pretrained Language Models: Weight Initializations, Data Orders, and Early Stopping"* — showed that just varying random seeds can change model rankings on NLP benchmarks.
 
 **Fix**: Always report mean ± std over multiple seeds or use CV.
-
----
-
-# Data Leakage: The Silent Killer
-
-**Data leakage** = information from the test/future leaking into training.
-
-```python
-# WRONG: Scale before splitting
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)  # Uses ALL data including test!
-X_train, X_test = train_test_split(X_scaled, ...)
-
-# RIGHT: Scale inside the pipeline
-pipe = Pipeline([
-    ('scaler', StandardScaler()),
-    ('model', DecisionTreeClassifier())
-])
-scores = cross_val_score(pipe, X, y, cv=5)  # scaling per fold
-```
-
-**Rule**: Anything learned from data (`fit`) must happen **inside** the CV loop.
 
 ---
 
