@@ -525,21 +525,19 @@ Also: the validation score depends on *which* 200 samples landed in validation. 
 
 # K-Fold Cross-Validation
 
-![w:750](images/week07/kfold_diagram.png)
-
-1. Split data into K equal **folds**
-2. For each fold: use it as validation, train on the other K-1
-3. Average the K scores
+![w:600](images/week07/kfold_diagram.png)
 
 ---
 
-# K-Fold: The Math
+# K-Fold: How It Works
 
-$$\text{CV Score} = \frac{1}{K} \sum_{k=1}^{K} \text{score}_k$$
+1. Split data into K equal **folds** (K=5 is standard)
+2. For each fold: use it as validation, train on the other K-1
+3. Average the K scores → **CV Score**
 
 Every data point is used for validation **exactly once** and for training **K-1 times**.
 
-With K=5: each model trains on **80%** of data (vs 60% in three-way split). Every sample gets evaluated.
+With K=5: each model trains on **80%** of data (vs 60% in three-way split).
 
 ---
 
@@ -643,20 +641,13 @@ Some folds might have almost no minority class. The model trained on that fold s
 
 ---
 
-# Stratified K-Fold: The Solution
+# Stratified K-Fold: The Idea
 
 **Stratified K-Fold** ensures every fold has the **same class ratio** as the full dataset.
 
-```python
-from sklearn.model_selection import StratifiedKFold
-
-skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-scores = cross_val_score(model, X, y, cv=skf)
-```
-
 ![w:600](images/week07/stratified_cv.png)
 
-`cross_val_score` uses stratified folds **by default** for classifiers!
+How? Separate samples by class, then deal them round-robin into folds.
 
 ---
 
@@ -691,6 +682,23 @@ for k, f in enumerate(folds):
 ```
 
 > Notebook Section 9: Implement stratified K-Fold from scratch, compare class ratios.
+
+---
+
+# Stratified K-Fold: The Punchline
+
+All that from-scratch logic? **sklearn does it in one argument:**
+
+```python
+# Option 1: Explicit
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, X, y, cv=skf)
+
+# Option 2: It's already the default for classifiers!
+scores = cross_val_score(model, X, y, cv=5)  # stratified automatically
+```
+
+**Why did we implement it from scratch?** So you understand *what* stratification does and *why* it matters — not just how to call it.
 
 ---
 
