@@ -303,7 +303,14 @@ Same model, same data, **50 different accuracy numbers**. Range: 10+ percentage 
 
 # Section 3: Model Complexity
 
-*Underfitting, overfitting, and the sweet spot*
+*We can split data. But which model should we evaluate?*
+
+<!--
+INSTRUCTOR NOTES:
+- Bridge from Section 2: "We know HOW to evaluate (train/test).
+  But what exactly are we evaluating? The model's complexity matters."
+- Key message: the right model is neither too simple nor too complex.
+-->
 
 ---
 
@@ -536,14 +543,26 @@ With K=5: each model trains on **80%** of data (vs 60% in three-way split). Ever
 
 ---
 
-# Implementing K-Fold From Scratch
+# Implementing K-Fold: Setup
 
 ```python
 K = 5
 indices = np.arange(len(X))
 np.random.shuffle(indices)
-folds = np.array_split(indices, K)
+folds = np.array_split(indices, K)  # 5 roughly equal chunks
 ```
+
+```
+folds[0] = [23, 7, 45, 12, ...]   ← validation in round 0
+folds[1] = [3, 88, 51, 9, ...]    ← validation in round 1
+...
+```
+
+Each fold takes a turn as the validation set.
+
+---
+
+# Implementing K-Fold: The Loop
 
 ```python
 scores = []
@@ -554,9 +573,7 @@ for k in range(K):
     model = DecisionTreeClassifier(max_depth=5)
     model.fit(X[train_idx], y[train_idx])
     scores.append(model.score(X[val_idx], y[val_idx]))
-```
 
-```python
 print(f"Mean: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
 ```
 
@@ -602,14 +619,14 @@ Single split:  82%     (but could be 74% or 88%)
 
 # Choosing K
 
-| K | Train % | Notes |
-|---|---------|-------|
-| 2 | 50% | Fast but small train set → estimate has **high bias** |
+| K | Train % | Tradeoff |
+|---|---------|----------|
+| 2 | 50% | Fast, but each fold only trains on half the data |
 | **5** | **80%** | **Standard default. Good balance.** |
-| 10 | 90% | Larger train set → lower bias, but more computation and **higher variance between folds** |
-| N (LOO) | N-1 | Minimal bias but very slow and high variance |
+| 10 | 90% | More data per fold, but 2× slower than K=5 |
+| N (LOO) | N-1 | Uses maximum data, but very slow for large N |
 
-Note: "bias" and "variance" here refer to **properties of the CV estimate**, not the model's bias-variance tradeoff from Section 3. K=2 underestimates performance (biased) because each fold only trains on 50% of data.
+**Rule of thumb**: Use K=5 unless you have a good reason not to.
 
 ---
 
