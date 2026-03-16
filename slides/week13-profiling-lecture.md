@@ -15,138 +15,186 @@ paginate: true
 
 ---
 
-# Where We Are
+# The Problem: Your Model is Too Fat and Slow
+
+Your model is deployed (week 12). But look at these numbers:
+
+| Model | FP32 Size | Your Laptop RAM |
+|-------|-----------|-----------------|
+| **LLaMA-7B** | 28 GB | 16 GB |
+| **GPT-3** | 700 GB | 16 GB |
+| **BERT-base** | 440 MB | 16 GB |
+
+LLaMA doesn't even *fit* in memory. GPT-3 needs 44 laptops.
+
+**How do we run these?**
 
 ```
-Week 7-8:   Evaluate, tune & track              ✓
-Week 9-10:  Version code + environment           ✓
-Week 11:    Automate with CI/CD                  ✓
-Week 12:    Ship as API/demo                     ✓
-Week 13:    Make it FAST and SMALL               ← you are here
+Week 7-8:   Evaluate & Tune                       ✓
+Week 9-11:  Build, version, automate               ✓
+Week 12:    Ship it as API/demo                    ✓
+Week 13:    Make it FAST and SMALL                 ← you are here
 ```
-
-Your model is deployed. But:
-- Inference takes 500ms (user waits too long)
-- Model is 2GB (won't fit on mobile/edge)
-- GPU costs $3/hour (your startup burns money)
-
-**Can we make it faster and smaller without losing accuracy?**
 
 ---
 
-# Why This Matters Now
+# Why This Matters
 
-| Deployment Target | Constraint |
-|-------------------|-----------|
-| **Mobile phone** | < 50MB model, < 50ms inference |
-| **Edge device (IoT)** | < 10MB, runs on CPU only |
-| **Web browser** | < 100MB download, JavaScript runtime |
-| **Cloud API** | < 100ms latency, GPU costs money |
-| **Autonomous vehicle** | < 10ms, safety-critical |
+| Deployment Target | Size Constraint | Speed Constraint |
+|-------------------|----------------|-----------------|
+| **Mobile phone** | < 50 MB | < 50 ms |
+| **Edge / IoT** | < 10 MB | CPU only |
+| **Cloud API** | Fit in GPU RAM | < 100 ms (GPU costs $$) |
+| **LLM on laptop** | Fit in 16 GB RAM | Usable speed |
 
-**Training is done once. Inference happens millions of times.**
+> **Training happens once. Inference happens millions of times.**
 
-Optimizing inference has massive ROI.
+Every millisecond saved, every megabyte trimmed — multiplied by every user, every request, every day.
+
+Today's plan: put your model on a diet.
 
 ---
 
 <!-- _class: lead -->
 
-# Part 1: Theory — Numbers in Computers
+# Part 1: Profiling — The Checkup
+
+Before any diet, you visit the doctor first.
 
 ---
 
-# How Numbers Are Stored
+# The Itemized Receipt
 
-**FP32 (Float32) — Standard precision:**
+"My code is slow" is like saying "I spent too much money."
+
+That's not useful. You need the **receipt**:
+
+> "80% of your time is in one matrix multiply."
+
+A **profiler** gives you that receipt.
 
 ```
-Sign (1 bit) | Exponent (8 bits) | Mantissa (23 bits)
-     0        |    01111100       |  01000000000000000000000
-     +         ×  2^(-3)          × 1.25  =  0.15625
+Profile → Find bottleneck → Optimize → Profile again
 ```
 
-**32 bits = 4 bytes per number.**
+Without profiling, you'll optimize the wrong thing:
 
-A model with 1 billion parameters = **4 GB** just for weights.
+> *"Premature optimization is the root of all evil."*
+> — Donald Knuth
 
 ---
 
-# Floating Point Representations
+# Compute-Bound vs Memory-Bound
 
-| Format | Bits | Exponent | Mantissa | Range | Precision |
-|--------|------|----------|----------|-------|-----------|
-| **FP32** | 32 | 8 bits | 23 bits | ±3.4 × 10³⁸ | ~7 decimal digits |
-| **FP16** | 16 | 5 bits | 10 bits | ±65,504 | ~3 decimal digits |
-| **BF16** | 16 | 8 bits | 7 bits | ±3.4 × 10³⁸ | ~2 decimal digits |
-| **INT8** | 8 | N/A | N/A | -128 to 127 | Exact integer |
-| **INT4** | 4 | N/A | N/A | -8 to 7 | Exact integer |
+Think of a restaurant kitchen:
+
+| | Compute-Bound | Memory-Bound |
+|---|---|---|
+| **Analogy** | Chef is too slow cooking | Waiter is too slow bringing ingredients |
+| **Bottleneck** | Not enough math power (FLOPS) | Not enough data bandwidth (GB/s) |
+| **When?** | Large batches, big matrix multiplies | Small batches, loading model weights |
+| **Fix** | Fewer operations, faster hardware | Smaller model, better caching |
+
+**Key insight:** Most LLM inference is **memory-bound**.
+
+The GPU spends more time *loading* weights than *computing* with them.
+
+This is why quantization helps — fewer bytes to load!
+
+---
+
+# Simple Profiling
+
+The simplest profiler: a stopwatch. But do it right.
+
+```python
+import time, torch
+
+def benchmark(model, input_data, n_runs=100):
+    # Rule 1: Warmup (JIT compilation, cache filling)
+    for _ in range(10):
+        with torch.no_grad():
+            model(input_data)
+
+    # Rule 2: Sync GPU before timing
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+
+    start = time.perf_counter()
+    for _ in range(n_runs):
+        with torch.no_grad():
+            model(input_data)
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    elapsed = time.perf_counter() - start
+
+    return elapsed / n_runs * 1000  # milliseconds
+```
+
+**Three rules:** (1) Warmup. (2) Sync GPU. (3) Average many runs.
+
+For deeper profiling, use `torch.profiler` — see the notebook.
+
+<!-- ⌨ DEMO: Profile a model, find the bottleneck -->
+
+---
+
+<!-- _class: lead -->
+
+# Part 2: Quantization — The Diet
+
+The single highest-ROI optimization you can do.
+
+---
+
+# What is Quantization?
+
+**Analogy: Rounding prices at the grocery store.**
+
+Instead of adding up:
+```
+$4.99281 + $3.00192 + $7.49837 = $15.49310    (FP32: precise)
+```
+
+Just round and add:
+```
+$5 + $3 + $7 = $15                             (INT8: fast)
+```
+
+The total is close enough. And the mental math is *way* faster.
+
+**That's quantization.** Use fewer bits per number.
+
+| Format | Bytes per number | Precision |
+|--------|-----------------|-----------|
+| **FP32** | 4 bytes | Very high |
+| **FP16** | 2 bytes | High |
+| **INT8** | 1 byte | Moderate |
+| **INT4** | 0.5 bytes | Low |
 
 ---
 
 # Model Size by Format
 
-| Format | Bytes/param | 100M model | 7B model (LLaMA) |
-|--------|------------|------------|-------------------|
-| **FP32** | 4 | 400 MB | 28 GB |
+| Format | Bytes/param | 100M param model | 7B param model (LLaMA) |
+|--------|------------|------------------|------------------------|
+| **FP32** | 4 | 400 MB | **28 GB** |
 | **FP16** | 2 | 200 MB | 14 GB |
 | **INT8** | 1 | 100 MB | 7 GB |
-| **INT4** | 0.5 | 50 MB | 3.5 GB |
+| **INT4** | 0.5 | 50 MB | **3.5 GB** |
 
-**LLaMA-7B in FP32:** Needs 28 GB VRAM (A100 GPU)
-**LLaMA-7B in INT4:** Fits in 4 GB VRAM (runs on a laptop!)
+LLaMA-7B in FP32: needs a $10,000 GPU with 32+ GB VRAM.
+LLaMA-7B in INT4: **fits on your laptop with 4 GB free.**
 
-This is why quantization transformed LLM deployment.
-
----
-
-# FP16 vs BF16
-
-```
-FP16:  [1 sign] [5 exponent] [10 mantissa]  → more precision, smaller range
-BF16:  [1 sign] [8 exponent] [7 mantissa]   → less precision, same range as FP32
-```
-
-**BF16 is preferred for training:**
-- Same exponent range as FP32 → no overflow during gradient updates
-- Less precision is OK because gradients are noisy anyway
-
-**FP16 is fine for inference:**
-- Weights don't change, so overflow isn't a concern
-- Extra precision helps prediction quality slightly
+Same model. Same knowledge. Just stored more efficiently.
 
 ---
 
-# How INT8 Quantization Works
+# Why Does It Work?
 
-Map floating point values to 8-bit integers:
-
-```
-FP32 weights:  [-0.8, 0.3, 1.2, -0.1, 0.7]
-
-Step 1: Find range → min=-0.8, max=1.2
-Step 2: Compute scale and zero point
-        scale = (max - min) / (127 - (-128))
-              = 2.0 / 255 = 0.00784
-        zero_point = round(-min / scale)
-                   = round(0.8 / 0.00784) = 102
-
-Step 3: Quantize
-        q(x) = round(x / scale) + zero_point
-        INT8 weights:  [0, 140, 255, 89, 191]
-
-Dequantize: float = (int_value - zero_point) × scale
-```
-
----
-
-# Why Does Quantization Work?
-
-Model weights are **not uniformly important:**
+Neural network weights are not spread evenly — most cluster near zero:
 
 ```
-Weight distribution (typical neural network):
-
   Count
   |          ████
   |        ████████
@@ -157,438 +205,153 @@ Weight distribution (typical neural network):
   -1.0       0.0       1.0
 ```
 
-Most weights cluster near zero. Quantization introduces small rounding errors — but the model's predictions barely change.
+Rounding these values introduces tiny errors. But the model barely notices.
 
-**Empirically:** INT8 quantization loses < 1% accuracy on most models.
+**Empirically:** INT8 quantization loses **< 1% accuracy** on most models.
 
----
-
-# Quantization: Symmetric vs Asymmetric
-
-**Symmetric:** zero_point = 0, range is [-max_abs, +max_abs]
-```
-scale = max(|min|, |max|) / 127
-q(x) = round(x / scale)           # simpler math, slightly less precise
-```
-
-**Asymmetric:** zero_point ≠ 0, maps full [min, max] range
-```
-scale = (max - min) / 255
-zero_point = round(-min / scale)
-q(x) = round(x / scale) + zero_point   # more precise, more complex
-```
-
-**Symmetric** is faster (no zero_point addition). **Asymmetric** is more accurate for skewed distributions (e.g., ReLU outputs are always ≥ 0).
+The weights that matter most (near zero) are the ones quantization handles best.
 
 ---
 
-# Compute-Bound vs Memory-Bound
-
-**Compute-bound:** GPU is busy doing math.
-- Large batch sizes, big matrix multiplications
-- **Bottleneck:** arithmetic throughput (FLOPS)
-- Fix: use faster hardware, reduce operations
-
-**Memory-bound:** GPU waits for data to arrive from memory.
-- Small batch sizes, attention layers, loading weights
-- **Bottleneck:** memory bandwidth (GB/s)
-- Fix: reduce model size, use faster memory, cache better
-
----
-
-# The Roofline Model
-
-```
-Performance
-(GFLOPS)
-    │         ╱────────────── Peak compute
-    │       ╱
-    │     ╱   ← Memory-bound    Compute-bound →
-    │   ╱     (slope = bandwidth)
-    │ ╱
-    │╱
-    └──────────────────────────────────
-      Operational Intensity (FLOPS/byte)
-```
-
-**Operational intensity** = FLOPs per byte loaded from memory.
-
-- Low intensity (loading weights, small batches) → memory-bound
-- High intensity (large matmuls) → compute-bound
-
-**Most LLM inference (single token) is memory-bound.** That's why quantization helps so much — fewer bytes to load!
-
----
-
-<!-- _class: lead -->
-
-# Part 2: Profiling
-
-*Measure before you optimize*
-
-<!-- ⌨ NOTEBOOK → Profiling demos -->
-
----
-
-# Rule #1: Measure First
-
-**Never optimize without profiling.**
-
-```
-"Premature optimization is the root of all evil."
-    — Donald Knuth
-```
-
-Common mistakes:
-- Optimizing code that takes 1% of runtime
-- Guessing the bottleneck (usually wrong)
-- Adding complexity for negligible speedup
-
-**Profile → Find bottleneck → Optimize → Profile again**
-
----
-
-# Profiling Tools
-
-| Tool | What It Measures | Best For |
-|------|-----------------|----------|
-| `time.time()` | Wall clock time | Quick checks |
-| `time.perf_counter()` | High-precision time | Benchmarking |
-| `cProfile` | Function call counts + time | Python bottlenecks |
-| `torch.profiler` | GPU ops, memory, CUDA kernels | PyTorch models |
-| `memory_profiler` | Memory usage per line | Memory leaks |
-| `py-spy` | Sampling profiler (no code change) | Production |
-| `line_profiler` | Time per line | Micro-optimization |
-
----
-
-# Benchmarking: Getting It Right
-
-```python
-import time
-import torch
-
-def benchmark(model, input_data, n_runs=100):
-    """Measure average inference time."""
-    # Warmup (JIT compilation, cache filling)
-    for _ in range(10):
-        with torch.no_grad():
-            model(input_data)
-
-    # Synchronize GPU before timing
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
-
-    start = time.perf_counter()
-    for _ in range(n_runs):
-        with torch.no_grad():
-            model(input_data)
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()  # wait for GPU to finish!
-    elapsed = time.perf_counter() - start
-
-    return elapsed / n_runs * 1000  # ms
-```
-
-**Three rules:** Warmup. Synchronize GPU. Average many runs.
-
----
-
-# torch.profiler
-
-```python
-from torch.profiler import profile, ProfilerActivity
-
-with profile(
-    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-    record_shapes=True,
-    profile_memory=True,
-) as prof:
-    with torch.no_grad():
-        for _ in range(10):
-            output = model(input_data)
-
-print(prof.key_averages().table(
-    sort_by="cpu_time_total", row_limit=10
-))
-```
-
-```
-Name                    CPU total   CUDA total   # Calls
-aten::conv2d            12.5ms      8.2ms        30
-aten::batch_norm        3.2ms       1.1ms        30
-aten::linear            2.8ms       1.5ms        20
-aten::relu              1.1ms       0.3ms        30
-```
-
-**Now you know WHICH operations are slow.**
-
----
-
-# Memory Profiling
-
-**Two types of memory to track:**
-
-| Type | What | Grows With |
-|------|------|-----------|
-| **Weights** | Model parameters | Model size |
-| **Activations** | Intermediate outputs | Batch size |
-
-```python
-# Weight memory
-weight_mem = sum(p.numel() * p.element_size()
-                 for p in model.parameters())
-print(f"Weights: {weight_mem / 1024**2:.1f} MB")
-
-# Peak GPU memory (during forward pass)
-torch.cuda.reset_peak_memory_stats()
-output = model(input_batch)
-peak = torch.cuda.max_memory_allocated() / 1024**2
-print(f"Peak GPU: {peak:.1f} MB")
-```
-
----
-
-<!-- _class: lead -->
-
-# Part 3: Quantization
-
-*Make it smaller and faster*
-
----
-
-# Types of Quantization
-
-| Type | When Applied | Needs Data? | Quality | Speed |
-|------|-------------|-------------|---------|-------|
-| **Dynamic** | At inference time | No | Good | Medium |
-| **Static (PTQ)** | After training | Yes (calibration) | Better | Good |
-| **QAT** | During training | Yes (full training) | Best | Best |
-
-**Start with dynamic** (easiest, no calibration data needed).
-Move to static/QAT if accuracy drops too much.
-
----
-
-# Dynamic Quantization (PyTorch)
+# Dynamic Quantization: The One-Liner
 
 ```python
 import torch
 
-# Original model
 model = MyModel()
 model.eval()
 
-# Quantize Linear and LSTM layers to INT8
+# One line. That's it.
 quantized_model = torch.quantization.quantize_dynamic(
     model,
-    {torch.nn.Linear, torch.nn.LSTM},
+    {torch.nn.Linear},
     dtype=torch.qint8,
 )
 
-# That's it! Use quantized_model for inference.
-pred = quantized_model(input_data)
+# Use it like normal
+prediction = quantized_model(input_data)
 ```
 
-**One line of code.** Quantizes weights at load time. Activations stay in FP32 but use INT8 kernels for matrix multiplication.
+**What you get:** 2-4x smaller model, faster inference on CPU.
+
+**What it costs:** Usually < 1% accuracy drop. No calibration data needed.
+
+There are fancier approaches (static quantization, quantization-aware training) that give better quality but need more work. Details in the notebook.
 
 ---
 
-# Static Quantization (PTQ)
+# The LLaMA Story
 
-```python
-# 1. Prepare model with observers
-model.eval()
-model.qconfig = torch.quantization.get_default_qconfig('x86')
-prepared = torch.quantization.prepare(model)
+In February 2023, Meta released **LLaMA** — a powerful language model.
 
-# 2. Calibrate with representative data
-with torch.no_grad():
-    for batch in calibration_loader:  # ~100-1000 samples
-        prepared(batch)
+**Problem:** LLaMA-7B needs 28 GB in FP32. Only big GPUs could run it.
 
-# 3. Convert to quantized model
-quantized = torch.quantization.convert(prepared)
-```
+Then Georgi Gerganov built **llama.cpp** — a C++ inference engine with **4-bit quantization**.
 
-**Why calibration?** Static quantization also quantizes activations. It needs to observe real activation ranges to choose good scale/zero_point values.
+| | Before (FP32) | After (INT4) |
+|---|---|---|
+| **Size** | 28 GB | 3.5 GB |
+| **Hardware needed** | A100 GPU ($10K+) | MacBook Air |
+| **Cost** | Cloud GPU rental | Free (your laptop) |
+| **Privacy** | Data sent to cloud | Everything stays local |
 
-**More accurate than dynamic** but requires a calibration dataset.
+Suddenly, a powerful LLM runs on a phone. On a Raspberry Pi.
 
----
+**Quantization didn't just save money — it democratized AI.**
 
-# Quantization-Aware Training (QAT)
+This is why every LLM you download today (Mistral, Llama 3, Phi) comes in quantized versions (GGUF, GPTQ, AWQ).
 
-```python
-# Insert fake quantization during training
-model.train()
-model.qconfig = torch.quantization.get_default_qat_qconfig('x86')
-prepared = torch.quantization.prepare_qat(model)
-
-# Train normally — fake quantize simulates INT8 errors
-for epoch in range(num_epochs):
-    for batch in train_loader:
-        loss = criterion(prepared(batch), labels)
-        loss.backward()
-        optimizer.step()
-
-# Convert to actual quantized model
-quantized = torch.quantization.convert(prepared)
-```
-
-**The model learns to be robust to quantization noise.** Best accuracy, but requires retraining.
-
----
-
-# Quantization Summary
-
-```
-                     Accuracy
-                        │
-  FP32 (baseline)  ●    │
-                        │
-  Static quant     ●    │    ← usually < 1% drop
-  QAT              ●    │    ← often < 0.5% drop
-  Dynamic quant    ●    │    ← depends on model
-                        │
-  INT4 (aggressive) ●   │    ← 1-3% drop typical
-                        │
-                   ─────┴────────────
-                   4x    3x    2x    1x
-                       Model Size Reduction
-```
+<!-- ⌨ DEMO: Quantize a model, compare size and speed -->
 
 ---
 
 <!-- _class: lead -->
 
-# Part 4: ONNX & Other Optimizations
+# Part 3: Other Optimizations
+
+Quantization is the main course. Here are the side dishes.
 
 ---
 
-# ONNX: Portable Model Format
+# Pruning — The Jenga Approach
 
-```python
-import torch.onnx
+**Analogy:** In Jenga, you remove blocks that aren't structurally important. The tower still stands.
 
-dummy_input = torch.randn(1, 3, 224, 224)
-torch.onnx.export(
-    model,
-    dummy_input,
-    "model.onnx",
-    input_names=["image"],
-    output_names=["prediction"],
-    dynamic_axes={"image": {0: "batch_size"}},
-    opset_version=17,
-)
+Neural networks are the same. Many weights are close to zero — they barely contribute.
+
+```
+Before pruning:  [0.8, 0.001, -0.7, 0.002, 0.9, -0.003]
+After pruning:   [0.8,   0,   -0.7,   0,   0.9,    0  ]
 ```
 
-**ONNX Runtime** — optimized inference engine:
+Set small weights to zero. The model still works.
+
+**Typical result:** 50-90% of weights pruned with < 1% accuracy loss.
+
+**Structured pruning** (removing entire neurons/channels) gives real speedups because hardware can skip whole blocks of computation.
+
+---
+
+# Knowledge Distillation — Master and Apprentice
+
+**Analogy:** A master chef (big model) trains an apprentice (small model).
+
+The apprentice doesn't read the cookbook (raw data) — they watch the master work and learn the *style*: which flavors pair well, when to trust instinct over recipe.
+
+```
+Teacher (BERT-base, 440 MB, slow but smart)
+    │
+    │  "Here's how I'd rate each answer..."
+    ▼
+Student (DistilBERT, 60 MB, fast and almost as smart)
+```
+
+The student learns from the teacher's **soft predictions** — not just "cat" vs "dog", but "90% cat, 8% lynx, 2% dog." That extra information is rich.
+
+**Result:** DistilBERT keeps **97% of BERT's accuracy** at **7x smaller** and **2x faster**.
+
+---
+
+# ONNX — The PDF of Machine Learning
+
+**Analogy:** You wrote a document in Google Docs. Your colleague uses Word. Your client uses Pages. Export as **PDF** — now everyone can read it.
+
+**ONNX** does the same for models. Train in PyTorch, run *anywhere*.
+
 ```python
+# Export (3 lines)
+dummy_input = torch.randn(1, 3, 224, 224)
+torch.onnx.export(model, dummy_input, "model.onnx",
+                  input_names=["image"], output_names=["prediction"])
+
+# Inference without PyTorch (3 lines)
 import onnxruntime as ort
 session = ort.InferenceSession("model.onnx")
 result = session.run(None, {"image": input_array})
 ```
 
-**Why ONNX?** Run PyTorch models without PyTorch. Often 2-5x faster.
+**Why bother?** ONNX Runtime automatically fuses operations, optimizes memory, and runs 2-5x faster than vanilla PyTorch inference. And you don't need PyTorch installed.
 
 ---
 
-# ONNX Runtime Optimizations
+# Combining Techniques — The Full Pipeline
 
-ONNX Runtime automatically applies:
-
-| Optimization | What It Does |
-|-------------|-------------|
-| **Operator fusion** | Combine Conv+BN+ReLU into one kernel |
-| **Constant folding** | Pre-compute constant expressions |
-| **Memory planning** | Reuse memory buffers across operators |
-| **Parallel execution** | Run independent ops concurrently |
-
-```python
-# Enable all optimizations
-opts = ort.SessionOptions()
-opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-session = ort.InferenceSession("model.onnx", opts)
-```
-
-**No code changes needed.** Just switching to ONNX Runtime gives you free speedups.
-
----
-
-# Pruning: Remove Unimportant Weights
-
-```python
-import torch.nn.utils.prune as prune
-
-# Remove 30% of weights (set to zero)
-prune.l1_unstructured(model.layer1, name="weight", amount=0.3)
-
-# See the mask
-print(model.layer1.weight_mask)  # 0s and 1s
-```
-
-**Unstructured pruning:** Set individual weights to zero.
-- Sparse tensor, but hardware doesn't always accelerate sparse ops.
-
-**Structured pruning:** Remove entire channels/heads.
-- Actually reduces computation. Hardware-friendly.
-
-**Typical:** 50-90% of weights can be pruned with < 1% accuracy loss.
-
----
-
-# Knowledge Distillation
-
-**Train a small "student" to mimic a large "teacher":**
+These optimizations **stack**:
 
 ```
-Teacher (large, slow, accurate)
+Large Model (FP32, 440 MB, 90 ms)
     │
-    │ soft predictions (probabilities)
-    ▼
-Student (small, fast, almost as accurate)
+    ├── Distill    → Smaller architecture (fewer layers)
+    ├── Prune      → Remove useless weights
+    ├── Quantize   → INT8 (4x smaller per weight)
+    └── ONNX       → Fused operators, no framework overhead
+    │
+Small Model (INT8, 60 MB, 8 ms) — 97% accuracy
 ```
 
-```python
-# Distillation loss
-teacher_logits = teacher(x)
-student_logits = student(x)
+**Real example:** BERT-base (440 MB, 90 ms) to DistilBERT quantized (60 MB, 8 ms).
 
-# Soft labels from teacher
-T = 4.0  # temperature
-soft_loss = KL_divergence(
-    softmax(student_logits / T),
-    softmax(teacher_logits / T)
-) * T * T
-
-# Hard labels from data
-hard_loss = cross_entropy(student_logits, labels)
-
-loss = 0.7 * soft_loss + 0.3 * hard_loss
-```
-
----
-
-# Combining Techniques
-
-These optimizations are **complementary:**
-
-```
-Large Model (FP32, 1GB, 100ms)
-        │
-    Distillation → Smaller architecture
-        │
-    Pruning → Remove 50% of weights
-        │
-    Quantization → INT8 (4x smaller)
-        │
-    ONNX Runtime → Fused operators
-        │
-Small Model (INT8, 30MB, 15ms)
-```
-
-**Real-world example:** BERT-base (440MB, 90ms) → DistilBERT quantized (60MB, 8ms) with 97% of the accuracy.
+Same task. Nearly same accuracy. 7x smaller. 11x faster.
 
 ---
 
@@ -598,116 +361,82 @@ Small Model (INT8, 30MB, 15ms)
 Accuracy
   100% │   ●  FP32 (baseline)
        │  ●    FP16
-   99% │  ●     Static INT8
-       │ ●       Dynamic INT8
+   99% │  ●     INT8 (static)
+       │ ●       INT8 (dynamic)
    98% │●         Pruned + INT8
        │
-   95% │           ● Heavy pruning + INT4
+   95% │           ● INT4 (aggressive)
        │
        └──────────────────────────
-       4MB  2MB  1MB  0.5MB  0.2MB
-                Model Size
+      Large                    Small
+              Model Size
 ```
 
-**Pick the point on the frontier that meets YOUR requirements.**
+**Pick the point that meets YOUR requirements:**
 
-- Mobile app → INT8 + pruning (small, fast)
-- Cloud API → FP16 (fast, accurate)
-- Research → FP32 (maximum accuracy)
-- LLM on laptop → INT4 (fits in RAM)
+| Target | Recommended |
+|--------|------------|
+| Mobile app | INT8 + pruning (small & fast) |
+| Cloud API | FP16 (fast & accurate) |
+| Research | FP32 (maximum accuracy) |
+| LLM on laptop | INT4 (fit in RAM) |
 
 ---
 
-# Practical Optimization Workflow
+# Practical Workflow
 
 ```
-1. Profile the model
-   → Is it compute-bound or memory-bound?
-   → Which operators are slow?
+1. PROFILE the model
+   → Where is the time going?
+   → Compute-bound or memory-bound?
 
-2. Try the easiest optimization first
+2. Try the EASIEST optimization first
    → FP16 inference (one flag)
    → Dynamic quantization (one line)
    → ONNX export (standard)
 
-3. Measure the improvement
+3. MEASURE the improvement
    → Latency, throughput, model size
-   → CHECK ACCURACY hasn't dropped
+   → CHECK ACCURACY hasn't dropped!
 
-4. Go further if needed
-   → Static quantization (need calibration data)
-   → Pruning (structured for real speedup)
-   → Distillation (need to train student)
-   → QAT (need to retrain)
+4. Go FURTHER if needed
+   → Static quantization
+   → Pruning
+   → Distillation
+   → Quantization-aware training
 ```
 
----
-
-# Hardware-Specific Optimizations
-
-| Hardware | Tool | Format |
-|----------|------|--------|
-| **NVIDIA GPU** | TensorRT | FP16/INT8 + kernel fusion |
-| **Intel CPU** | OpenVINO | INT8 + graph optimization |
-| **Apple Silicon** | Core ML | ANE-optimized models |
-| **Mobile (Android)** | TFLite | INT8 + delegation |
-| **Mobile (iOS)** | Core ML | FP16/INT8 |
-| **Browser** | ONNX.js / TF.js | WebGL/WASM |
-
-**For this course:** ONNX Runtime (cross-platform) + PyTorch quantization (native).
+Start simple. Measure everything. Stop when you hit your target.
 
 ---
 
 # Key Takeaways
 
-1. **Profile before optimizing** — measure, don't guess
-   - `time.perf_counter()` for timing, `torch.profiler` for ops
-   - Warmup, sync GPU, average many runs
+**1. Profile first, optimize the bottleneck.**
+Don't guess. Measure. The bottleneck is never where you think.
 
-2. **Number formats matter**
-   - FP32 (4B), FP16 (2B), INT8 (1B), INT4 (0.5B)
-   - Most models tolerate INT8 with < 1% accuracy loss
+**2. Quantization = highest ROI.**
+One line of code. 2-4x smaller. Minimal accuracy loss.
 
-3. **Quantization** is the highest-ROI optimization
-   - Dynamic: one line, no data needed
-   - Static: better quality, needs calibration
-   - QAT: best quality, needs retraining
+**3. Combine techniques for maximum effect.**
+Distill + prune + quantize + ONNX = dramatic improvements.
 
-4. **Compute-bound vs memory-bound** determines your strategy
-   - Memory-bound → quantize (fewer bytes to load)
-   - Compute-bound → prune, distill (fewer operations)
-
-5. **Combine techniques** for maximum effect: distill → prune → quantize → ONNX
+**4. Pick your point on the Pareto frontier.**
+There's no single "best" — it depends on your deployment target.
 
 ---
 
 # The Full Course Arc
 
 ```
-Week 8:   Git          → version your code
-Week 9:   venv/Docker  → version your environment
-Week 10:  W&B/Optuna   → version your experiments
-Week 11:  CI/CD        → automate quality
-Week 12:  FastAPI      → ship your model
-Week 13:  Quantization → make it fast and small
+Week 7-8:   Evaluate & Tune      → measure your model
+Week 9:     Git                   → version your code
+Week 10:    Environments          → version your setup
+Week 11:    CI/CD                 → automate quality
+Week 12:    APIs & Demos          → ship your model
+Week 13:    Profiling & Quant     → make it fast and small
 ```
 
 **You can now build, track, test, deploy, and optimize ML systems.**
 
----
-
-<!-- _class: lead -->
-
-# Questions?
-
-**Exam-relevant concepts:**
-- FP32/FP16/BF16/INT8: bits, bytes, range, precision
-- How INT8 quantization works (scale + zero_point)
-- Symmetric vs asymmetric quantization
-- Dynamic vs static vs QAT quantization
-- Compute-bound vs memory-bound: definitions and implications
-- The roofline model (conceptual)
-- Why quantization works (weight distribution)
-- Pruning vs quantization vs distillation — what each does
-- Profile first, optimize the bottleneck
-- Benchmarking: warmup, GPU sync, average runs
+From a Jupyter notebook to a production-ready, optimized, deployed model — that's the journey of this course.

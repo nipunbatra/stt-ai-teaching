@@ -5,185 +5,231 @@ paginate: true
 ---
 
 <!-- _class: title-slide -->
+<!-- _paginate: false -->
 
 # Reproducibility & Environments
 
-## Week 10 · CS 203: Software Tools and Techniques for AI
+## Week 10: CS 203 - Software Tools and Techniques for AI
 
 **Prof. Nipun Batra**
 *IIT Gandhinagar*
 
 ---
 
-# The "Works on My Machine" Problem
+# The Tragedy of "Works on My Machine"
 
-You built a Netflix movie predictor. It works great on your laptop.
+You train a movie success predictor. Accuracy: **95%.** You zip it up, email it to the TA.
 
-**Your friend tries to run it:**
-
-```
-ImportError: No module named 'sklearn'
-```
-
-**You say:** "Just pip install sklearn"
+The TA opens it:
 
 ```
-ERROR: Could not find a version that satisfies the requirement sklearn
+$ python train.py
+Traceback (most recent call last):
+  File "train.py", line 1, in <module>
+    import sklearn
+ModuleNotFoundError: No module named 'sklearn'
 ```
 
-**3 hours later:** Still debugging Python versions, missing dependencies...
+You say: *"Just pip install it!"*
 
-**Sound familiar?**
+```
+ERROR: sklearn 1.4 requires numpy>=1.26, but you have numpy 1.19
+```
 
-<!-- ⌨ TERMINAL → Act 1: feel this pain live -->
-
----
-
-# Why Reproducibility Matters
-
-**For you:**
-- 6 months later, you can still run your own code
-- Switch laptops without days of setup
-- Debug issues consistently
-
-**For collaboration:**
-- Teammates can run your code immediately
-- No more "but it works for me!"
-- Onboard new team members quickly
-
-**For science:**
-- Others can verify your results
-- Build on your work
-- Trust in research
-
----
-
-# The Reproducibility Spectrum
-
-<img src="images/week10/reproducibility_spectrum.png" width="800" style="display: block; margin: 0 auto;">
-
-**Your code is only as good as its ability to run elsewhere.** If no one else can run it, it might as well not exist.
-
-**Today's goal**: Get you to "Probably!" or better.
+**3 hours later.** 17 Stack Overflow tabs. Still broken. **0 marks.**
 
 ---
 
 # Connection to Our Journey
 
 ```
-Week 1-7:  Built a movie success predictor
-Week 8:    Tuned & tracked experiments (Optuna, W&B)
-Week 9:    Version-controlled the code with Git
-           ↓
-Week 10:   Version-control the ENVIRONMENT!
-           - Anyone can run your code
-           - Same results every time
-           - Works on any machine
+Week 7:  Evaluate models properly       (CV, bias-variance)         ✓
+Week 8:  Tune & track experiments        (Optuna, Trackio)          ✓
+Week 9:  Version your CODE              (Git)                       ✓
+Week 10: Version your ENVIRONMENT       ← you are here
 ```
 
-**Git versions your code. Today we version everything else.**
+Git versions your code. But code alone is not enough.
+
+Your project is a **time capsule** — it's only useful if someone else (or future-you) can open it and run it perfectly.
+
+**Today: we version everything else.**
 
 ---
 
 <!-- _class: lead -->
+<!-- _paginate: false -->
 
-# Part 1: Virtual Environments
+# Phase 1: The Cluttered Desk
 
-*Keeping projects separate*
-
-<!-- ⌨ TERMINAL → Acts 2-3: venv, requirements.txt, version pinning -->
+*Project structure and configuration*
 
 ---
 
-# The Problem: Dependency Conflicts
+# Mise en Place: A Chef's Secret
 
-**Scenario:**
+A chef doesn't hunt for salt mid-cooking. Everything has a **station** before the first flame.
 
-| Project | Python | TensorFlow | NumPy |
-|---------|--------|------------|-------|
-| Netflix Predictor | 3.10 | 2.12 | 1.24 |
-| Old School Project | 3.8 | 1.15 | 1.19 |
-| Your System | 3.11 | ??? | ??? |
+| Messy Kitchen | Chef's Kitchen |
+|:--|:--|
+| `data.csv` in root folder | `data/raw/` and `data/processed/` |
+| `train.py` next to `notes.txt` | `src/train.py`, `notebooks/explore.ipynb` |
+| Hardcoded paths everywhere | `config.yaml` — one control panel |
+| 500 MB model committed to Git | `.gitignore` keeps it out |
+
+```
+netflix-predictor/
+├── data/raw/            # original, never modified
+├── data/processed/      # cleaned data
+├── models/              # saved models
+├── notebooks/           # Jupyter notebooks
+├── src/                 # source code (train.py, predict.py)
+├── config.yaml          # the control panel
+├── requirements.txt     # dependency list
+└── .gitignore           # the bouncer
+```
+
+---
+
+# config.yaml — The Control Panel
+
+**Stop hardcoding paths and settings inside your code.**
+
+```python
+# Bad — breaks on every other machine
+model_path = "/home/nipun/models/netflix.pkl"
+learning_rate = 0.01
+```
+
+```yaml
+# config.yaml — one file to rule them all
+training:
+  learning_rate: 0.01
+  batch_size: 32
+  seed: 42
+
+paths:
+  model: models/netflix.pkl
+  data: data/processed/
+```
+
+```python
+import yaml
+config = yaml.safe_load(open("config.yaml"))
+lr = config["training"]["learning_rate"]  # 0.01
+```
+
+Change settings without touching code. Track config changes in Git.
+
+---
+
+# .gitignore — The Bouncer (Week 9 Recap)
+
+Remember `.gitignore` from last week? It keeps junk out of Git.
+
+| Block This | Why |
+|:--|:--|
+| `data/`, `*.csv`, `*.h5` | Too large — Git is for code, not data |
+| `models/*.pkl`, `*.pth` | Too large — save separately |
+| `venv/`, `__pycache__/` | Generated — anyone can recreate |
+| `.env`, `secrets.yaml` | Security risk — API keys, passwords |
+| `.ipynb_checkpoints/` | Jupyter junk |
+
+```gitignore
+data/
+models/*.pkl
+venv/
+__pycache__/
+.env
+.ipynb_checkpoints/
+```
+
+**Rule of thumb:** if it's generated, large, or secret, it stays out.
+
+<!-- ⌨ TERMINAL → Act 1: refactor a messy project folder -->
+
+---
+
+<!-- _class: lead -->
+<!-- _paginate: false -->
+
+# Phase 2: Soundproof Studios
+
+*Virtual environments and dependency management*
+
+---
+
+# The Problem: Dependency Hell
+
+You have two projects on your laptop:
+
+| | Netflix Predictor | Old Course Project |
+|--|:--|:--|
+| **Python** | 3.10 | 3.8 |
+| **TensorFlow** | 2.12 | 1.15 |
+| **NumPy** | 1.24 | 1.19 |
 
 **Can't install both TensorFlow versions on the same system!**
 
-**Solution:** Give each project its own isolated environment.
+Install TF 2.12 for Netflix? Old project breaks.
+Downgrade for old project? Netflix breaks.
+
+You need **isolation**.
 
 ---
 
-# Virtual Environments: The Concept
+# The Analogy: Soundproof Studios
 
-Think of it like separate rooms in a house:
+Think of your computer as a building with **soundproof music studios**.
+
+Each project gets its own room. Drums in Studio A don't disturb the piano in Studio B.
 
 ```
 Your Computer
-├── Project A's Room
-│   └── Python 3.10, TensorFlow 2.12, NumPy 1.24
+├── Studio A (Netflix Predictor)
+│   └── Python 3.10, TF 2.12, NumPy 1.24
 │
-├── Project B's Room
-│   └── Python 3.8, TensorFlow 1.15, NumPy 1.19
+├── Studio B (Old Course Project)
+│   └── Python 3.8, TF 1.15, NumPy 1.19
 │
-└── Living Room (system Python)
-    └── Python 3.11 (don't touch this!)
+└── Lobby (system Python — don't touch this!)
+    └── Python 3.11
 ```
 
-Each room has its own stuff. No conflicts!
+Each studio has its own equipment. No interference. No conflicts.
+
+**A virtual environment = a soundproof studio for your project.**
 
 ---
 
-# Creating a Virtual Environment
-
-**Step 1:** Create the environment
+# The Lifecycle: Four Steps
 
 ```bash
+# 1. CREATE the studio
 python -m venv netflix_env
+
+# 2. ACTIVATE — walk into the studio
+source netflix_env/bin/activate        # Mac/Linux
+netflix_env\Scripts\activate           # Windows
+
+# 3. INSTALL — bring in your equipment
+(netflix_env) $ pip install pandas scikit-learn matplotlib
+(netflix_env) $ pip list               # see what's installed
+
+# 4. DEACTIVATE — walk out
+(netflix_env) $ deactivate
+$                                      # back in the lobby
 ```
 
-**Step 2:** Activate it
-
-```bash
-# Mac/Linux
-source netflix_env/bin/activate
-
-# Windows
-netflix_env\Scripts\activate
-```
-
-**Step 3:** Your prompt changes
-
-```bash
-(netflix_env) $ python --version
-Python 3.10.12
-```
-
-Now you're in the Netflix room!
+Packages only install in the **active** studio. Your system Python stays clean.
 
 ---
 
-# Installing Packages in Your Environment
+# requirements.txt — The Equipment Manifest
 
-**With the environment activated:**
+You built your studio. Now write down what's inside so someone else can build the same one.
 
-```bash
-# Install what you need
-pip install pandas scikit-learn matplotlib
-
-# Check what's installed
-pip list
-
-# When done, deactivate
-deactivate
-```
-
-**Key insight:** Packages only install in the active environment.
-
-Your system Python stays clean!
-
----
-
-# requirements.txt: Your Shopping List
-
-**Save your dependencies:**
+**Save the manifest:**
 
 ```bash
 pip freeze > requirements.txt
@@ -198,567 +244,270 @@ scikit-learn==1.2.2
 matplotlib==3.7.1
 ```
 
-**Anyone can now install exactly what you have:**
+**Anyone can recreate your studio:**
 
 ```bash
-pip install -r requirements.txt
+python -m venv fresh_env
+source fresh_env/bin/activate
+pip install -r requirements.txt    # exact same equipment!
 ```
 
 ---
 
-# 📽 Good vs Bad requirements.txt
+# Good vs Bad Requirements
 
-**Good (pinned versions):**
+| Good (pinned versions) | Bad (unpinned) |
+|:--|:--|
+| `numpy==1.24.3` | `numpy` |
+| `pandas==2.0.2` | `pandas` |
+| `scikit-learn==1.2.2` | `scikit-learn` |
 
-```txt
-numpy==1.24.3
-pandas==2.0.2
-scikit-learn==1.2.2
-```
+**Why does this matter?** Tomorrow, scikit-learn 2.0 releases with breaking API changes. Your code breaks for everyone who installs fresh — but not for you.
 
-**Bad (unpinned):**
+**Pin your versions. Always.**
 
-```txt
-numpy
-pandas
-scikit-learn
-```
+| Tool | Environment File | Manages Python Version? |
+|:--|:--|:-:|
+| **venv** (this course) | `requirements.txt` | No |
+| **Conda** (data science) | `environment.yml` | Yes |
 
-**Why?** Tomorrow, scikit-learn 2.0 releases with breaking changes. Your code breaks for new users, but not for you.
+Start with venv. Use Conda when you need GPU/CUDA setup.
 
-**Pin your versions for reproducibility!**
-
----
-
-# Conda: An Alternative
-
-**Conda** is popular in data science. It can manage:
-- Python versions (not just packages)
-- Non-Python dependencies (CUDA, C libraries)
-
-```bash
-# Create environment with specific Python
-conda create -n netflix python=3.10
-
-# Activate
-conda activate netflix
-
-# Install packages
-conda install pandas scikit-learn
-
-# Export environment
-conda env export > environment.yml
-
-# Create from file
-conda env create -f environment.yml
-```
-
----
-
-# venv vs Conda: Which to Use?
-
-| Feature | venv | Conda |
-|---------|------|-------|
-| Built into Python | Yes | No (install separately) |
-| Manage Python versions | No | Yes |
-| Non-Python packages | No | Yes (CUDA, etc.) |
-| Speed | Fast | Slower |
-| File | requirements.txt | environment.yml |
-
-**Recommendation for this course:** Start with venv (simpler).
-
-Use Conda when you need GPU/CUDA setup.
+<!-- ⌨ TERMINAL → Acts 2-3: create venv, install packages, freeze, share -->
 
 ---
 
 <!-- _class: lead -->
+<!-- _paginate: false -->
 
-# Part 2: Random Seeds
+# Phase 3: The Minecraft Seed
 
-*Getting the same results every time*
-
-<!-- ⌨ TERMINAL → Act 4: run model twice, fix with seeds -->
+*Controlling randomness for reproducible results*
 
 ---
 
-# The Randomness Problem
+# "Yesterday 92%, Today 85%, Same Code?!"
 
-Run your Netflix model training twice:
+Run your model training twice — exact same code:
 
 ```python
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 model = RandomForestClassifier()
 model.fit(X_train, y_train)
 print(model.score(X_test, y_test))
 ```
 
-**Run 1:** 0.82
-**Run 2:** 0.79
-**Run 3:** 0.84
+**Run 1:** 0.92
+**Run 2:** 0.85
+**Run 3:** 0.88
 
-**Which result do you report?**
+**Which result do you report?** None of them are wrong. The problem: **randomness.**
 
----
-
-# What's Random in ML?
-
-Many operations use random numbers:
-
-1. **Train/test split** - which samples go where?
-2. **Model initialization** - starting weights
-3. **Shuffling data** - order during training
-4. **Dropout** - which neurons to drop
-5. **Data augmentation** - random transformations
-
-**Without control:** Different results every run.
+Sources of randomness in ML:
+- **Train/test split** — which samples go where
+- **Model initialization** — starting weights
+- **Data shuffling** — order during training
+- **Dropout** — which neurons to deactivate
 
 ---
 
-# Setting Random Seeds
+# The Minecraft Seed
 
-**Simple fix:** Tell Python what random numbers to use.
+In Minecraft, the world is randomly generated. But if you enter the **same seed**, you get the **exact same world** every time.
+
+Same idea in ML:
+
+| Minecraft | Machine Learning |
+|:--|:--|
+| Seed number | `random_state=42` |
+| Same seed = same world | Same seed = same split, same model |
+| Share seed with friend = same map | Share seed with TA = same results |
+
+**A random seed locks the universe into one specific timeline.**
+
+---
+
+# How to Lock the Universe
+
+**Option 1:** Set `random_state` in sklearn functions (most common)
 
 ```python
-import random
-import numpy as np
-from sklearn.model_selection import train_test_split
-
-# Set the seed ONCE at the start
-random.seed(42)
-np.random.seed(42)
-
-# Now this split is reproducible
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, random_state=42
-)
+    X, y, test_size=0.2, random_state=42)
+
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
 ```
 
-**Run it 100 times → Same split every time!**
-
----
-
-# A Complete Seed Function
+**Option 2:** A global seed function (for larger projects)
 
 ```python
-import random
-import numpy as np
+import random, numpy as np
 
 def set_seed(seed=42):
-    """Set all random seeds for reproducibility."""
     random.seed(seed)
     np.random.seed(seed)
 
-    # If using PyTorch
-    try:
-        import torch
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-    except ImportError:
-        pass
-
-# Call at the start of every script
-set_seed(42)
+set_seed(42)  # call once at the top of your script
 ```
 
-**Why 42?** It's a tradition (Hitchhiker's Guide to the Galaxy).
+**Why 42?** Tradition (Hitchhiker's Guide to the Galaxy). Any number works!
 
-Any number works!
-
----
-
-# Don't Forget random_state!
-
-Many sklearn functions have a `random_state` parameter:
-
-```python
-# Train/test split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-# Random Forest
-model = RandomForestClassifier(
-    n_estimators=100, random_state=42
-)
-
-# Cross-validation with shuffling
-cross_val_score(model, X, y, cv=5, random_state=42)  # No!
-
-# Use a fixed KFold instead
-from sklearn.model_selection import KFold
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
-cross_val_score(model, X, y, cv=kf)  # Yes!
-```
+<!-- ⌨ TERMINAL → Act 4: run script twice with and without seed -->
 
 ---
 
 <!-- _class: lead -->
+<!-- _paginate: false -->
 
-# Part 3: Docker Basics
+# Phase 4: The Shipping Container
 
-*"Works on my machine" → "Works on EVERY machine"*
-
-<!-- ⌨ TERMINAL → Acts 5-7: limits of venv, Docker build/run, Compose -->
-
----
-
-# Virtual Environments Aren't Enough
-
-**Scenario:** You share your requirements.txt, but...
-
-- Friend has different OS (Windows vs Mac vs Linux)
-- System libraries differ
-- CUDA versions conflict
-- Even PATH configurations vary
-
-**Virtual environments isolate Python, not the whole system.**
+*Docker — an industry preview*
 
 ---
 
-# Docker: Build Once, Run Anywhere
+# The Final Boss: It's Not Just Python
 
-<img src="images/week10/docker_concepts.png" width="800" style="display: block; margin: 0 auto;">
-
----
-
-# Docker: Package Everything
-
-**Docker** creates a container with:
-- Operating system
-- Python version
-- All libraries
-- Your code
-- Configuration
-
-**It's like shipping your entire laptop to someone!**
+You shared your `requirements.txt`. Your friend creates a venv. Installs everything.
 
 ```
-Your Code + Python + Linux + Everything
-            ↓
-        Container
-            ↓
-    Runs identically everywhere
+$ python train.py
+OSError: libgomp.so.1: cannot open shared object file
 ```
+
+**What happened?** Your code depends on a system library that exists on your Mac but not on their Windows laptop.
+
+Virtual environments isolate **Python packages**. They don't isolate:
+- Operating system differences (Mac vs Windows vs Linux)
+- System libraries (C compilers, CUDA drivers)
+- PATH and environment variable differences
+
+**We need to ship the entire room, not just the equipment list.**
 
 ---
 
-# Docker Concepts
+# The Analogy: Shipping Containers
 
-| Term | What It Is | Analogy |
-|------|------------|---------|
-| **Image** | Blueprint/template | Recipe |
-| **Container** | Running instance | Cooked dish |
-| **Dockerfile** | Instructions to build image | Recipe card |
-| **Registry** | Store for images | Recipe book |
+Before shipping containers, moving cargo was chaos — different ports, different cranes, different loading systems.
 
-**Workflow:**
+The shipping container standardized everything: **pack once, ship anywhere.**
 
-```
-Dockerfile → (build) → Image → (run) → Container
-```
+<img src="images/week10/docker_concepts.png" width="700" style="display: block; margin: 0 auto;">
+
+Docker does the same for software. Don't send the equipment list — **send the whole studio, soundproofing included.**
 
 ---
 
-# Your First Dockerfile
+# The Blueprint: A Dockerfile
 
-Create a file named `Dockerfile` (no extension):
+A Dockerfile is a **recipe** to build your container. Five lines is all you need:
 
 ```dockerfile
-# Start from a Python image
-FROM python:3.10-slim
-
-# Set working directory
-WORKDIR /app
-
-# Copy requirements first (for caching)
-COPY requirements.txt .
-
-# Install dependencies
-RUN pip install -r requirements.txt
-
-# Copy your code
-COPY . .
-
-# Command to run
-CMD ["python", "train.py"]
-```
-
----
-
-# Building and Running
-
-**Build the image:**
-
-```bash
-docker build -t netflix-predictor .
-```
-
-**Run it:**
-
-```bash
-docker run netflix-predictor
-```
-
-**That's it!** Your code runs in an isolated container.
-
-Works on any machine with Docker installed.
-
----
-
-# Common Docker Commands
-
-```bash
-# Build image
-docker build -t myapp .
-
-# Run container
-docker run myapp
-
-# Run interactively (get a shell)
-docker run -it myapp /bin/bash
-
-# Share files between host and container
-docker run -v $(pwd)/data:/app/data myapp
-
-# See running containers
-docker ps
-
-# Stop a container
-docker stop <container_id>
-```
-
----
-
-# Docker Compose: Multi-Service Apps
-
-**Your ML app might need multiple services:**
-
-```yaml
-# docker-compose.yml
-services:
-  app:
-    build: .
-    volumes:
-      - ./data:/app/data
-    depends_on:
-      - db
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: ml_results
+FROM python:3.10-slim          # start with a Python + Linux base
+WORKDIR /app                   # set the working directory
+COPY requirements.txt .        # copy the equipment manifest
+RUN pip install -r requirements.txt  # install everything
+COPY . .                       # copy your code in
 ```
 
 ```bash
-docker compose up      # start everything
-docker compose down    # stop everything
+docker build -t netflix-predictor .    # build the container
+docker run netflix-predictor python train.py   # run it
 ```
 
-<!-- ⌨ TERMINAL → Act 7: Compose demo -->
+**That's it.** Your code now runs identically on any machine with Docker installed — your laptop, the TA's laptop, a cloud server, anywhere.
 
----
-
-# When to Use Docker
-
-**Use Docker when:**
-- Sharing with others on different OS
-- Deploying to cloud/servers
-- Complex dependencies (CUDA, system libraries)
-- Team projects
-
-**Skip Docker when:**
-- Personal projects on one machine
-- Quick prototyping
-- Simple pure-Python code
-
-**Start with venv + requirements.txt. Add Docker when needed.**
+<!-- ⌨ TERMINAL → Acts 5-6: Docker build and run -->
 
 ---
 
 <!-- _class: lead -->
+<!-- _paginate: false -->
 
-# Part 4: Project Structure
+# Phase 5: The Final Test
 
-*Organize for reproducibility*
-
-<!-- ⌨ TERMINAL → Act 8: config.yaml, .env, Makefile -->
+*Putting it all together*
 
 ---
 
-# A Reproducible Project Structure
+# The Reproducibility Stack
+
+Each layer solves a different problem. Together, they form a **time capsule**.
+
+| Layer | Tool | What It Versions |
+|:--|:--|:--|
+| Project Structure | `config.yaml`, `.gitignore` | Organization and settings |
+| Code | Git (Week 9) | Source files and history |
+| Python Packages | `venv` + `requirements.txt` | Library versions |
+| Randomness | `random_state=42` | Experimental results |
+| Entire System | Docker | OS + libraries + everything |
 
 ```
-netflix-predictor/
-├── data/
-│   ├── raw/              # Original, never modified
-│   └── processed/        # Cleaned data
-├── models/               # Saved models
-├── notebooks/            # Jupyter notebooks
-├── src/                  # Source code
-│   ├── data.py          # Data loading
-│   ├── train.py         # Training script
-│   └── predict.py       # Prediction script
-├── requirements.txt      # Dependencies
-├── README.md             # Documentation
-├── .gitignore           # What to ignore in Git
-└── config.yaml          # Configuration
+Structure + Git + Venv + Seeds + Docker = Time Capsule
 ```
 
+**You don't always need all layers.** For course projects: structure + Git + venv + seeds is enough. Add Docker when shipping to production.
+
 ---
 
-# Configuration Files
+# Scenario 1: Can You Diagnose This?
 
-**Don't hardcode values in your code!**
+Your friend clones your repo and runs:
 
-```python
-# Bad
-learning_rate = 0.01
-batch_size = 32
-model_path = "/home/nipun/models/netflix.pkl"
+```
+$ python train.py
+ModuleNotFoundError: No module named 'pandas'
 ```
 
-**Use a config file:**
+They have Python. They have your code. **What's missing?**
 
-```yaml
-# config.yaml
-training:
-  learning_rate: 0.01
-  batch_size: 32
-  epochs: 100
-
-paths:
-  model: models/netflix.pkl
-  data: data/processed/
-```
-
----
-
-# Loading Config Files
-
-```python
-import yaml
-
-def load_config(path="config.yaml"):
-    with open(path) as f:
-        return yaml.safe_load(f)
-
-config = load_config()
-print(config["training"]["learning_rate"])  # 0.01
-```
-
-**Benefits:**
-- Change settings without modifying code
-- Track configuration in Git
-- Different configs for dev/prod
-
----
-
-# .gitignore: What NOT to Track
-
-```gitignore
-# Data files (too large for Git)
-data/raw/
-*.csv
-
-# Models (too large)
-models/*.pkl
-*.pth
-
-# Environment
-venv/
-__pycache__/
-
-# Secrets
-.env
-secrets.yaml
-
-# Jupyter checkpoints
-.ipynb_checkpoints/
-```
-
----
-
-<!-- _class: lead -->
-
-# Part 5: Putting It Together
-
-*Reproducibility checklist*
-
-<!-- ⌨ TERMINAL → Act 9: run the checklist live -->
-
----
-
-# Reproducibility Checklist
-
-Before sharing your project:
-
-- [ ] **Virtual environment** - venv or conda
-- [ ] **requirements.txt** - with pinned versions
-- [ ] **Random seeds** - set at script start
-- [ ] **README** - setup and usage instructions
-- [ ] **Config file** - no hardcoded values
-- [ ] **.gitignore** - exclude data/models
-- [ ] **Test it** - clone fresh and run
-- [ ] **Docker** (optional) - for complex setups
-
----
-
-# Quick Setup Script
-
-Create `setup.sh`:
+**Answer:** They didn't install from `requirements.txt`.
 
 ```bash
-#!/bin/bash
-
-# Create virtual environment
 python -m venv venv
 source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Download data (if needed)
-python src/download_data.py
-
-echo "Setup complete! Run: source venv/bin/activate"
+pip install -r requirements.txt    # this was the missing step
+python train.py                    # now it works
 ```
 
-Now anyone can run: `bash setup.sh`
+**Lesson:** Always include a `requirements.txt` with pinned versions.
+
+---
+
+# Scenario 2: Can You Diagnose This?
+
+Your friend followed every step. Same venv. Same packages. Same code. But:
+
+**You get:** accuracy = 0.847
+**They get:** accuracy = 0.831
+
+Same code, same environment, **different results.** What's missing?
+
+**Answer:** No random seed.
+
+```python
+# Add this and share the same seed:
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, random_state=42)
+model = RandomForestClassifier(random_state=42)
+```
+
+**Lesson:** Without a seed, randomness gives different results every time.
 
 ---
 
 # Key Takeaways
 
-1. **Virtual environments** isolate project dependencies
-   - Use venv or conda
-   - Pin versions in requirements.txt
+| Problem | Solution | One-liner |
+|:--|:--|:--|
+| Messy folder, hardcoded paths | Project structure + `config.yaml` | Everything has a station |
+| Dependency conflicts | `venv` + `requirements.txt` | Each project gets a soundproof studio |
+| Different results each run | `random_state=42` | Same Minecraft seed = same world |
+| Different OS, system libraries | Docker | Ship the whole container, not the parts list |
 
-2. **Random seeds** ensure reproducible results
-   - Set at script start
-   - Use random_state parameter
+**Reproducibility is a gift to your future self.**
 
-3. **Docker** packages everything (when needed)
-   - OS + Python + libraries + code
+Your code is only as good as its ability to run elsewhere. If no one else can run it, it might as well not exist.
 
-4. **Project structure** matters
-   - README, config, .gitignore
-   - Separate code, data, models
-
-**Remember:** Reproducibility is a gift to your future self!
-
----
-
-<!-- _class: lead -->
-
-# Questions?
-
-**Today's key concepts:**
-- Virtual environments (venv, conda)
-- requirements.txt
-- Random seeds
-- Docker basics
-- Project structure
-
-**Next week:** Testing & CI/CD — Automate Everything
+> *Next week: Automate everything (CI/CD)*
