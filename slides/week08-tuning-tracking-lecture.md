@@ -66,44 +66,68 @@ Week 13: Make it fast and small      (profiling, quantization)
 
 ---
 
-# Parameters vs Hyperparameters
+# Parameters: What the Model Learns
 
-Think of baking a cake:
+**Parameters** are values the model figures out **during training** — you never set these by hand.
 
-- **Recipe temperature** (180°C) = **Hyperparameter** — you set this *before* baking
-- **How brown the top gets** = **Parameter** — determined *during* baking by the oven
+| Model | Parameters (learned) | How many? |
+|-------|---------------------|-----------|
+| Linear Regression | Weights $w$, bias $b$ | One per feature + 1 |
+| Neural Network | All weights and biases across every layer | Thousands to billions |
+| Decision Tree | Split thresholds, split features, leaf values | Depends on depth |
+| KNN | None! (stores all training data) | 0 |
+
+```python
+model.fit(X_train, y_train)    # parameters are learned HERE
+print(model.coef_)              # the learned weights
+```
+
+**You don't choose parameters. The training algorithm does.**
+
+---
+
+# Hyperparameters: What YOU Choose
+
+**Hyperparameters** are knobs you set **before** training — they control *how* the model learns.
+
+| Model | Hyperparameters (you choose) |
+|-------|------------------------------|
+| **Decision Tree** | `max_depth`, `min_samples_leaf`, `min_samples_split` |
+| **Random Forest** | `n_estimators` (number of trees), `max_depth`, `max_features` |
+| **Gradient Descent** | `learning_rate`, `n_iterations`, `batch_size` |
+| **KNN** | `n_neighbors` (k), distance metric |
+| **Neural Network** | Number of layers, neurons per layer, activation function, dropout rate |
+| **SVM** | `C` (regularization), `kernel`, `gamma` |
+
+```python
+model = RandomForestClassifier(n_estimators=100, max_depth=10)  # YOU set these
+model.fit(X_train, y_train)   # then training learns the parameters
+```
+
+---
+
+# Parameters vs Hyperparameters: Summary
 
 | | Parameters | Hyperparameters |
 |--|-----------|-----------------|
 | **Set by** | Training algorithm | You (the engineer) |
 | **When** | During `model.fit()` | Before `model.fit()` |
-| **Examples** | Weights, coefficients | max_depth, n_estimators |
+| **How** | Learned from data | Trial and error, or **tuning** (today!) |
+| **ML examples** | Weights, split thresholds | max_depth, learning_rate |
 
-**Parameters** are learned from data. **Hyperparameters** are choices you make.
+**The entire lecture is about choosing hyperparameters wisely.**
 
 ---
 
 # Motivating Example: Which Polynomial Degree?
 
-Remember fitting polynomials from Week 7? Which degree should we pick?
+Remember fitting polynomials from Week 7? The **degree** is a hyperparameter. Which value should we pick?
 
 ![w:800](images/week08/polynomial_cv_scores.png)
 
-We tried degrees 1-15 and used **cross-validation** to evaluate each. Degree 3 or 4 wins.
+We tried degrees 1-15 and used **cross-validation** to evaluate each. Degree 3 or 4 wins. High degrees explode!
 
-But we had to try all 15 to find out. **Can we be smarter?**
-
----
-
-# Wait — This Is an Optimization Problem!
-
-Flip the error curve upside down → now we're **maximizing** a score:
-
-![w:800](images/week08/tuning_as_optimization.png)
-
-**Hyperparameter tuning = finding the peak of an unknown, expensive function.**
-
-Each evaluation requires a full cross-validation — that's expensive!
+**But we had to try all 15 to find out. Can we be smarter?**
 
 ---
 
@@ -123,25 +147,15 @@ Imagine you're **prospecting for gold** along a 1-kilometer stretch of land.
 
 ---
 
-# The Gold Field (What's Hidden Underground)
-
-![w:900](images/week08/gold_mining_1d.png)
-
-**Left**: The true gold deposits (hidden from us). Two rich veins exist.
-**Middle**: After 3 drills — we have some information but don't know where the peak is.
-**Right**: A smart 4th drill near the best result finds the jackpot!
-
----
-
 # Three Strategies for Finding Gold
 
 | Strategy | How It Works | Smart? |
 |----------|-------------|--------|
 | **Grid Search** | Drill every 100m, evenly spaced | No — wastes drills in barren areas |
-| **Random Search** | Drill at random locations | No — but covers more ground |
+| **Random Search** | Drill at random locations | Better — covers more ground |
 | **Bayesian Optimization** | Look at past drills, build a map, drill where gold is likely | Yes! |
 
-Let's explore each one.
+Let's explore each one — starting with the simplest.
 
 ---
 
@@ -153,9 +167,31 @@ Let's explore each one.
 
 ---
 
-# Grid Search: The Idea
+# Grid Search in 1D: The Simplest Approach
 
-Try **every combination** of hyperparameter values on a regular grid.
+Try **every value** in a list and pick the best:
+
+```python
+# 1D grid search: which max_depth is best?
+best_score, best_depth = 0, None
+
+for depth in [1, 2, 3, 5, 7, 10, 15, 20]:
+    model = DecisionTreeClassifier(max_depth=depth)
+    score = cross_val_score(model, X, y, cv=5).mean()
+    print(f"  depth={depth:2d} → CV = {score:.3f}")
+    if score > best_score:
+        best_score, best_depth = score, depth
+
+print(f"\nBest: depth={best_depth}, CV={best_score:.3f}")
+```
+
+Simple, easy to understand. **But what about 2 or 3 hyperparameters?**
+
+---
+
+# Grid Search in Multiple Dimensions
+
+With multiple hyperparameters, you try **every combination** — nested loops:
 
 ```python
 best_score, best_params = 0, {}
@@ -180,7 +216,7 @@ for n_est in [50, 100, 200]:
 # Grid Search: The Explosion Problem
 
 ```
-3 × 3 × 3 = 27 combos × 5 folds = 135 fits!
+3 × 3 × 3 = 27 combos × 5 folds = 135 model fits!
 ```
 
 Every combo gets a full 5-fold CV. That's 135 times we train a model.
@@ -217,14 +253,6 @@ Same nested for-loops, but sklearn handles CV, scoring, and results tracking.
 
 ---
 
-# Grid Search: The Big Problem
-
-![w:800](images/week08/grid_vs_random_search.png)
-
-Grid search only explores **5 unique values** of the important parameter — even with 25 evaluations!
-
----
-
 <!-- _class: lead -->
 
 # Strategy 2: Random Search
@@ -233,13 +261,25 @@ Grid search only explores **5 unique values** of the important parameter — eve
 
 ---
 
-# Random Search: Better Coverage
+# Grid's Hidden Problem: Wasted Evaluations
 
-![w:800](images/week08/grid_vs_random_search.png)
+Often, one hyperparameter matters much more than others. But grid doesn't know that.
 
-Random search explores **25 unique values** of the important parameter with the same budget!
+![w:800](images/week08/grid_vs_random_1d.png)
 
-**Key insight** (Bergstra & Bengio, 2012): Not all hyperparameters matter equally. Grid wastes evaluations varying *unimportant* parameters.
+In 1D: grid evaluates at fixed intervals and can **miss the peak entirely** if it falls between grid points. Random has a better chance of landing near it.
+
+---
+
+# Why Random Beats Grid in 2D
+
+In 2D, the waste becomes dramatic:
+
+![w:800](images/week08/grid_vs_random_2d.png)
+
+Grid only explores **5 unique values** of the important parameter (repeating each with 5 unimportant values). Random explores **25 unique values** with the same budget!
+
+**Key insight** (Bergstra & Bengio, 2012): Not all hyperparameters matter equally. Grid wastes evaluations varying unimportant parameters.
 
 ---
 
@@ -257,6 +297,9 @@ search = RandomizedSearchCV(
      'max_features': uniform(0.1, 0.8)},
     n_iter=60, cv=5, n_jobs=-1, random_state=42)
 search.fit(X, y)
+
+print(f"Best: {search.best_score_:.3f}")
+print(f"Params: {search.best_params_}")
 ```
 
 **60 random trials often beats a full grid of 900+ combos.**
@@ -290,26 +333,51 @@ Back to gold mining: if drill #3 struck gold, wouldn't you drill **nearby** next
 
 *Use past results to decide what to try next*
 
----
-
-# The Key Idea
-
-Bayesian optimization has a simple loop:
-
-```
-1. Drill a few random holes       (just like random search)
-2. Build a MAP of the gold field   (from results so far)
-3. Use the map to pick the most promising next drill spot
-4. Drill, update the map, repeat
-```
-
-The map gets better with each drill → **the search gets smarter over time**.
-
-Think of it like Battleship: you don't fire randomly after a "Hit" — you fire *near* the hit!
+*Based on: [Exploring Bayesian Optimization](https://distill.pub/2020/bayesian-optimization/) (Agnihotri & Batra, Distill, 2020)*
 
 ---
 
-# Our Initial Map (Before Any Drills)
+# The Gold Field: What's Really Underground
+
+Before we start searching, let's peek at what's hidden:
+
+![w:700](images/week08/distill_gold_gt.svg)
+
+This is the **true gold concentration** — but we don't know this! We can only discover it by drilling (evaluating hyperparameters).
+
+*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
+
+---
+
+# Two Problems, One Tool
+
+Given this hidden gold field, there are **two different questions** we could ask:
+
+| | Problem 1: Active Learning | Problem 2: Bayesian Optimization |
+|--|---------------------------|----------------------------------|
+| **Goal** | Estimate the gold distribution **everywhere** | Find the location of **maximum** gold |
+| **Question** | "What does the whole landscape look like?" | "Where is the richest deposit?" |
+| **Strategy** | Sample where **most uncertain** | Sample where score likely **highest** |
+| **Use case** | Data labeling (Weeks 4-5) | Hyperparameter tuning (today!) |
+
+Both use a **model with uncertainty** (a map with error bars). But they ask different questions of it.
+
+---
+
+# The Model: A Map with Error Bars
+
+We need a model that gives us two things at every point:
+
+- **Best guess** (mean, $\mu$): "I think there's *this much* gold here"
+- **Confidence** (uncertainty, $\sigma$): "But I could be off by *this much*"
+
+This is typically a **Gaussian Process (GP)** — but any model that outputs mean + uncertainty works.
+
+**You don't need to understand GP math.** Just think of it as a **curve with error bars** that gets more accurate where we have more data.
+
+---
+
+# Before Any Drills: The Prior
 
 Before any evaluations, we know nothing. Our map is a **flat guess with wide uncertainty**:
 
@@ -322,7 +390,7 @@ Before any evaluations, we know nothing. Our map is a **flat guess with wide unc
 
 ---
 
-# Our Updated Map (After a Few Drills)
+# After a Few Drills: The Posterior
 
 After a few evaluations, the map **learns** the landscape:
 
@@ -333,81 +401,356 @@ After a few evaluations, the map **learns** the landscape:
 
 The map gives us both a **best guess** and **how confident** we are at every point.
 
----
-
-# The Map: A Curve with Error Bars
-
-The map (technically called a **Gaussian Process**) is simple:
-
-- **Best guess** (mean, μ): "I think there's *this much* gold here"
-- **Confidence** (uncertainty, σ): "But I could be off by *this much*"
-
-Where we've drilled → small error bars (confident).
-Where we haven't → large error bars (uncertain).
-
-**You don't need to understand the math** — just think of it as a curve with error bars that gets more accurate with each data point.
-
----
-
-# Where Should We Drill Next?
-
-We want to drill where gold is likely **richest**. But we must balance:
-
-**Exploitation**: drill near the current best hit
-- *"The richest vein might be right next to our best drill!"*
-
-**Exploration**: drill where we're most uncertain
-- *"There might be an even richer vein somewhere we haven't looked!"*
-
-Think of **Battleship**: after a hit at C4, do you fire at C5 (exploit) or try the far corner (explore)?
-
-**Good search = balance both.** This is the **exploration-exploitation tradeoff**.
-
----
-
-# Expected Improvement: "How Promising Is This Spot?"
-
-BayesOpt uses a scoring function called **Expected Improvement (EI)** to decide where to drill next:
-
-> "On average, how much better than our current best could this point be?"
-
-Think of it as combining two questions:
-
-- **"Is there likely gold here?"** (high mean → probably yes)
-- **"Could there be a surprise?"** (high uncertainty → maybe!)
-
-EI is highest where both answers are "yes" — that's where we drill next.
-
----
-
-# Watching BayesOpt Work: Iteration 0
-
-![w:700](images/week08/distill_ei_0.png)
-
-**Top**: Our map (best guess ± uncertainty) with a few initial drill results.
-**Bottom**: Expected Improvement — the peak shows **where to drill next**.
-
 *Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
 
 ---
 
-# Watching BayesOpt Work: Iteration 3
+<!-- _class: lead -->
 
-![w:700](images/week08/distill_ei_3.png)
+# Quick Detour: Active Learning
 
-After 3 more drills, the map is **zeroing in** on the rich vein. Uncertainty shrinks where we've drilled, and EI shifts to new areas.
-
-*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
+*What if we wanted to learn the WHOLE landscape?*
 
 ---
 
-# Watching BayesOpt Work: Iteration 9
+# Active Learning Refresher (Weeks 4-5)
 
-![w:700](images/week08/distill_ei_9.png)
+In active learning, we want to reconstruct the **entire function** as accurately as possible.
+
+**Strategy**: always sample where we are **most uncertain** — fill in the biggest gaps in our knowledge.
+
+This is the same GP/model with uncertainty, but we ask: *"Where do I know the least?"*
+
+---
+
+# Active Learning: Iteration 0
+
+![w:600](images/week08/distill_al_0.png)
+
+With just 2 initial samples, uncertainty is wide everywhere. AL picks the point with the **widest band**.
+
+---
+
+# Active Learning: Iteration 1
+
+![w:600](images/week08/distill_al_1.png)
+
+---
+
+# Active Learning: Iteration 2
+
+![w:600](images/week08/distill_al_2.png)
+
+---
+
+# Active Learning: Iteration 3
+
+![w:600](images/week08/distill_al_3.png)
+
+---
+
+# Active Learning: Iteration 4
+
+![w:600](images/week08/distill_al_4.png)
+
+---
+
+# Active Learning: Iteration 5
+
+![w:600](images/week08/distill_al_5.png)
+
+Uncertainty is **evenly reduced** — AL spreads samples across the domain.
+
+---
+
+# Active Learning: Iteration 6
+
+![w:600](images/week08/distill_al_6.png)
+
+---
+
+# Active Learning: Iteration 7
+
+![w:600](images/week08/distill_al_7.png)
+
+---
+
+# Active Learning: Iteration 8
+
+![w:600](images/week08/distill_al_8.png)
+
+---
+
+# Active Learning: Iteration 9
+
+![w:600](images/week08/distill_al_9.png)
+
+After 10 samples, AL knows the function well **everywhere** — but spent samples in boring flat regions too. **If we only cared about the peak, those samples were wasted!**
+
+---
+
+<!-- _class: lead -->
+
+# Back to Bayesian Optimization
+
+*We don't need to learn everything — just find the maximum*
+
+---
+
+# BayesOpt: The Problem Statement
+
+From the Distill article, Bayesian optimization is about:
+
+> **Finding the input that maximizes an unknown, expensive-to-evaluate function.**
+
+In gold mining terms:
+
+| General Formulation | Gold Mining Version |
+|--------------------|--------------------|
+| Unknown function $f(x)$ | Gold concentration at location $x$ |
+| Each evaluation is expensive | Each drill costs ₹10,000 |
+| We want $x^* = \arg\max f(x)$ | We want the **richest** drilling location |
+| Limited budget of $N$ evaluations | We can only afford $N$ drills |
+
+**The key challenge**: balance **exploitation** (drill near the best so far) vs **exploration** (drill somewhere new that might be even better).
+
+---
+
+# BayesOpt: The Algorithm
+
+From the Distill article, BayesOpt follows these steps:
+
+```
+1. Choose a model for the unknown function (GP or similar)
+2. Collect a few initial observations (random drills)
+3. LOOP:
+   a. Fit the model to all observations so far
+   b. Use an acquisition function to pick the next point
+   c. Evaluate the true function at that point (drill!)
+   d. Add the result to our observations
+   e. Repeat until budget exhausted
+4. Return the best observation
+```
+
+The model gets better with each iteration → **the search gets smarter over time**.
+
+---
+
+# Where to Drill Next? The Explore-Exploit Dilemma
+
+You've drilled 5 holes. Drill #3 found the most gold. **Where do you drill #6?**
+
+```
+Location:  0.1   0.3   0.5   0.7   0.9
+Gold:       2     8     5     3     1
+                  ↑
+              best so far
+```
+
+**Option A — Exploit**: drill at 0.25 or 0.35 (near the best hit)
+- *Safe bet. The richest vein might extend nearby.*
+
+**Option B — Explore**: drill at 0.6 or 0.8 (where we haven't looked)
+- *Risky. But there might be an even richer vein we missed entirely.*
+
+**The right answer: do both, in proportion.** That's what acquisition functions do.
+
+---
+
+# Acquisition Functions: Scoring Every Location
+
+An **acquisition function** assigns a score to every possible drill location, combining:
+
+1. **How good do we expect it to be?** (high mean → likely good)
+2. **How uncertain are we?** (high uncertainty → could surprise us)
+
+The location with the **highest acquisition score** gets drilled next.
+
+```
+Location:    0.1   0.2   0.3   0.4   0.5   0.6   0.7   0.8   0.9
+Mean (μ):     2     5     8     7     5     4     3     2     1
+Uncertainty:  1     2     1     3     2     5     3     4     2
+                                ↑                 ↑
+                            high mean        high uncertainty
+                            (exploit)          (explore)
+Acq. score:   low   med   med   HIGH  med   HIGH  med   med   low
+```
+
+---
+
+# Expected Improvement: The Most Common Acquisition Function
+
+**Expected Improvement (EI)** asks:
+
+> "On average, how much **better** than our current best could this point be?"
+
+It naturally balances explore vs exploit:
+
+- Points with **high mean** get high EI (likely to improve)
+- Points with **high uncertainty** get high EI (might surprise us)
+- Points with **both** get the highest EI
+
+**In the BayesOpt iteration plots (next slides), the bottom panel shows the EI function.** The peak of EI is where we drill next.
+
+---
+
+# Other Ways to Pick the Next Drill
+
+EI is the most popular, but there are other strategies. **You don't need to memorize these** — just know they all balance explore vs exploit differently:
+
+- **Expected Improvement (EI)**: "How much better than my best could this be?" — *the default*
+- **Upper Confidence Bound (UCB)**: "Be optimistic — assume the best case"
+- **Thompson Sampling**: "Imagine one possible world, pick the best point in it"
+
+**For this course**: EI works well and is the default in Optuna. That's all you need to know.
+
+---
+
+# BayesOpt in Action: Iteration 0
+
+![w:600](images/week08/distill_ei_0.png)
+
+**Top**: GP posterior with initial observations. **Bottom**: EI — the peak shows **where to drill next**.
+
+---
+
+# BayesOpt: Iteration 1
+
+![w:600](images/week08/distill_ei_1.png)
+
+---
+
+# BayesOpt: Iteration 2
+
+![w:600](images/week08/distill_ei_2.png)
+
+---
+
+# BayesOpt: Iteration 3
+
+![w:600](images/week08/distill_ei_3.png)
+
+After 3 drills, the map is **zeroing in** on the rich vein. EI shifts to unexplored areas.
+
+---
+
+# BayesOpt: Iteration 4
+
+![w:600](images/week08/distill_ei_4.png)
+
+---
+
+# BayesOpt: Iteration 5
+
+![w:600](images/week08/distill_ei_5.png)
+
+---
+
+# BayesOpt: Iteration 6
+
+![w:600](images/week08/distill_ei_6.png)
+
+---
+
+# BayesOpt: Iteration 7
+
+![w:600](images/week08/distill_ei_7.png)
+
+---
+
+# BayesOpt: Iteration 8
+
+![w:600](images/week08/distill_ei_8.png)
+
+---
+
+# BayesOpt: Iteration 9
+
+![w:600](images/week08/distill_ei_9.png)
 
 After 9 drills, we've **found the richest deposit**! The map closely matches reality near the peak. EI is nearly zero — we're confident we've found the best.
 
-*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
+---
+
+# AL vs BayesOpt: Side by Side
+
+**Same model (GP), different question. Watch how they diverge over 10 iterations.**
+
+---
+
+# AL vs BayesOpt: Iteration 0
+
+![w:900](images/week08/al_vs_bo_0.png)
+
+---
+
+# AL vs BayesOpt: Iteration 1
+
+![w:900](images/week08/al_vs_bo_1.png)
+
+---
+
+# AL vs BayesOpt: Iteration 2
+
+![w:900](images/week08/al_vs_bo_2.png)
+
+---
+
+# AL vs BayesOpt: Iteration 3
+
+![w:900](images/week08/al_vs_bo_3.png)
+
+---
+
+# AL vs BayesOpt: Iteration 4
+
+![w:900](images/week08/al_vs_bo_4.png)
+
+---
+
+# AL vs BayesOpt: Iteration 5
+
+![w:900](images/week08/al_vs_bo_5.png)
+
+---
+
+# AL vs BayesOpt: Iteration 6
+
+![w:900](images/week08/al_vs_bo_6.png)
+
+---
+
+# AL vs BayesOpt: Iteration 7
+
+![w:900](images/week08/al_vs_bo_7.png)
+
+---
+
+# AL vs BayesOpt: Iteration 8
+
+![w:900](images/week08/al_vs_bo_8.png)
+
+---
+
+# AL vs BayesOpt: Iteration 9
+
+![w:900](images/week08/al_vs_bo_9.png)
+
+---
+
+# AL vs BayesOpt: The Takeaway
+
+| Active Learning | Bayesian Optimization |
+|:--:|:--:|
+| *"Where am I most uncertain?"* | *"Where might the score be highest?"* |
+| Spreads samples **evenly** | Focuses samples **near the peak** |
+| Great for **labeling data** | Great for **tuning hyperparameters** |
+
+**After 9 samples each:**
+- AL knows the whole function but wasted samples in boring flat regions
+- BayesOpt found the maximum quickly but doesn't know the flat regions
+
+**The connection**: smart data labeling (Weeks 4-5) uses the **same math** as smart hyperparameter tuning!
 
 ---
 
@@ -431,23 +774,67 @@ Real tuning has **multiple hyperparameters** — like searching a 2D gold field:
 
 ---
 
-# BayesOpt in 2D: Starting Out
+# BayesOpt in 2D: Iteration 0
 
 ![w:500](images/week08/distill_ei3d_0.png)
 
-The map and EI work the same way in 2D — just harder to visualize. The EI surface shows a **landscape of promising regions** to explore.
-
-*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
+The map and EI work the same way in 2D — just harder to visualize.
 
 ---
 
-# BayesOpt in 2D: After 9 Iterations
+# BayesOpt in 2D: Iteration 1
+
+![w:500](images/week08/distill_ei3d_1.png)
+
+---
+
+# BayesOpt in 2D: Iteration 2
+
+![w:500](images/week08/distill_ei3d_2.png)
+
+---
+
+# BayesOpt in 2D: Iteration 3
+
+![w:500](images/week08/distill_ei3d_3.png)
+
+---
+
+# BayesOpt in 2D: Iteration 4
+
+![w:500](images/week08/distill_ei3d_4.png)
+
+---
+
+# BayesOpt in 2D: Iteration 5
+
+![w:500](images/week08/distill_ei3d_5.png)
+
+---
+
+# BayesOpt in 2D: Iteration 6
+
+![w:500](images/week08/distill_ei3d_6.png)
+
+---
+
+# BayesOpt in 2D: Iteration 7
+
+![w:500](images/week08/distill_ei3d_7.png)
+
+---
+
+# BayesOpt in 2D: Iteration 8
+
+![w:500](images/week08/distill_ei3d_8.png)
+
+---
+
+# BayesOpt in 2D: Iteration 9
 
 ![w:500](images/week08/distill_ei3d_9.png)
 
-After 9 drills, the map has explored the field and focused on the peak. The EI surface has flattened — the search is converging.
-
-*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
+After 9 drills, the EI surface has flattened — the search has converged on the peak.
 
 ---
 
@@ -460,74 +847,6 @@ In real ML, you might tune many knobs at once:
 - **Neural Network**: 10-20+ knobs (lr, batch_size, layers, dropout, optimizer, ...)
 
 The same BayesOpt idea works — we just can't visualize it. That's why we use **libraries like Optuna** that handle the math for us.
-
----
-
-<!-- _class: lead -->
-
-# BayesOpt vs Active Learning
-
-*Same tool, different goal*
-
----
-
-# You Already Know Something Like This!
-
-Remember **active learning** from Weeks 4-5? It also picks "where to sample next" using uncertainty.
-
-Both use a **map with uncertainty**. But their **goals differ**:
-
-| | Active Learning (Weeks 4-5) | Bayesian Optimization (Today) |
-|--|----------------|----------------------|
-| **Goal** | Learn the function **everywhere** | Find the **maximum** |
-| **Strategy** | Sample where **most uncertain** | Sample where score likely **highest** |
-| **Use case** | Pick the most informative data to label | Find the best hyperparameters |
-
----
-
-# Active Learning: Spreading Out Evenly
-
-![w:500](images/week08/distill_active_gp_0.png)
-
-Active learning picks the point with the **widest uncertainty band** — it wants to reduce uncertainty everywhere, not just near the peak.
-
-*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
-
----
-
-# Active Learning: After 5 Samples
-
-![w:500](images/week08/distill_active_gp_5.png)
-
-After 5 samples, uncertainty is **evenly reduced everywhere**. Active learning has learned the function broadly — but hasn't focused on the peak.
-
-*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
-
----
-
-# Active Learning: After 9 Samples
-
-![w:500](images/week08/distill_active_gp_9.png)
-
-After 9 samples, active learning knows the function well **everywhere** — but it spent samples in boring flat regions too.
-
-**BayesOpt would have spent those samples near the peak instead!**
-
-*Source: [distill.pub/2020/bayesian-optimization](https://distill.pub/2020/bayesian-optimization/)*
-
----
-
-# Side by Side: AL vs BayesOpt
-
-**Same underlying map (GP with uncertainty), different question asked.**
-
-- Active Learning asks: *"Where am I most uncertain?"*
-  → Great for **labeling data** (want diverse coverage)
-
-- BayesOpt asks: *"Where might the score be highest?"*
-  → Great for **tuning hyperparameters** (want the best)
-
-The connection: what you learned in Weeks 4-5 about smart data labeling is the **same math** that powers smart hyperparameter tuning!
 
 ---
 
@@ -617,33 +936,6 @@ Trial 3:  step 1=70%, step 2=74%, step 3=77% ... step 50=83%  ✓
 
 ---
 
-# A Note on `best_score_`
-
-```python
-grid = GridSearchCV(model, params, cv=5)
-grid.fit(X, y)
-print(f"Best score: {grid.best_score_:.3f}")  # Slightly optimistic!
-```
-
-**Why optimistic?** You tried many configs and picked the best. By definition, it's the luckiest.
-
-In practice, this bias is small. Just be aware: **`best_score_` is a bit better than reality.**
-
----
-
-# Optional Advanced: Nested Cross-Validation
-
-For research papers, separate tuning from evaluation using **nested CV**:
-
-![w:550](images/week07/nested_cross_validation.png)
-
-- **Inner loop** (3-fold): Tunes hyperparameters
-- **Outer loop** (5-fold): Evaluates the tuning process on truly held-out data
-
-*Not required for course projects — just good to know exists.*
-
----
-
 # We Just Generated 100+ Experiments...
 
 After running Grid Search, Random Search, and Optuna, you might have **hundreds of results**.
@@ -668,121 +960,218 @@ We need a way to **track** all these experiments. And we need to **reproduce** t
 
 ---
 
-# The Problem: "Which Run Was That?"
+# The Problem: Notebook Chaos
+
+Without tracking, your workflow looks like this:
 
 ```python
 # Monday:  lr=0.01, depth=10  → 83.2%
 # Tuesday: lr=0.001, depth=15 → 84.1%
 # Wednesday: ... was Tuesday depth=15 or 20?
 # Thursday: "I think the best was Tuesday's run. Probably."
+# Friday: *accidentally re-runs cell, overwrites results*
 ```
 
-Sound familiar? You need a system that **automatically records** every experiment.
+**What goes wrong:**
+- You forget which hyperparameters produced which result
+- You can't compare runs systematically
+- You lose context when you come back after a break
+
+---
+
+# What Goes Wrong Without Tracking
+
+| Problem | What Happens |
+|---------|-------------|
+| **Lost configs** | "What hyperparameters gave me 85.7%?" — no record |
+| **No comparison** | 50 runs in a notebook, can't tell which is best at a glance |
+| **No history** | Overwrite a cell → previous results gone forever |
+| **No reproducibility** | "It worked yesterday" — but you don't know what changed |
+| **Wasted time** | Re-run experiments you've already tried but forgot about |
+
+**You need a system that automatically records EVERY experiment.**
 
 ---
 
 # What Should Be Tracked?
 
-| Category | Examples |
-|----------|---------|
-| **Config** | Hyperparameters, model type, dataset version |
-| **Metrics** | Accuracy, loss, F1 — per step and final |
-| **Artifacts** | Model weights, plots, confusion matrices |
-| **Environment** | Python version, package versions, git hash |
-| **Metadata** | Run name, tags, notes, timestamp |
+| Category | Examples | Why |
+|----------|---------|-----|
+| **Config** | Hyperparameters, model type, dataset version | Know what you tried |
+| **Metrics** | Accuracy, loss, F1 — per step and final | Know what worked |
+| **Artifacts** | Model weights, plots, confusion matrices | Reproduce the best |
+| **Environment** | Python version, package versions, git hash | Debug differences |
+| **Metadata** | Run name, tags, notes, timestamp | Organize and search |
 
 Tracking this manually in a spreadsheet breaks down after 10 runs.
 
 ---
 
-# Trackio: Local-First Experiment Tracking
+# Meet Trackio: Local-First Experiment Tracking
+
+**Trackio** (by Hugging Face / Gradio team) is a free, local-first tracking library.
+
+**Three calls is all you need:**
 
 ```python
 import trackio
 
-trackio.init(project="netflix-predictor", config={
-    "learning_rate": 0.01,
-    "n_estimators": 100,
-    "seed": 42})
+# 1. Start a run
+trackio.init(project="cs203-week08-demo", name="RandomForest",
+             config={"model": "RandomForest", "experiment": "model-comparison"})
 
-model = train(trackio.config)           # your training code
-trackio.log({"accuracy": accuracy,      # log final metrics
-             "f1": f1_score})
+# 2. Log metrics
+trackio.log({"train_accuracy": 0.95, "test_accuracy": 0.845, "cv_accuracy": 0.91})
 
+# 3. Finish the run
 trackio.finish()
 ```
 
-**Trackio** (Hugging Face): free, local-first, W&B-compatible API. Three calls: `init`, `log`, `finish`.
+Everything is stored locally in SQLite — no account, no cloud, no cost.
 
-> Notebook Part 8: Log your first sklearn experiment.
+> **Demo**: `python trackio_01_basics.py`
 
 ---
 
-# Trackio: Logging Over Time
+# Trackio: Comparing 3 Models
+
+<!-- _class: code-slide -->
 
 ```python
-trackio.init(project="tuning-demo", config={
-    "model": "RandomForest", "n_estimators_range": "50-300"})
+models = [
+    ("LogisticRegression", LogisticRegression(max_iter=1000, random_state=42)),
+    ("RandomForest", RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)),
+    ("GradientBoosting", GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, random_state=42)),
+]
 
-for n_est in range(50, 301, 10):
-    model = RandomForestClassifier(n_estimators=n_est)
-    score = cross_val_score(model, X, y, cv=5).mean()
-    trackio.log({"n_estimators": n_est, "cv_accuracy": score})
+for name, model in models:
+    trackio.init(project="cs203-week08-demo", name=name,
+                 config={"model": name, "experiment": "model-comparison"})
+
+    model.fit(X_train, y_train)
+    trackio.log({
+        "train_accuracy": float(round(model.score(X_train, y_train), 4)),
+        "test_accuracy": float(round(model.score(X_test, y_test), 4)),
+        "cv_accuracy": float(round(cross_val_score(model, X_train, y_train, cv=5).mean(), 4)),
+    })
+    trackio.finish()
+```
+
+Each `log()` call is **non-blocking** — a background thread writes to SQLite.
+
+---
+
+# Trackio: Logging a Hyperparameter Sweep
+
+```python
+trackio.init(project="cs203-week08-demo", name="rf-n-estimators-sweep",
+             config={"model": "RandomForest", "experiment": "n_estimators_sweep",
+                     "max_depth": 10})
+
+for n_trees in range(10, 310, 10):
+    rf = RandomForestClassifier(n_estimators=n_trees, max_depth=10, random_state=42)
+    rf.fit(X_train, y_train)
+
+    trackio.log({
+        "n_estimators": n_trees,
+        "train_accuracy": float(round(rf.score(X_train, y_train), 4)),
+        "test_accuracy": float(round(rf.score(X_test, y_test), 4)),
+    })
 
 trackio.finish()
 ```
 
-Trackio auto-generates plots in its local dashboard.
+One run, 30 logged steps — the dashboard shows these as a **line chart**.
 
-> Notebook Part 8: Log training curves.
+> **Demo**: `python trackio_02_sweep.py`
 
 ---
 
-# Trackio Features
+# Trackio: Comparing Learning Rates
+
+```python
+for lr in [0.01, 0.1, 0.5]:
+    trackio.init(project="cs203-week08-demo", name=f"gb-lr-{lr}",
+                 config={"model": "GradientBoosting", "experiment": "lr_comparison",
+                         "learning_rate": lr})
+
+    for n_est in range(10, 210, 10):
+        gb = GradientBoostingClassifier(n_estimators=n_est, learning_rate=lr,
+                                        random_state=42)
+        gb.fit(X_train, y_train)
+        trackio.log({
+            "n_estimators": n_est,
+            "train_accuracy": float(round(gb.score(X_train, y_train), 4)),
+            "test_accuracy": float(round(gb.score(X_test, y_test), 4)),
+        })
+
+    trackio.finish()
+```
+
+Three runs with different LRs → dashboard **overlays** them for comparison.
+
+> **Demo**: `python trackio_03_lr_comparison.py`
+
+---
+
+# Trackio: The Dashboard
+
+```bash
+pip install trackio
+trackio show --project cs203-week08-demo
+```
+
+![w:1100 center](images/week08/trackio_dashboard_runs.png)
+
+---
+
+# Trackio: Dashboard — Charts
+
+The dashboard **overlays all runs** so you can compare at a glance:
+
+![w:1100 center](images/week08/trackio_dashboard_charts.png)
+
+---
+
+# Trackio: Dashboard — Runs Table
+
+Click the **Runs** tab to see all configs and final metrics in a table:
+
+![w:1100 center](images/week08/trackio_dashboard_runs_table.png)
+
+---
+
+# Trackio: CLI for Querying Results
+
+```bash
+# List all projects
+trackio list projects
+
+# List runs in a project
+trackio list runs --project cs203-week08-demo
+
+# Launch dashboard
+trackio show --project cs203-week08-demo
+```
+
+> **Demo**: `./trackio_04_dashboard.sh`
+
+---
+
+# Trackio: Key Features
 
 | Feature | Details |
 |---------|---------|
 | **Local storage** | SQLite in `~/.cache/huggingface/trackio/` |
-| **Dashboard** | Gradio-based, runs locally |
-| **W&B-compatible API** | `init`, `log`, `finish` |
-| **Free forever** | No cloud account needed |
+| **Dashboard** | Gradio-based, runs locally (`trackio show`) |
+| **W&B-compatible API** | `init`, `log`, `finish` — same pattern |
+| **Non-blocking logging** | Background thread, thousands of logs/sec |
+| **CLI** | `trackio list`, `trackio show` for quick access |
+| **Free forever** | No account, no cloud, no cost |
 
 ```bash
 pip install trackio
-trackio show         # launches local Gradio dashboard
 ```
-
----
-
-# Comparing Runs in the Dashboard
-
-```python
-# Run 1: baseline
-trackio.init(project="nlp",
-    config={"model": "lstm", "lr": 1e-3})
-# ... train ...
-trackio.finish()
-
-# Run 2: improved
-trackio.init(project="nlp",
-    config={"model": "transformer", "lr": 5e-4})
-# ... train ...
-trackio.finish()
-```
-
-Open the local dashboard to see both runs side-by-side with their configs, metrics, and curves.
-
-> Notebook Part 8: Compare multiple configurations visually.
-
----
-
-# Experiment Tracking Best Practices
-
-1. **Log everything** — storage is cheap, hindsight is expensive
-2. **Use meaningful run names** — `lr0.01_depth10` not `run_42`
-3. **Tag experiments** — `baseline`, `augmented`, `final`
-4. **Save the model file** — not just the metrics
-5. **Record the git hash** — know which code produced results
 
 ---
 
@@ -796,6 +1185,16 @@ Open the local dashboard to see both runs side-by-side with their configs, metri
 | **TensorBoard** | Local | TF/PyTorch training curves |
 
 Start with Trackio, graduate to MLflow or W&B for team projects.
+
+---
+
+# Experiment Tracking Best Practices
+
+1. **Log everything** — storage is cheap, hindsight is expensive
+2. **Use meaningful run names** — `lr0.01_depth10` not `run_42`
+3. **Tag experiments** — `baseline`, `augmented`, `final`
+4. **Save the model file** — not just the metrics
+5. **Record the git hash** — know which code produced results
 
 ---
 
@@ -1081,37 +1480,37 @@ search.fit(X, y)
 
 # Exam Questions (1/4)
 
-**Q1**: Why does random search often beat grid search?
+**Q1**: What is the difference between parameters and hyperparameters? Give two examples of each.
 
-> Not all hyperparameters are equally important. Grid wastes evaluations varying unimportant params. Random covers each dimension more uniformly. (Bergstra & Bengio, JMLR 2012)
+> Parameters are learned during training (e.g., weights in linear regression, split thresholds in decision trees). Hyperparameters are set before training (e.g., max_depth, learning_rate). Parameters come from the data; hyperparameters come from the engineer.
 
 ---
 
 # Exam Questions (2/4)
 
-**Q2**: Explain how Bayesian optimization uses past results to decide where to evaluate next.
+**Q2**: Why does random search often beat grid search?
 
-> It builds a map (surrogate model) from past evaluations that predicts both the expected score and uncertainty at every point. An acquisition function (e.g., Expected Improvement) scores each candidate by balancing exploitation (high expected score) and exploration (high uncertainty). The highest-scoring point is evaluated next.
+> Not all hyperparameters are equally important. Grid wastes evaluations varying unimportant params. Random covers each dimension more uniformly. (Bergstra & Bengio, JMLR 2012)
 
 ---
 
 # Exam Questions (3/4)
 
-**Q3**: How are Bayesian optimization and active learning similar, and how do they differ?
+**Q3**: Explain how Bayesian optimization uses past results to decide where to evaluate next.
 
-> Both use a model with uncertainty to decide where to sample next. Active learning samples where uncertainty is highest (to learn the function everywhere). Bayesian optimization samples where the score is likely highest (to find the maximum). Same tool, different goal.
+> It builds a model (GP) from past evaluations that predicts both the expected score and uncertainty at every point. An acquisition function (e.g., Expected Improvement) scores each candidate by balancing exploitation (high expected score) and exploration (high uncertainty). The highest-scoring point is evaluated next.
 
 ---
 
 # Exam Questions (4/4)
 
-**Q4**: Why should you put preprocessing (e.g., `StandardScaler`) inside a `Pipeline` when tuning?
+**Q4**: How are Bayesian optimization and active learning similar, and how do they differ?
 
-> If you scale before splitting, the scaler sees test/validation data — that's data leakage. Putting it inside a Pipeline ensures scaling happens independently within each CV fold.
+> Both use a model with uncertainty (GP) to decide where to sample next. Active learning samples where uncertainty is highest (to learn the function everywhere). Bayesian optimization samples where the score is likely highest (to find the maximum). Same tool, different goal.
 
-**Q5**: Why should you track experiments programmatically instead of in a spreadsheet?
+**Q5**: Why should you put preprocessing (e.g., `StandardScaler`) inside a `Pipeline` when tuning?
 
-> Spreadsheets don't scale and can't automatically capture configs or metrics. Tools like Trackio automate logging; MLflow and W&B add artifacts and model registry.
+> If you scale before splitting, the scaler sees test/validation data — that's data leakage. Inside a Pipeline, scaling happens independently within each CV fold.
 
 ---
 
