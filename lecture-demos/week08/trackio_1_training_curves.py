@@ -18,6 +18,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     digits.data, digits.target, test_size=0.2, random_state=42)
 
 trackio.init(project="cs203-week08-demo", name="gb-training",
+             space_id="nipunbatra/cs203-week08-demo",
              config={"model": "GradientBoosting", "lr": 0.1, "max_depth": 3})
 
 for n_est in range(10, 310, 10):

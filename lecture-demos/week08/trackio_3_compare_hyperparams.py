@@ -21,6 +21,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 for lr in [0.01, 0.1, 0.5]:
     trackio.init(project="cs203-week08-demo", name=f"lr-{lr}",
+                 space_id="nipunbatra/cs203-week08-demo",
                  group="lr-sweep",
                  config={"model": "GradientBoosting", "learning_rate": lr})
 

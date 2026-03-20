@@ -35,6 +35,7 @@ def digit_to_rgb(flat_pixels, scale=2):
 
 # ── Per-class accuracy table ──
 trackio.init(project="cs203-week08-demo", name="per-class-breakdown",
+             space_id="nipunbatra/cs203-week08-demo",
              config={"model": "RandomForest", "experiment": "analysis"})
 
 report = classification_report(y_test, preds, output_dict=True)

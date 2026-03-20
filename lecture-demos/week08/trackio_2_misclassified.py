@@ -70,6 +70,7 @@ def plot_digit_grid(indices, X, y_true, y_pred, title, cols=8, max_show=32):
 
 # ── Log ──
 trackio.init(project="cs203-week08-demo", name="prediction-analysis",
+             space_id="nipunbatra/cs203-week08-demo",
              config={"model": "RandomForest", "experiment": "predictions",
                      "test_accuracy": round(acc, 4)})
 
