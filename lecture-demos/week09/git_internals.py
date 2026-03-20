@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Git Internals Explorer — Week 08 Lecture Demo
+Git Internals Explorer — Week 09 Lecture Demo
 =============================================
 Run this script to see what ACTUALLY happens inside .git/
 at every step. Each section pauses for you to read and explore.

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spam Classifier</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        textarea { width: 100%; height: 100px; font-size: 16px; padding: 10px; }
+        button { background: #c44536; color: white; border: none; padding: 10px 24px;
+                 font-size: 16px; cursor: pointer; margin-top: 10px; border-radius: 4px; }
+        button:hover { background: #a63c30; }
+        .result { margin-top: 20px; padding: 16px; border-radius: 8px;
+                  background: #f8f9fa; border: 1px solid #e9ecef; }
+        .spam { color: #c44536; font-weight: bold; }
+        .ham { color: #2d8a4e; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Spam Classifier</h1>
+    <p>Enter a message to classify:</p>
+
+    <form method="POST">
+        <textarea name="text" placeholder="Type or paste a message...">{{ text }}</textarea>
+        <br>
+        <button type="submit">Classify</button>
+    </form>
+
+    {% if prediction %}
+    <div class="result">
+        <p>Prediction: <span class="{{ 'spam' if prediction == 'Spam' else 'ham' }}">{{ prediction }}</span></p>
+        <p>Confidence: {{ confidence }}</p>
+    </div>
+    {% endif %}
+</body>
+</html>

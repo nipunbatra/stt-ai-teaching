@@ -169,7 +169,7 @@ You had **the** best model last Tuesday. Now you can't find it.
 import trackio
 
 # 1. Start a run
-trackio.init(project="cs203-demo", name="RandomForest",
+trackio.init(project="cs203-week08-demo", name="RandomForest",
              config={"model": "RF", "n_estimators": 100, "max_depth": 10})
 
 # 2. Log metrics
@@ -190,11 +190,12 @@ Everything stored locally in SQLite — no account, no cloud, no cost.
 Log metrics at each step → dashboard shows curves:
 
 ```python
-trackio.init(project="cs203-demo", name="gb-training",
+trackio.init(project="cs203-week08-demo", name="gb-training",
              config={"model": "GradientBoosting", "lr": 0.1})
 
 for n_est in range(10, 310, 10):
-    gb = GradientBoostingClassifier(n_estimators=n_est, learning_rate=0.1)
+    gb = GradientBoostingClassifier(n_estimators=n_est, learning_rate=0.1,
+                                    max_depth=3, random_state=42)
     gb.fit(X_train, y_train)
     trackio.log({
         "n_estimators": n_est,
@@ -215,11 +216,12 @@ Run the same model with 3 learning rates → dashboard **overlays** them:
 
 ```python
 for lr in [0.01, 0.1, 0.5]:
-    trackio.init(project="cs203-demo", name=f"lr-{lr}",
+    trackio.init(project="cs203-week08-demo", name=f"lr-{lr}",
                  config={"learning_rate": lr})
 
     for n_est in range(10, 210, 10):
-        gb = GradientBoostingClassifier(n_estimators=n_est, learning_rate=lr)
+        gb = GradientBoostingClassifier(n_estimators=n_est, learning_rate=lr,
+                                        random_state=42)
         gb.fit(X_train, y_train)
         trackio.log({
             "n_estimators": n_est,
@@ -239,7 +241,7 @@ for lr in [0.01, 0.1, 0.5]:
 Log **images** to see predictions, not just numbers:
 
 ```python
-trackio.init(project="cs203-demo", name="prediction-analysis",
+trackio.init(project="cs203-week08-demo", name="prediction-analysis",
              config={"model": "RandomForest"})
 
 # Create matplotlib grid of misclassified digits
@@ -285,11 +287,11 @@ trackio.log({"per_class_metrics": trackio.Table(
 Get notified when something goes wrong:
 
 ```python
-trackio.init(project="cs203-demo", name="overfitting-detector",
+trackio.init(project="cs203-week08-demo", name="overfitting-detector",
              config={"model": "DecisionTree"})
 
 for depth in range(1, 30):
-    dt = DecisionTreeClassifier(max_depth=depth)
+    dt = DecisionTreeClassifier(max_depth=depth, random_state=42)
     dt.fit(X_train, y_train)
     gap = dt.score(X_train, y_train) - dt.score(X_test, y_test)
 
@@ -309,7 +311,7 @@ for depth in range(1, 30):
 
 ```bash
 pip install trackio
-trackio show --project cs203-demo
+trackio show --project cs203-week08-demo
 ```
 
 | Tab | What You See |

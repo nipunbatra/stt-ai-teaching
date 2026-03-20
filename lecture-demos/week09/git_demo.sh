@@ -1,5 +1,5 @@
 #!/bin/bash
-# Week 08: Git Deep-Dive — Follow-Along Demo
+# Week 09: Git Deep-Dive — Follow-Along Demo
 # ============================================
 # The instructor runs this on the projector. Students type the same
 # commands on their own laptops. The script shows each command, pauses
