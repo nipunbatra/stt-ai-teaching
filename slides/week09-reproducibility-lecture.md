@@ -355,6 +355,24 @@ Virtual environments isolate **Python packages**. They **don't** isolate:
 
 ---
 
+# The OYO Room Analogy
+
+**Your Hostel Room (Without Docker)**
+Your ML project lives on your specific laptop — your Python version, your libraries, your OS quirks. If a friend wants to run your code, they have to recreate your entire setup. Usually, it crashes.
+
+**The OYO Room (With Docker)**
+You write a blueprint: *"I need Python 3.10, scikit-learn, my app.py, and my model."*
+Your friend runs one command → an identical, fully-furnished room appears on their laptop. App runs perfectly. When they're done, the room vanishes. No mess left behind.
+
+| Without Docker | With Docker |
+|:--|:--|
+| 45 mins of `pip install` errors | `docker run spam-app` (2 min) |
+| "Which sklearn version?" | Frozen inside the container |
+| "Are you on Windows?" | Doesn't matter |
+| Updating a package breaks 3 projects | Completely isolated |
+
+---
+
 # Why Docker? Four Scenarios
 
 **1. The Assignment Defense**
@@ -368,21 +386,6 @@ You want to try a cool GitHub repo requiring Python 3.7 + old PyTorch. Installin
 
 **4. The Portfolio Builder**
 You built a Gradio demo and want to deploy it on HuggingFace Spaces or AWS. Cloud providers want a Docker image, not your laptop.
-
----
-
-# Docker: The Key Idea
-
-Before shipping containers, moving cargo was chaos — different ports, different cranes, different systems.
-
-The shipping container standardized everything: **pack once, ship anywhere.**
-
-| Without Docker | With Docker |
-|:--|:--|
-| "Install Python 3.10, then pip install..." | `docker run my-app` |
-| "Which OS are you on?" | Doesn't matter |
-| "It works on my machine" | It works on **every** machine |
-| Ship the recipe | Ship the **whole kitchen** |
 
 ---
 
@@ -401,47 +404,199 @@ If Image is a **class**, Container is an **object** (instance).
 
 ---
 
-# The Dockerfile: A 5-Line Recipe
+# The Dockerfile: Line by Line
+
+Our Gradio spam classifier needs this `Dockerfile`:
 
 ```dockerfile
-FROM python:3.10-slim          # start with Python + Linux
-WORKDIR /app                   # set working directory
-COPY requirements.txt .        # copy dependency list
-RUN pip install -r requirements.txt  # install packages
-COPY . .                       # copy your code
+FROM python:3.10-slim              # 1. Start with Python + Linux
+
+WORKDIR /app                       # 2. Create a workspace folder
+
+COPY requirements.txt .            # 3. Bring the ingredient list
+RUN pip install -r requirements.txt # 4. Install packages
+
+COPY app.py spam_model.pkl ./      # 5. Bring our code + model
+
+ENV GRADIO_SERVER_NAME="0.0.0.0"   # 6. Let the outside world connect
+
+EXPOSE 7860                        # 7. Open the port
+
+CMD ["python", "app.py"]           # 8. What runs when container starts
 ```
 
-Build and run:
-
-```bash
-docker build -t netflix-predictor .               # build the image
-docker run netflix-predictor python train.py       # run your code
-```
-
-**That's it.** Your code now runs identically on any machine with Docker.
+**Line 6 is critical:** Gradio defaults to `127.0.0.1` (only the container can see itself). `0.0.0.0` says "let the host laptop connect too."
 
 ---
 
-# The Cheat Sheet (6 Commands)
+# Walkthrough: Build the Image
+
+**Step 1: Check Docker is running**
 
 ```bash
-# Build an image from a Dockerfile
-docker build -t my-ml-app .
+$ docker --version
+Docker version 24.0.5, build ced0996
+```
 
-# Run a container (with port mapping for web apps)
-docker run -p 7860:7860 my-ml-app
+If you get an error → open Docker Desktop first!
 
-# List running containers
-docker ps
+**Step 2: Build the image**
 
-# Stop a container
-docker stop <container_id>
+```bash
+$ docker build -t spam-app .
+=> [1/5] FROM python:3.10-slim
+=> [2/5] WORKDIR /app
+=> [3/5] COPY requirements.txt .
+=> [4/5] RUN pip install -r requirements.txt
+=> [5/5] COPY app.py spam_model.pkl ./
+=> naming to docker.io/library/spam-app
+```
 
-# Open a shell inside a running container
-docker exec -it <container_id> bash
+Docker reads the Dockerfile top-to-bottom, downloads Python, installs packages, copies your code, and takes a **snapshot**. The `-t spam-app` gives it a name. The `.` means "Dockerfile is in this folder."
 
-# Clean up stopped containers
-docker rm <container_id>
+---
+
+# Walkthrough: Run the Container
+
+**Step 3: Launch your app!**
+
+```bash
+$ docker run -p 7860:7860 spam-app
+Running on local URL: http://0.0.0.0:7860
+```
+
+Open `localhost:7860` in your browser — your ML model is live!
+
+The `-p 7860:7860` is a **port tunnel** connecting your laptop to the container:
+
+```
+Your laptop                    Docker container
+┌────────────┐                ┌────────────┐
+│            │    port 7860    │            │
+│  Browser ──┼───────────────►│  Gradio    │
+│            │                │  server     │
+└────────────┘                └────────────┘
+```
+
+Containers are **headless** — no screen, no browser. You look through the port window.
+
+---
+
+# Walkthrough: Background & Stop
+
+**Step 4: Run in the background**
+
+```bash
+$ docker run -d -p 7860:7860 spam-app
+a1b2c3d4e5f6...
+```
+
+`-d` = "detached" — runs silently, frees your terminal. The long string is the container ID.
+
+**Step 5: See what's running**
+
+```bash
+$ docker ps
+CONTAINER ID   IMAGE      STATUS         PORTS
+a1b2c3d4e5f6   spam-app   Up 2 minutes   0.0.0.0:7860->7860/tcp
+```
+
+**Step 6: Stop it**
+
+```bash
+$ docker stop a1b    # just the first 3 characters of the ID
+```
+
+---
+
+# Experiment 1: The Amnesia Test
+
+**Try this:** Run the container. Classify some messages. Stop the container. Start a **new** container.
+
+**Question:** Where did the logs/data go?
+
+**Answer: Gone.** Containers have amnesia! When they die, any new files created inside them vanish. They reset to the original image snapshot.
+
+This is **by design** — containers are disposable. But if you need to save data...
+
+---
+
+# Experiment 2: The Code Change
+
+**Try this:** Leave the container running. Edit `app.py` on your laptop — change the title to "Super Spam Detector v2". Refresh the browser.
+
+**What happened?** Nothing changed!
+
+The container runs a **copy** of the code from when you ran `docker build`. It doesn't watch your laptop files.
+
+**Rule:** Change code → must rebuild:
+```bash
+docker build -t spam-app .     # rebuild
+docker run -p 7860:7860 spam-app   # run new version
+```
+
+---
+
+# Experiment 3: Volumes (The USB Drive)
+
+**The fix for both experiments:** Mount a **volume**.
+
+```bash
+docker run -v $(pwd):/app -p 7860:7860 spam-app
+```
+
+`-v $(pwd):/app` creates a synchronized tunnel between your laptop's current folder and `/app` inside the container.
+
+Now:
+- Edit `app.py` on your laptop → container sees it instantly
+- Container writes a file → it appears on your laptop
+
+Think of it as plugging a **USB drive** into the container.
+
+---
+
+# Experiment 4: Hack Into the Matrix
+
+**While the container is running**, open another terminal:
+
+```bash
+$ docker exec -it a1b bash
+root@a1b2c3d4:/app#
+```
+
+You just **SSH'd into the container!** Try:
+
+```bash
+root@a1b2c3d4:/app# ls
+app.py  requirements.txt  spam_model.pkl
+
+root@a1b2c3d4:/app# python --version
+Python 3.10.14
+
+root@a1b2c3d4:/app# exit
+```
+
+This is a completely isolated Linux environment — separate from your Mac/Windows.
+
+---
+
+# Common Docker Errors
+
+**1. `docker: command not found`**
+→ Docker Desktop isn't running. Open the app first!
+
+**2. `port is already allocated`**
+→ Something else is using port 7860. Run `docker ps`, find it, `docker stop` it.
+
+**3. `COPY failed: file not found`**
+→ The file isn't in the same folder as your Dockerfile. Check with `ls`.
+
+**4. Image is 3GB!**
+→ You used `FROM python:3.10` (full Ubuntu, ~1GB). Use `FROM python:3.10-slim` (~150MB).
+
+```bash
+# Clean up old images eating your disk
+docker system prune
 ```
 
 ---
@@ -454,26 +609,9 @@ docker rm <container_id>
 → Seeds control algorithmic randomness. But different OS have different math libraries (BLAS/LAPACK), and different sklearn versions may split data differently. Docker locks the OS + versions.
 
 **Question 2:**
-*"You trained a model inside Docker for 3 hours. You stop the container. Where are your trained model weights?"*
+*"We have `requirements.txt` and `venv`. Why do we still need Docker?"*
 
-→ **Gone.** Containers are temporary. Unless you used a **volume** to save files back to your laptop, everything inside the container disappears.
-
----
-
-# Question 3: Why Map Ports?
-
-*"Why do we run `docker run -p 7860:7860` instead of just opening a browser inside Docker?"*
-
-→ Containers are **headless** — no screen, no browser, no GUI. They run the backend process. You use YOUR laptop's browser to look through the "port window" into the container.
-
-```
-Your laptop                    Docker container
-┌────────────┐                ┌────────────┐
-│            │    port 7860    │            │
-│  Browser ──┼───────────────►│  Gradio    │
-│            │                │  server     │
-└────────────┘                └────────────┘
-```
+→ `venv` isolates Python packages. Docker isolates **everything** — OS, system libraries, Python version, CUDA drivers. `requirements.txt` + `venv` is Level 3; Docker is Level 4.
 
 ---
 
@@ -499,5 +637,6 @@ Seeds + TrackIO + Venv + Docker = Time Capsule
 1. **Set seeds everywhere** — `random_state=42` in every sklearn call
 2. **Track experiments** — `trackio.init()` / `log()` / `finish()` → never lose a good run
 3. **Pin dependencies** — `pip freeze > requirements.txt` with exact versions
-4. **Dockerize for sharing** — 5-line Dockerfile guarantees it runs anywhere
-5. **Reproducibility is a gift to your future self** — if no one else can run it, it might as well not exist
+4. **Dockerize for sharing** — Dockerfile + `docker build` + `docker run` = runs anywhere
+5. **Volumes for persistence** — containers have amnesia; use `-v` to save data
+6. **Reproducibility is a gift to your future self** — if no one else can run it, it might as well not exist

@@ -318,6 +318,104 @@ result = client.predict("Free iPhone!", api_name="/predict")
 <!-- _class: lead -->
 <!-- _paginate: false -->
 
+# 4. FastAPI
+
+*For when machines talk to machines*
+
+---
+
+# Flask/Streamlit/Gradio = Humans Use Your Model
+
+But what if **another program** needs to call your model?
+
+- A mobile app sending text to your spam classifier
+- A frontend (React/Vue) calling your prediction backend
+- Another ML pipeline consuming your model's output
+
+You need an **API** — no HTML, no buttons. Just JSON in, JSON out.
+
+```
+POST /predict
+{"text": "WINNER! Free iPhone!"}
+
+→ {"label": "Spam", "confidence": 92.3}
+```
+
+**FastAPI** = modern Python framework for building production APIs.
+
+---
+
+# FastAPI: The Entire App
+
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+import joblib
+
+app = FastAPI(title="Spam Classifier API")
+model = joblib.load("../0-model/spam_model.pkl")
+
+class Message(BaseModel):
+    text: str
+
+@app.post("/predict")
+def predict(msg: Message):
+    proba = model.predict_proba([msg.text])[0]
+    pred_class = model.predict([msg.text])[0]
+    return {
+        "label": "Spam" if pred_class == 1 else "Not Spam",
+        "confidence": round(float(max(proba)) * 100, 1),
+    }
+```
+
+```bash
+cd 4-fastapi && uvicorn app:app --reload --port 8000
+```
+
+---
+
+# FastAPI: Auto-Generated Docs
+
+Open `http://localhost:8000/docs` — you get **Swagger UI for free**:
+
+- Interactive API documentation
+- "Try it out" button to test your endpoint
+- Request/response schema auto-generated from your Pydantic models
+
+Test from the terminal:
+
+```bash
+curl -X POST http://localhost:8000/predict \
+     -H "Content-Type: application/json" \
+     -d '{"text": "WINNER! Free iPhone!"}'
+```
+
+```json
+{"label": "Spam", "confidence": 92.3}
+```
+
+**No HTML. No UI. Just a clean JSON API.**
+
+---
+
+# Flask vs FastAPI
+
+| | Flask | FastAPI |
+|:--|:------|:--------|
+| **Purpose** | Web apps with HTML | JSON APIs |
+| **Validation** | Manual (`request.form`) | Automatic (Pydantic models) |
+| **Docs** | None (write your own) | Auto-generated Swagger UI |
+| **Async** | No (by default) | Yes (built-in) |
+| **Speed** | Good | Excellent |
+| **When to use** | Full web apps with pages | Machine-to-machine APIs |
+
+For ML deployment: **Gradio** for demos, **FastAPI** for production APIs.
+
+---
+
+<!-- _class: lead -->
+<!-- _paginate: false -->
+
 # Deploying to Hugging Face Spaces
 
 *From localhost to a public URL in 2 minutes*
@@ -385,18 +483,42 @@ If you forget `scikit-learn`, the build will fail with `ModuleNotFoundError`.
 
 ---
 
-# The Comparison
+# HF Spaces with Docker
 
-Same model. Same prediction. Four different developer experiences.
+HF Spaces also supports **Docker** — perfect for FastAPI or custom setups.
 
-| | Flask | Streamlit | Gradio |
-|:--|:------|:----------|:-------|
-| **Files needed** | app.py + HTML template | app.py only | app.py only |
-| **Languages** | Python + HTML/CSS | Python only | Python only |
-| **Auto-reload** | Manual restart | Hot-reload | Manual restart |
-| **Built-in API** | No | No | Yes |
-| **HF Spaces** | No | Yes | Yes |
-| **Best for** | Custom apps | Dashboards | ML demos |
+Create a `Dockerfile` in your Space repo:
+
+```dockerfile
+FROM python:3.10-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY app.py spam_model.pkl ./
+ENV GRADIO_SERVER_NAME="0.0.0.0"
+EXPOSE 7860
+CMD ["python", "app.py"]
+```
+
+HuggingFace auto-detects the Dockerfile, builds the image, and deploys it.
+
+**This is how real ML apps get deployed** — your Dockerfile becomes the deployment specification.
+
+---
+
+# The Full Comparison
+
+Same model. Same prediction. Five different developer experiences.
+
+| | Flask | Streamlit | Gradio | FastAPI |
+|:--|:------|:----------|:-------|:--------|
+| **Files** | app.py + HTML | app.py | app.py | app.py |
+| **Languages** | Python + HTML | Python | Python | Python |
+| **Has UI** | Yes (custom) | Yes (auto) | Yes (auto) | No (JSON API) |
+| **Has API** | Manual | No | Auto | Yes |
+| **Auto-docs** | No | No | No | Swagger UI |
+| **HF Spaces** | No | Yes | Yes | Yes (Docker) |
+| **Best for** | Custom web | Dashboards | ML demos | Production APIs |
 
 ---
 
@@ -417,7 +539,7 @@ ModuleNotFoundError: No module named 'sklearn'
 
 **3. Hardcoding localhost paths:**
 ```python
-model = joblib.load("/Users/nipun/Desktop/model.pkl")  # won't work on HF
+model = joblib.load("/Users/nipun/Desktop/model.pkl")  # won't work anywhere else
 ```
 
 ---
@@ -428,8 +550,7 @@ model = joblib.load("/Users/nipun/Desktop/model.pkl")  # won't work on HF
 2. **Flask** — full control, but you write HTML yourself
 3. **Streamlit** — pure Python UI, great for dashboards, hot-reload
 4. **Gradio** — ML-focused, built-in examples/API/sharing
-5. **HuggingFace Spaces** — free deployment for Gradio/Streamlit apps
-6. **Load the model once** at startup, not inside every request
-7. **`requirements.txt`** — your app is useless without it
-
-> **Next week:** FastAPI (production APIs) + Docker (ship the whole machine)
+5. **FastAPI** — production JSON APIs with auto-generated docs
+6. **HuggingFace Spaces** — free deployment for Gradio/Streamlit/Docker apps
+7. **Load the model once** at startup, not inside every request
+8. **`requirements.txt`** — your app is useless without it
