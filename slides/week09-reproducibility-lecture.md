@@ -404,6 +404,111 @@ If Image is a **class**, Container is an **object** (instance).
 
 ---
 
+# Docker vs Virtual Machines
+
+"Isn't Docker just a VM?"
+
+```
+Virtual Machine                    Docker Container
+┌─────────────────┐               ┌─────────────────┐
+│   Your App      │               │   Your App      │
+│   Libraries     │               │   Libraries     │
+│   Guest OS      │  ← full OS!   │                 │  ← no guest OS
+│   Hypervisor    │               │   Docker Engine │
+│   Host OS       │               │   Host OS       │
+│   Hardware      │               │   Hardware      │
+└─────────────────┘               └─────────────────┘
+     ~2 GB, boots in minutes           ~150 MB, starts in seconds
+```
+
+| | VM | Docker Container |
+|:--|:--|:--|
+| **Size** | GBs (full OS) | MBs (just your app) |
+| **Startup** | Minutes | Seconds |
+| **Isolation** | Complete (own kernel) | Process-level (shared kernel) |
+| **Use case** | Run a different OS | Package an app with dependencies |
+
+---
+
+# Docker Hub: GitHub for Images
+
+`FROM python:3.10-slim` — where does this come from?
+
+**Docker Hub** (hub.docker.com) — a registry of pre-built images.
+
+```bash
+# Pull an image without building anything
+docker pull python:3.10-slim
+
+# See what's available
+docker images
+```
+
+| Image | What's Inside | Size |
+|:------|:-------------|:-----|
+| `python:3.10` | Full Debian + Python + compilers | ~1 GB |
+| `python:3.10-slim` | Minimal Debian + Python | ~150 MB |
+| `python:3.10-alpine` | Alpine Linux + Python | ~50 MB |
+| `ubuntu:22.04` | Just Ubuntu, no Python | ~77 MB |
+| `nginx` | Web server | ~140 MB |
+
+**Always use `-slim`** unless you need compilers. Your images will be 6x smaller.
+
+---
+
+# Layer Caching: Why Second Build is Fast
+
+Docker caches each step. If nothing changed, it reuses the cache:
+
+```bash
+$ docker build -t spam-app .
+=> CACHED [1/5] FROM python:3.10-slim      # already downloaded
+=> CACHED [2/5] WORKDIR /app               # nothing changed
+=> CACHED [3/5] COPY requirements.txt .    # file unchanged
+=> CACHED [4/5] RUN pip install ...        # packages cached!
+=> [5/5] COPY app.py spam_model.pkl ./     # code changed → rebuilds
+```
+
+**First build:** 2 minutes (downloads everything).
+**Second build:** 5 seconds (only re-copies your code).
+
+**Pro tip:** That's why we `COPY requirements.txt` before `COPY . .` — if only your code changed, Docker skips the slow `pip install` step!
+
+---
+
+# Environment Variables: Configure Without Rebuilding
+
+Same image, different behavior — using `-e`:
+
+```bash
+# Default config
+docker run -p 7860:7860 my-app
+
+# Change model type without rebuilding!
+docker run -p 7860:7860 -e MODEL_TYPE=svm my-app
+
+# Change title without rebuilding!
+docker run -p 7860:7860 -e APP_TITLE="Production v2" my-app
+```
+
+In your Python code:
+```python
+import os
+model_type = os.environ.get("MODEL_TYPE", "rf")  # default = "rf"
+```
+
+In your Dockerfile (set defaults):
+```dockerfile
+ENV MODEL_TYPE="rf"
+ENV APP_TITLE="Spam Classifier"
+```
+
+**This is how production apps are configured** — DB URLs, API keys, feature flags.
+
+> **Demo**: `cd 5-environment` in the Docker demos
+
+---
+
 # The Dockerfile: Line by Line
 
 Our Gradio spam classifier needs this `Dockerfile`:
