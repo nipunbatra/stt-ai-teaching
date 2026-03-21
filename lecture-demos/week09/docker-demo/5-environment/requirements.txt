@@ -1,0 +1,4 @@
+gradio
+scikit-learn
+joblib
+pillow
