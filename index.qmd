@@ -30,8 +30,10 @@ subtitle: "IIT Gandhinagar · Jan 2026 · Prof. Nipun Batra"
 
 | Week | Topic | Slides | Hands-On |
 |:----:|-------|:------:|:--------:|
-| 9 | Git | [HTML](html/week09-git-lecture.html) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week09/git_followalong.sh) · [PDF](lecture-demos/week09/git_followalong.pdf) |
-| 10 | Reproducibility & Environments | [HTML](html/week10-reproducibility-lecture.html) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week10/reproducibility_followalong.sh) · [PDF](lecture-demos/week10/reproducibility_followalong.pdf) |
-| 11 | Testing & CI/CD | [HTML](html/week11-cicd-lecture.html) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/cicd_followalong.sh) · [PDF](lecture-demos/week11/cicd_followalong.pdf) |
-| 12 | APIs & Demos | [HTML](html/week12-apis-lecture.html) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) · [PDF](lecture-demos/week12/apis_followalong.pdf) |
-| 13 | Profiling & Quantization | [HTML](html/week13-profiling-lecture.html) | [Notebook](lecture-demos/week13/profiling_notebook.html) · [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_followalong.sh) |
+| 9 | Reproducibility: Docker, Seeds & Tracking | [HTML](html/week09-reproducibility-lecture.html) · [PDF](pdf/week09-reproducibility-lecture.pdf) | [Docker Demos](https://github.com/nipunbatra/docker-ml-demos) |
+| 10 | From Script to Web App | [HTML](html/week10-web-apps-lecture.html) · [PDF](pdf/week10-web-apps-lecture.pdf) | |
+| 11 | CI/CD & Automation | [HTML](html/week11-cicd-lecture.html) · [PDF](pdf/week11-cicd-lecture.pdf) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/cicd_followalong.sh) · [PDF](lecture-demos/week11/cicd_followalong.pdf) |
+| 11 | Profiling & Quantization | [HTML](html/week11-profiling-quantization-lecture.html) · [PDF](pdf/week11-profiling-quantization-lecture.pdf) | |
+| 12 | APIs & Demos | [HTML](html/week12-apis-lecture.html) · [PDF](pdf/week12-apis-lecture.pdf) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) · [PDF](lecture-demos/week12/apis_followalong.pdf) |
+| 12 | Course Summary | [HTML](html/week12-course-summary-lecture.html) · [PDF](pdf/week12-course-summary-lecture.pdf) | |
+| 13 | Model Profiling & Quantization | [HTML](html/week13-profiling-lecture.html) | [Notebook](lecture-demos/week13/profiling_notebook.html) · [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_followalong.sh) |

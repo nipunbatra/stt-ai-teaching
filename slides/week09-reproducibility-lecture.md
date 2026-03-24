@@ -79,6 +79,12 @@ Virtual environments isolate **Python packages**. They **don't** isolate:
 
 # The Shipping Container Analogy
 
+![w:900](images/week09/shipping_container_analogy.png)
+
+---
+
+# The Shipping Container Analogy
+
 Before shipping containers, every port loaded cargo differently &mdash; different cranes, different sizes, breakage everywhere. Then someone said: *"What if we put everything in one standard box?"*
 
 **Docker is that box for software.**
@@ -129,6 +135,48 @@ If Image is a **class**, Container is an **object** (instance).
 
 ---
 
+# Image vs Container
+
+```
+Image (read-only blueprint)          Container (running instance)
+┌─────────────────────┐              ┌─────────────────────┐
+│  Python 3.10        │    docker    │  Python 3.10        │
+│  sklearn 1.7.2      │ ──────────→ │  sklearn 1.7.2      │
+│  your app.py        │    run      │  your app.py        │
+│  (frozen, on disk)  │              │  (alive, in memory) │
+└─────────────────────┘              └─────────────────────┘
+                                     Can read/write files
+                                     Can use network
+                                     Dies when process exits
+```
+
+- One image &rarr; many containers (like one class &rarr; many objects)
+- `docker build` creates images &bull; `docker run` creates containers
+- Containers are **disposable** &mdash; delete and recreate anytime
+
+---
+
+# Dockerfile, Image, Container &mdash; The Flow
+
+```
+Dockerfile          docker build         docker run
+(text file)  ─────────────────→  Image  ─────────────→  Container
+                                  │                       │
+ FROM python:3.10-slim            │  stored on disk       │ running process
+ WORKDIR /app                     │  shareable            │ isolated
+ COPY app.py .                    │  versioned            │ temporary
+ RUN pip install ...              │                       │
+ CMD ["python", "app.py"]         │                       │
+```
+
+**Docker Hub** is where you download pre-built images (`python:3.10-slim`, `ubuntu:22.04`).
+
+**Volumes** (`-v`) let containers share a folder with your laptop so files survive.
+
+**Ports** (`-p`) let your browser reach a web app inside the container.
+
+---
+
 # Docker vs Virtual Machines
 
 "Isn't Docker just a VM?"
@@ -150,6 +198,27 @@ VMs run a **full guest OS** (Windows inside Mac). Docker shares the host kernel 
 | **RAM** | Each VM needs GBs | Containers share host memory |
 
 **Bottom line:** VMs are heavy but fully isolated. Docker is lightweight and fast &mdash; perfect for shipping apps.
+
+---
+
+# "Wait &mdash; If Docker Shares the Host Kernel, Why Do I See Linux?"
+
+Great question! On Mac/Windows, Docker Desktop runs a **tiny Linux VM** behind the scenes.
+
+```
+Your Mac (macOS kernel)
+  └── Docker Desktop runs a lightweight Linux VM (invisible)
+        └── All containers share THIS Linux kernel
+              ├── Container A (python:3.10-slim → Debian)
+              ├── Container B (ubuntu:22.04)
+              └── Container C (alpine:3.18)
+```
+
+- The containers see **Linux** because they share the VM's Linux kernel
+- `cat /etc/os-release` inside shows Debian/Ubuntu/Alpine &mdash; that's the **userspace** (files, tools, package manager), not a full separate kernel
+- On a Linux laptop, there's no VM &mdash; containers share the host kernel directly
+
+**Think of it this way:** The kernel is the engine. The image provides the dashboard, seats, and paint job. Different images = different interiors, same engine underneath.
 
 ---
 
@@ -398,6 +467,12 @@ Sources of randomness in ML:
 - **Train/test split** &mdash; which samples go where
 - **Model initialization** &mdash; starting weights (neural nets)
 - **Data shuffling** &mdash; order during training
+
+---
+
+# The Minecraft Seed
+
+![w:900](images/week09/minecraft_seed_concept.png)
 
 ---
 

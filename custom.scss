@@ -1,6 +1,85 @@
 /*-- scss:defaults --*/
 
+// Fonts — matching nipunbatra.github.io
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap');
+
+$font-family-sans-serif: "Work Sans", system-ui, -apple-system, sans-serif;
+$headings-font-family: "Playfair Display", Georgia, serif;
+
+// Accent color — warm red
+$link-color: #c44536;
+$link-hover-color: #a63c30;
+
+// Light theme
+$body-color: #1a1a2e;
+$body-bg: #ffffff;
+
+// Navbar
+$navbar-bg: rgba(255, 255, 255, 0.95);
+$navbar-fg: #1a1a2e;
+
+// Dark theme overrides
+$body-color-dark: #e8e8e8;
+$body-bg-dark: #1a1a2e;
+$link-color-dark: #e07a6b;
+$link-hover-color-dark: #f09080;
+
 /*-- scss:rules --*/
+
+/* Navbar styling */
+.navbar {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(26, 26, 46, 0.1);
+  font-family: "Work Sans", system-ui, sans-serif;
+}
+
+.navbar-brand {
+  font-family: "Playfair Display", Georgia, serif !important;
+  font-weight: 600;
+  font-size: 1.15rem;
+}
+
+/* Dark mode navbar border */
+.quarto-dark .navbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Headings */
+h1, h2, h3 {
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+h1 {
+  font-weight: 700;
+}
+
+h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Subtitle */
+.lead {
+  font-weight: 300;
+  color: #5a6070;
+}
+
+.quarto-dark .lead {
+  color: #a0a0a0;
+}
+
+/* Buttons — accent color */
+.btn-primary {
+  background-color: #c44536;
+  border-color: #c44536;
+}
+
+.btn-primary:hover {
+  background-color: #a63c30;
+  border-color: #a63c30;
+}
 
 /* Table styling */
 .table {
@@ -8,7 +87,8 @@
 }
 
 .table th {
-  font-weight: 700;
+  font-family: "Work Sans", system-ui, sans-serif;
+  font-weight: 600;
   font-size: 0.85em;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -21,20 +101,73 @@
 .table td:first-child {
   font-weight: 700;
   text-align: center;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.1em;
+  color: #c44536;
+}
+
+.quarto-dark .table td:first-child {
+  color: #e07a6b;
 }
 
 .table a {
   text-decoration: none;
+  font-weight: 500;
 }
 
 .table a:hover {
   text-decoration: underline;
 }
 
-/* Section headers */
-h2 {
-  margin-top: 2.5rem;
-  margin-bottom: 1rem;
+/* Footer */
+.nav-footer {
+  border-top: 1px solid rgba(26, 26, 46, 0.1);
+  font-size: 0.85rem;
+}
+
+.quarto-dark .nav-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dark/light toggle — sun/moon icon */
+.quarto-color-scheme-toggle .bi::before {
+  content: "\f497";  /* bi-moon */
+  font-size: 1rem;
+}
+
+.quarto-dark .quarto-color-scheme-toggle .bi::before {
+  content: "\f5a1";  /* bi-sun-fill */
+}
+
+.quarto-color-scheme-toggle {
+  order: 10;
+  border: 1px solid rgba(26, 26, 46, 0.15);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.quarto-color-scheme-toggle:hover {
+  border-color: #c44536;
+  color: #c44536 !important;
+}
+
+.quarto-dark .quarto-color-scheme-toggle {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.quarto-dark .quarto-color-scheme-toggle:hover {
+  border-color: #e07a6b;
+  color: #e07a6b !important;
+}
+
+/* Smooth transitions */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Responsive */
