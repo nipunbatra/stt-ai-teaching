@@ -137,20 +137,9 @@ If Image is a **class**, Container is an **object** (instance).
 
 # Image vs Container
 
-```
-Image (read-only blueprint)          Container (running instance)
-┌─────────────────────┐              ┌─────────────────────┐
-│  Python 3.10        │    docker    │  Python 3.10        │
-│  sklearn 1.7.2      │ ──────────→ │  sklearn 1.7.2      │
-│  your app.py        │    run      │  your app.py        │
-│  (frozen, on disk)  │              │  (alive, in memory) │
-└─────────────────────┘              └─────────────────────┘
-                                     Can read/write files
-                                     Can use network
-                                     Dies when process exits
-```
+![w:900](images/week09/docker_image_vs_container.png)
 
-- One image &rarr; many containers (like one class &rarr; many objects)
+- One image &rarr; many containers (like one **class** &rarr; many **objects**)
 - `docker build` creates images &bull; `docker run` creates containers
 - Containers are **disposable** &mdash; delete and recreate anytime
 
@@ -158,16 +147,7 @@ Image (read-only blueprint)          Container (running instance)
 
 # Dockerfile, Image, Container &mdash; The Flow
 
-```
-Dockerfile          docker build         docker run
-(text file)  ─────────────────→  Image  ─────────────→  Container
-                                  │                       │
- FROM python:3.10-slim            │  stored on disk       │ running process
- WORKDIR /app                     │  shareable            │ isolated
- COPY app.py .                    │  versioned            │ temporary
- RUN pip install ...              │                       │
- CMD ["python", "app.py"]         │                       │
-```
+![w:900](images/week09/docker_build_pipeline.png)
 
 **Docker Hub** is where you download pre-built images (`python:3.10-slim`, `ubuntu:22.04`).
 
@@ -201,24 +181,29 @@ VMs run a **full guest OS** (Windows inside Mac). Docker shares the host kernel 
 
 ---
 
-# "Wait &mdash; If Docker Shares the Host Kernel, Why Do I See Linux?"
+# "Wait &mdash; If Docker Shares the Kernel, Why Do I See Linux?"
 
-Great question! On Mac/Windows, Docker Desktop runs a **tiny Linux VM** behind the scenes.
+![w:750](images/week09/docker_mac_linux_vm.png)
 
-```
-Your Mac (macOS kernel)
-  └── Docker Desktop runs a lightweight Linux VM (invisible)
-        └── All containers share THIS Linux kernel
-              ├── Container A (python:3.10-slim → Debian)
-              ├── Container B (ubuntu:22.04)
-              └── Container C (alpine:3.18)
-```
+---
 
-- The containers see **Linux** because they share the VM's Linux kernel
-- `cat /etc/os-release` inside shows Debian/Ubuntu/Alpine &mdash; that's the **userspace** (files, tools, package manager), not a full separate kernel
-- On a Linux laptop, there's no VM &mdash; containers share the host kernel directly
+# "Wait &mdash; If Docker Shares the Kernel, Why Do I See Linux?"
 
-**Think of it this way:** The kernel is the engine. The image provides the dashboard, seats, and paint job. Different images = different interiors, same engine underneath.
+On your **Mac**, Docker Desktop secretly runs a tiny **Linux VM** in the background.
+
+All containers run inside that VM &mdash; so they all see **Linux**.
+
+| What you type | What you see | Why? |
+|:--|:--|:--|
+| `cat /etc/os-release` in `python:3.10-slim` | Debian 12 | The image ships Debian **files** (apt, bash, libs) |
+| `cat /etc/os-release` in `ubuntu:22.04` | Ubuntu 22.04 | The image ships Ubuntu **files** |
+| `cat /etc/os-release` in `alpine:3.18` | Alpine Linux | The image ships Alpine **files** (apk, busybox) |
+
+All three share the **same Linux kernel** (from Docker's hidden VM). The image only provides the **userspace** &mdash; the files, tools, and package manager on top.
+
+**Car analogy:** The kernel is the **engine**. The image is the **interior** (dashboard, seats, paint). Different images = different interiors, same engine underneath.
+
+On a **Linux laptop** &mdash; no hidden VM needed. Containers share the host kernel directly.
 
 ---
 
