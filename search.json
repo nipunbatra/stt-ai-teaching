@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "CS 203: Software Tools and Techniques for AI",
     "section": "",
-    "text": "📊 → 🏷️ → 🤖 → 📏 → 🔧 → 🔀 → 📦 → ⚙️ → 🚀 → ⚡ Collect data → Label it → Build models → Evaluate → Tune & track → Version code → Version env → Automate → Ship → Optimize\n🌐 Course website 🐙 GitHub repo"
+    "text": "Course website GitHub repo"
   },
   {
     "objectID": "index.html#course-information",
@@ -45,21 +45,21 @@
     "objectID": "index.html#part-i-data-weeks-15",
     "href": "index.html#part-i-data-weeks-15",
     "title": "CS 203: Software Tools and Techniques for AI",
-    "section": "☀️ Part I: Data (Weeks 1–5)",
-    "text": "☀️ Part I: Data (Weeks 1–5)\n\n\n\nWeek\nTopic\nSlides\nHands-On\n\n\n\n\n1\n📥 Data Collection\nHTML · PDF\nLab 🧪\n\n\n2\n✅ Data Validation & Quality\nHTML · PDF\nLab 🧪\n\n\n3\n🏷️ Data Labeling & Annotation\nHTML · PDF\nLab 🧪\n\n\n4\n🎯 Optimizing Labeling\nHTML · PDF\nLab 🧪\n\n\n5\n🔄 Data Augmentation\nHTML · PDF\nLab 🧪"
+    "section": "Part I: Data (Weeks 1–5)",
+    "text": "Part I: Data (Weeks 1–5)\n\n\n\nWeek\nTopic\nSlides\nHands-On\n\n\n\n\n1\nData Collection\nHTML · PDF\nLab\n\n\n2\nData Validation & Quality\nHTML · PDF\nLab\n\n\n3\nData Labeling & Annotation\nHTML · PDF\nLab\n\n\n4\nOptimizing Labeling\nHTML · PDF\nLab\n\n\n5\nData Augmentation\nHTML · PDF\nLab"
   },
   {
     "objectID": "index.html#part-ii-models-weeks-68",
     "href": "index.html#part-ii-models-weeks-68",
     "title": "CS 203: Software Tools and Techniques for AI",
-    "section": "🌙 Part II: Models (Weeks 6–8)",
-    "text": "🌙 Part II: Models (Weeks 6–8)\n\n\n\nWeek\nTopic\nSlides\nHands-On\n\n\n\n\n6\n🧠 LLM APIs & Multimodal AI\nHTML · PDF\nLab 🧪\n\n\n7\n📏 Model Evaluation & AutoML\nHTML · PDF\nLab 🧪\n\n\n8\n🔧 Tuning & Experiment Tracking\nHTML · PDF\nNotebook 📓"
+    "section": "Part II: Models (Weeks 6–8)",
+    "text": "Part II: Models (Weeks 6–8)\n\n\n\nWeek\nTopic\nSlides\nHands-On\n\n\n\n\n6\nLLM APIs & Multimodal AI\nHTML · PDF\nLab\n\n\n7\nModel Evaluation\nHTML · PDF\nNotebook · Lab\n\n\n8\nTuning, AutoML & Tracking\nHTML · PDF\nNotebook"
   },
   {
     "objectID": "index.html#part-iii-engineering-weeks-913",
     "href": "index.html#part-iii-engineering-weeks-913",
     "title": "CS 203: Software Tools and Techniques for AI",
-    "section": "⚡ Part III: Engineering (Weeks 9–13)",
-    "text": "⚡ Part III: Engineering (Weeks 9–13)\nVersion your code → version your environment → automate → ship → optimize\n\n\n\nWeek\nTopic\nSlides\nHands-On\n\n\n\n\n9\n🔀 Git\nHTML\nFollow-along 💻 · PDF\n\n\n10\n📦 Reproducibility & Environments\nHTML\nFollow-along 💻 · PDF\n\n\n11\n⚙️ Testing & CI/CD\nHTML\nFollow-along 💻 · PDF\n\n\n12\n🚀 APIs & Demos\nHTML\nFollow-along 💻 · PDF\n\n\n13\n⚡ Profiling & Quantization\nHTML\nNotebook 📓 · Follow-along 💻"
+    "section": "Part III: Engineering (Weeks 9–13)",
+    "text": "Part III: Engineering (Weeks 9–13)\n\n\n\nWeek\nTopic\nSlides\nHands-On\n\n\n\n\n9\nGit\nHTML\nFollow-along · PDF\n\n\n10\nReproducibility & Environments\nHTML\nFollow-along · PDF\n\n\n11\nTesting & CI/CD\nHTML\nFollow-along · PDF\n\n\n12\nAPIs & Demos\nHTML\nFollow-along · PDF\n\n\n13\nProfiling & Quantization\nHTML\nNotebook · Follow-along"
   }
 ]
