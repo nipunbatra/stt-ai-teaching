@@ -137,7 +137,7 @@ If Image is a **class**, Container is an **object** (instance).
 
 # Image vs Container
 
-![w:900](images/week09/docker_image_vs_container.png)
+![w:750](images/week09/docker_image_vs_container.png)
 
 - One image &rarr; many containers (like one **class** &rarr; many **objects**)
 - `docker build` creates images &bull; `docker run` creates containers
@@ -147,7 +147,7 @@ If Image is a **class**, Container is an **object** (instance).
 
 # Dockerfile, Image, Container &mdash; The Flow
 
-![w:900](images/week09/docker_build_pipeline.png)
+![w:700](images/week09/docker_build_pipeline.png)
 
 **Docker Hub** is where you download pre-built images (`python:3.10-slim`, `ubuntu:22.04`).
 
@@ -178,32 +178,6 @@ VMs run a **full guest OS** (Windows inside Mac). Docker shares the host kernel 
 | **RAM** | Each VM needs GBs | Containers share host memory |
 
 **Bottom line:** VMs are heavy but fully isolated. Docker is lightweight and fast &mdash; perfect for shipping apps.
-
----
-
-# "Wait &mdash; If Docker Shares the Kernel, Why Do I See Linux?"
-
-![w:750](images/week09/docker_mac_linux_vm.png)
-
----
-
-# "Wait &mdash; If Docker Shares the Kernel, Why Do I See Linux?"
-
-On your **Mac**, Docker Desktop secretly runs a tiny **Linux VM** in the background.
-
-All containers run inside that VM &mdash; so they all see **Linux**.
-
-| What you type | What you see | Why? |
-|:--|:--|:--|
-| `cat /etc/os-release` in `python:3.10-slim` | Debian 12 | The image ships Debian **files** (apt, bash, libs) |
-| `cat /etc/os-release` in `ubuntu:22.04` | Ubuntu 22.04 | The image ships Ubuntu **files** |
-| `cat /etc/os-release` in `alpine:3.18` | Alpine Linux | The image ships Alpine **files** (apk, busybox) |
-
-All three share the **same Linux kernel** (from Docker's hidden VM). The image only provides the **userspace** &mdash; the files, tools, and package manager on top.
-
-**Car analogy:** The kernel is the **engine**. The image is the **interior** (dashboard, seats, paint). Different images = different interiors, same engine underneath.
-
-On a **Linux laptop** &mdash; no hidden VM needed. Containers share the host kernel directly.
 
 ---
 
@@ -509,6 +483,16 @@ Setting seeds makes YOUR code deterministic. But results can still differ across
 - **Different OS** &rarr; different BLAS/LAPACK math libraries under the hood
 - **Different library versions** &rarr; sklearn 1.2 vs 1.4 may split data differently
 - **GPU non-determinism** &rarr; CUDA operations are not always reproducible
+
+**PyTorch needs extra work** for full determinism:
+
+```python
+import torch
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)
+torch.backends.cudnn.deterministic = True   # slower but reproducible
+torch.backends.cudnn.benchmark = False      # disable auto-tuner
+```
 
 That's why we need Docker (same OS + same libraries) **and** seeds (same randomness).
 
