@@ -31,6 +31,7 @@ subtitle: "IIT Gandhinagar · Jan 2026 · Prof. Nipun Batra"
 | Week | Topic | Slides | Hands-On |
 |:----:|-------|:------:|:--------:|
 | 9 | Reproducibility: Docker, Seeds & Tracking | [HTML](html/week09-reproducibility-lecture.html) · [PDF](pdf/week09-reproducibility-lecture.pdf) | [Docker Demos](https://github.com/nipunbatra/docker-ml-demos) |
+| 10 | Data Drift & Model Monitoring | [HTML](html/week10-data-drift-lecture.html) | [Notebook](lecture-demos/week10/data_drift_notebook.html) |
 | 10 | From Script to Web App | [HTML](html/week10-web-apps-lecture.html) · [PDF](pdf/week10-web-apps-lecture.pdf) | |
 | 11 | CI/CD & Automation | [HTML](html/week11-cicd-lecture.html) · [PDF](pdf/week11-cicd-lecture.pdf) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/cicd_followalong.sh) · [PDF](lecture-demos/week11/cicd_followalong.pdf) |
 | 11 | Profiling & Quantization | [HTML](html/week11-profiling-quantization-lecture.html) · [PDF](pdf/week11-profiling-quantization-lecture.pdf) | |
