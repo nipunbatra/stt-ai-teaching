@@ -96,6 +96,14 @@ Same X, **different correct Y.** The *meaning* of the data changed.
 
 ---
 
+# Concept Drift: The Decision Boundary Moved
+
+![w:800](images/week10/concept_drift_boundary.png)
+
+The **same data points** now belong to **different classes.** Your old decision boundary is wrong.
+
+---
+
 # Type 3: Label Drift (Outcome Mix Changed)
 
 **The proportion of outcomes shifted.**
@@ -165,27 +173,103 @@ But where's the line? We need a **statistical test** to give us a yes/no answer.
 
 ---
 
+# First: What is a CDF?
+
+Before the KS test, let's understand **Cumulative Distribution Functions.**
+
+![w:800](images/week10/cdf_intuition.png)
+
+**CDF(x) = "What fraction of values are ≤ x?"**
+
+Example: If CDF(25) = 0.40, then **40% of people are age 25 or younger.**
+
+---
+
+# CDF: A Concrete Example
+
+| Age | Count | Cumulative | CDF |
+|:---:|:-----:|:----------:|:---:|
+| 20 | 10 | 10 | 10/50 = 0.20 |
+| 25 | 10 | 20 | 20/50 = 0.40 |
+| 30 | 15 | 35 | 35/50 = 0.70 |
+| 35 | 10 | 45 | 45/50 = 0.90 |
+| 40 | 5 | 50 | 50/50 = 1.00 |
+
+CDF always starts near 0 and ends at 1. **The shape tells you the distribution.**
+
+- Steep jump → lots of values concentrated there
+- Flat region → few values in that range
+
+---
+
+# Why CDFs? Two CDFs = One Picture of Drift
+
+If two datasets have the **same distribution**, their CDFs will overlap perfectly.
+
+If the distributions are **different**, the CDFs will separate.
+
+**The question becomes:** *How far apart are the two curves?*
+
+This is exactly what the KS test measures.
+
+---
+
 # The KS Test: Intuition
 
 ![w:750](images/week10/ks_test_intuition.png)
 
 ---
 
-# The KS Test: How It Works
+# The KS Test: The Formula
 
-**Step 1:** Sort both datasets and draw their cumulative curves (CDF)
+$$D = \max_x |F_{\text{train}}(x) - F_{\text{prod}}(x)|$$
 
-Think of it as: *"What percentage of values are below X?"*
+In plain English:
 
-**Step 2:** Find the **maximum gap** between the two curves
+| Symbol | Meaning |
+|:--|:--|
+| $F_{\text{train}}(x)$ | CDF of training data at point x |
+| $F_{\text{prod}}(x)$ | CDF of production data at point x |
+| $\|F_{\text{train}}(x) - F_{\text{prod}}(x)\|$ | The gap between the two curves at x |
+| $\max_x$ | Find the **biggest** gap across all x |
+| $D$ | The KS statistic (0 to 1) |
 
-- Small gap &rarr; distributions are similar &rarr; no drift
-- Large gap &rarr; distributions are different &rarr; drift detected!
+**D = 0** → identical distributions. **D = 1** → completely different.
 
-**Step 3:** Convert the gap to a p-value
+---
 
-- p < 0.05 &rarr; "statistically significant" &rarr; drift
-- p > 0.05 &rarr; "could be random noise" &rarr; no drift
+# KS Test: Step-by-Step Intuition
+
+**Think of it like this:**
+
+1. Line up both datasets on a number line
+2. Walk from left to right
+3. At each point, ask: "What % of training data is below here? What % of production data?"
+4. The **biggest difference** you find is D
+
+| D value | Meaning |
+|:--|:--|
+| 0.02 | Almost identical — no drift |
+| 0.10 | Small difference — probably OK |
+| 0.25 | Noticeable shift — investigate |
+| 0.50 | Very different distributions — definite drift |
+
+**But how do we know if D is "big enough"?** → That's what the p-value tells us.
+
+---
+
+# KS Test: The p-value
+
+The **p-value** answers: *"If the two distributions were actually identical, what's the probability of seeing a gap this large just by chance?"*
+
+- **p < 0.05** → "Less than 5% chance this is random" → **Drift detected**
+- **p ≥ 0.05** → "Could easily be random noise" → **No significant drift**
+
+**Important:** p-value depends on **sample size**!
+- 50 samples: need a big D to be significant
+- 10,000 samples: even tiny D can be significant
+
+**Rule of thumb for this course:** p < 0.05 = drift. Simple.
 
 ---
 
@@ -249,6 +333,45 @@ PSI is popular in finance/banking. No p-value — just a **score**.
 
 ---
 
+# PSI: The Formula
+
+$$\text{PSI} = \sum_{i=1}^{B} (P_i - Q_i) \cdot \ln\left(\frac{P_i}{Q_i}\right)$$
+
+| Symbol | Meaning |
+|:--|:--|
+| $B$ | Number of bins (typically 10) |
+| $P_i$ | % of **production** data in bin $i$ |
+| $Q_i$ | % of **training** data in bin $i$ |
+| $\ln(P_i / Q_i)$ | Log of the ratio — how much did this bin shift? |
+| $(P_i - Q_i)$ | Weights the shift by its size |
+
+**Key insight:** PSI is symmetric-ish — it penalizes both increases and decreases.
+
+---
+
+# PSI: Step-by-Step Visual
+
+![w:800](images/week10/psi_step_by_step.png)
+
+---
+
+# PSI: Worked Example
+
+Suppose we bin "age" into 5 bins:
+
+| Bin | Training (Q) | Production (P) | P - Q | ln(P/Q) | (P-Q)·ln(P/Q) |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 18-25 | 30% | 15% | -0.15 | -0.69 | 0.104 |
+| 25-32 | 25% | 20% | -0.05 | -0.22 | 0.011 |
+| 32-40 | 20% | 25% | +0.05 | +0.22 | 0.011 |
+| 40-50 | 15% | 25% | +0.10 | +0.51 | 0.051 |
+| 50+ | 10% | 15% | +0.05 | +0.41 | 0.020 |
+| | | | | **PSI =** | **0.197** |
+
+PSI = 0.197 → **Yellow zone** (moderate shift). The user base got older.
+
+---
+
 # PSI: How to Compute
 
 ```python
@@ -289,6 +412,67 @@ print(f"PSI = {psi:.3f}")  # → 0.342 → DRIFT!
 | **One-liner?** | `scipy.stats.ks_2samp()` | Custom function (15 lines) |
 
 **For this course:** use KS test. It's simpler and built into scipy.
+
+---
+
+# Bonus: Jensen-Shannon Divergence
+
+**JS divergence** is a smooth, symmetric alternative to KL divergence:
+
+$$\text{JSD}(P \| Q) = \frac{1}{2} \text{KL}(P \| M) + \frac{1}{2} \text{KL}(Q \| M), \quad M = \frac{P + Q}{2}$$
+
+**Why care?** Unlike KL divergence, JSD is:
+- Always **symmetric**: JSD(P‖Q) = JSD(Q‖P)
+- Always **finite** (between 0 and 1 when using log₂)
+- Built into scipy!
+
+```python
+from scipy.spatial.distance import jensenshannon
+
+jsd = jensenshannon(train_hist, prod_hist)  # Returns sqrt(JSD)
+print(f"JS distance: {jsd:.4f}")
+```
+
+**When to use:** When you want a single number summarizing how different two distributions are, without needing a p-value.
+
+---
+
+# Summary of Drift Detection Methods
+
+| Method | For | Output | One-liner |
+|:--|:--|:--|:--|
+| **KS test** | Continuous | p-value | `ks_2samp(a, b)` |
+| **Chi-squared** | Categorical | p-value | `chi2_contingency(table)` |
+| **PSI** | Continuous/binned | Score (0-∞) | Custom function |
+| **JS divergence** | Any (binned) | Distance (0-1) | `jensenshannon(p, q)` |
+| **Evidently** | Everything | Report | `Report(metrics=[...])` |
+
+**For this course:** Start with KS test + Evidently. Add PSI if working in fintech.
+
+---
+
+# Live Demo: Visualizing the KS Statistic
+
+```python
+import numpy as np, matplotlib.pyplot as plt
+from scipy.stats import ks_2samp
+
+# Two samples — one shifted
+np.random.seed(42)
+train = np.random.normal(50, 10, 500)
+prod  = np.random.normal(55, 12, 500)  # shifted mean and wider
+
+# Sort and compute CDFs
+train_sorted = np.sort(train)
+prod_sorted  = np.sort(prod)
+cdf_train = np.arange(1, len(train)+1) / len(train)
+cdf_prod  = np.arange(1, len(prod)+1)  / len(prod)
+
+plt.plot(train_sorted, cdf_train, label="Training CDF", color="steelblue")
+plt.plot(prod_sorted,  cdf_prod,  label="Production CDF", color="coral")
+plt.title(f"KS stat = {ks_2samp(train, prod).statistic:.3f}")
+plt.legend(); plt.show()
+```
 
 ---
 
@@ -491,7 +675,35 @@ pd.DataFrame(months).plot(x="month", y="ks_stat",
 
 ---
 
-# Experiment 5: Real-World Dataset
+# Experiment 5: Impact on Model Performance
+
+**The big question:** Does drift actually hurt predictions?
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# Train on original data
+model = RandomForestClassifier(random_state=42)
+model.fit(df_train.drop("target", axis=1), df_train["target"])
+
+# Test on original production data
+acc_original = accuracy_score(df_prod["target"],
+    model.predict(df_prod.drop("target", axis=1)))
+
+# Test on shifted production data
+acc_shifted = accuracy_score(df_prod["target"],
+    model.predict(df_prod_shifted.drop("target", axis=1)))
+
+print(f"Accuracy (no drift):   {acc_original:.1%}")
+print(f"Accuracy (with drift): {acc_shifted:.1%}")
+```
+
+**This is the slide that motivates everything.** Drift isn't academic — it breaks your model.
+
+---
+
+# Experiment 6: Real-World Dataset (Wine)
 
 ```python
 # Wine quality dataset — imagine training on red wine, deploying on white
@@ -667,6 +879,36 @@ model_v2.fit(df_combined.drop("target", axis=1), df_combined["target"])
 
 ---
 
+# Retraining: The Recovery
+
+![w:800](images/week10/retrain_recovery.png)
+
+**Each retrain boosts accuracy back up.** Without monitoring, you don't even know it dropped.
+
+---
+
+# Drift in Your Course Project
+
+**How to apply this in your CS 203 project:**
+
+1. **Split your data by time** if possible (train on older, test on newer)
+2. **Run KS test** on each feature between train and test
+3. **Generate an Evidently report** — include it in your project submission
+4. **If drift exists:** document it! This is a **finding**, not a failure
+
+```python
+# Minimum viable monitoring for your project
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset
+
+report = Report(metrics=[DataDriftPreset()])
+report.run(reference_data=df_train, current_data=df_test)
+report.save_html("drift_report.html")
+print("Open drift_report.html to see results")
+```
+
+---
+
 <!-- _class: lead -->
 
 # Part 7: Summary
@@ -714,7 +956,10 @@ Week 10: Monitor after deployment    (is it STILL good?)
 
 # Reading & References
 
-**Book:** Chip Huyen, *Designing Machine Learning Systems* (O'Reilly, 2022) — Chapter 8
+**Books:**
+- Chip Huyen, *Designing Machine Learning Systems* (O'Reilly, 2022) — Ch. 8 (best practical treatment)
+- Kevin Murphy, *Probabilistic ML: Advanced Topics* (2023) — Ch. 19 (formal: covariate shift, domain adaptation)
+- Cathy Chen et al., *Reliable Machine Learning* (O'Reilly, 2022) — production monitoring focus
 
 **Tutorials:**
 - Evidently AI: [What is Data Drift?](https://www.evidentlyai.com/ml-in-production/data-drift)
