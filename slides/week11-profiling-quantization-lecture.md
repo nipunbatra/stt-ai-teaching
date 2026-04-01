@@ -122,6 +122,8 @@ They store three pieces:
 - **Exponent** (how big or small) — determines the scale
 - **Mantissa** (the significant digits) — determines the precision
 
+**Formula:** `Value = (-1)^Sign × (1 + Mantissa) × 2^(Exponent - Bias)`
+
 ---
 
 # FP32: 32 Bits to Store One Decimal Number
@@ -320,10 +322,12 @@ def predict(msg):
 
 When you know the function, find the exact **line:**
 
-```python
-# pip install line_profiler
-# Run with: kernprof -l -v script.py
+```bash
+pip install line_profiler
+kernprof -l -v script.py
+```
 
+```python
 @profile
 def predict_batch(texts):
     results = []
@@ -346,10 +350,12 @@ preds = model.predict(vecs)         # one call, not 1000
 
 Sometimes the bottleneck isn't time — it's **memory.**
 
-```python
-# pip install memory_profiler
-# Run with: python -m memory_profiler script.py
+```bash
+pip install memory_profiler
+python -m memory_profiler script.py
+```
 
+```python
 @profile
 def load_data():
     df = pd.read_csv("big_data.csv")    # +500 MB
@@ -363,6 +369,28 @@ def load_data():
 **Fix:** Use smaller datatypes: `pd.read_csv("data.csv", dtype="float32")` — half the memory.
 
 > **Notebook: Cell 3** — see memory usage of your model!
+
+---
+
+# Level 5: Deep Learning Profiling (PyTorch)
+
+Standard Python profilers (`cProfile`) **fail for deep learning**. 
+
+Why? PyTorch operations are **asynchronous** on the GPU. `cProfile` only measures the CPU time taken to *launch* the kernel, not the actual GPU execution time.
+
+```python
+import torch
+
+# Use the built-in PyTorch profiler!
+with torch.profiler.profile(
+    activities=[torch.profiler.ProfilerActivity.CPU, 
+                torch.profiler.ProfilerActivity.CUDA],
+    record_shapes=True
+) as prof:
+    model(inputs)
+
+print(prof.key_averages().table(sort_by="cuda_time_total"))
+```
 
 ---
 
@@ -401,6 +429,14 @@ def load_data():
 
 **FP32** = 30 kg suitcase with an outfit for every weather.
 **INT8** = 7 kg carry-on. You round to "hot" or "cold." Tiny precision loss, but you fit on the budget airline and move 4x faster.
+
+---
+
+# Hardware Acceleration: Why INT8 is Faster
+
+Fewer bits mean less memory bandwidth (loading fewer bytes). But there's a **compute benefit** too!
+
+Modern hardware (NVIDIA Tensor Cores, Apple Neural Engine, Intel AVX-512 VNNI) has **dedicated silicon for 8-bit math**. It can execute far more operations per clock cycle in INT8 than FP32.
 
 ---
 
@@ -474,6 +510,8 @@ prediction = quantized_model(input_data)
 | **Dynamic** | 1 line of code | Good | Start here (easiest) |
 | **Static** | ~15 lines + calibration data | Better | When dynamic isn't enough |
 | **Quantization-Aware Training** | Retrain the model | Best | For production, maximum quality |
+
+**Why not always Dynamic?** In dynamic quantization, weights are INT8, but activations are quantized **on-the-fly** during every forward pass. This CPU overhead can actually slow down compute-bound models (like CNNs).
 
 **For this course:** dynamic quantization. One line, big payoff.
 
@@ -551,6 +589,8 @@ result = session.run(None, {"image": input_array})
 
 In 2023, Meta released **LLaMA-7B** — powerful but 28 GB in FP32.
 
+*(Pro-tip: You also need memory for the **KV Cache** — the memory required to store the context of the conversation during generation!)*
+
 Then Georgi Gerganov built **llama.cpp** with 4-bit quantization:
 
 | | Before (FP32) | After (INT4) |
@@ -584,7 +624,9 @@ Set near-zero weights to exactly zero. The model still works.
 
 **Typical result:** 50–90% of weights pruned with < 1% accuracy loss.
 
-**Why it helps:** Zeros compress extremely well and can be skipped during computation.
+**Why it helps:** Zeros compress extremely well on disk.
+
+**Important Caveat:** It **does not make inference faster** unless the hardware/framework specifically supports *sparse matrix multiplication*. Otherwise, the GPU still does the math (multiplying by zero).
 
 ---
 
