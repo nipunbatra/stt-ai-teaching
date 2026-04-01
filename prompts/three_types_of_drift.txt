@@ -1,0 +1,9 @@
+An educational diagram showing three types of data drift side by side. THREE PANELS:
+
+Panel 1 "Data Drift": Two overlapping bell curves - a blue one labeled "Training" centered at 30 and a red one labeled "Production" shifted to center at 50. The X-axis labeled "Customer Age". Shows the input distribution shifted.
+
+Panel 2 "Concept Drift": A scatter plot with dots. Blue dots show one decision boundary (positive=top-right), red dots show a DIFFERENT decision boundary (positive=bottom-left). Same features, different relationship. Label: "Same inputs, different correct answers."
+
+Panel 3 "Label Drift": Two pie charts. Left pie: 90% blue "Not Spam", 10% red "Spam". Right pie: 50% blue "Not Spam", 50% red "Spam". Label: "The mix of outcomes changed."
+
+Clean educational style, white background, labeled clearly.

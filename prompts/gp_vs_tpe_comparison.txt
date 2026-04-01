@@ -1,0 +1,35 @@
+Create a clean, publication-quality scientific diagram comparing two optimization methods side-by-side.
+
+LEFT PANEL (Gaussian Process Bayesian Optimization):
+- Show a smooth 1D function curve (black line)
+- Add a shaded uncertainty band around the curve (light blue)
+- Mark a few observed data points (black dots)
+- Show an acquisition function curve below (dashed or separate curve)
+- Highlight the next sampling point (red star)
+- Label: "GP-BO: models p(y | x)"
+
+RIGHT PANEL (Tree-structured Parzen Estimator, TPE):
+- Same horizontal x-axis for consistency
+- Show two probability density curves:
+  - l(x) (good region) in green
+  - g(x) (bad region) in red
+- Mark sampled points along x-axis
+- Highlight region where l(x) >> g(x)
+- Label: "TPE: models p(x | y)"
+
+GENERAL STYLE:
+- Minimalist, NeurIPS/ICML style
+- White background
+- Clean vector graphics, no clutter
+- Use consistent axis scaling across both panels
+- Add subtle titles above each panel
+- No 3D, no artistic effects, purely academic
+- High resolution (at least 1024x1024)
+
+Add a small caption at bottom:
+"GP-BO learns the function; TPE learns where good points are"
+
+Use simple 2D line plots only.
+Avoid decorative elements.
+Ensure clear separation between left and right panels.
+Use standard academic color palette.

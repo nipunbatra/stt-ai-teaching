@@ -1,0 +1,7 @@
+An educational diagram showing how model accuracy degrades as drift increases, and recovers after retraining. A line chart with X-axis showing time (Week 1 to Week 20). Y-axis showing accuracy (60% to 98%).
+
+Blue line: starts at 95%, gradually declines to 70% by week 12. At week 12, a vertical dashed red line labeled "Drift detected! Retrain." After retraining, a new green line starts at 93% from week 13 and stays stable around 92%.
+
+The gap between the blue declining line and the green recovery line is shaded in light red to show "performance lost to drift."
+
+Clean educational chart style, white background, grid lines visible.

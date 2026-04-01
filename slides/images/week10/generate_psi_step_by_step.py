@@ -70,16 +70,11 @@ def generate(output_path: Path) -> Path:
     ax2.set_xticks(x)
     ax2.set_xticklabels(bins, fontsize=11)
     ax2.set_ylabel('PSI contribution', fontsize=11)
-    ax2.set_title(f'Step 2: Sum Contributions → PSI = {psi_total:.3f}  (Yellow Zone: Moderate Drift)',
+    ax2.set_title(f'Step 2: Add the Bin Mismatches -> PSI = {psi_total:.3f}',
                   fontsize=13, fontweight='bold')
     ax2.axhline(0, color='black', linewidth=0.5)
     ax2.spines['top'].set_visible(False)
     ax2.spines['right'].set_visible(False)
-
-    # Traffic light legend
-    ax2.text(0.98, 0.85, '< 0.1 = Green  |  0.1–0.25 = Yellow  |  > 0.25 = Red',
-             transform=ax2.transAxes, ha='right', fontsize=9, color='#555',
-             bbox=dict(boxstyle='round,pad=0.3', facecolor='#f5f5f5', edgecolor='#ccc'))
 
     fig.tight_layout(h_pad=2)
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -68,9 +68,11 @@ def generate(output_path: Path) -> Path:
     ax2.axhline(600, color='#c44536', linestyle='-', linewidth=2.5, alpha=0.8, xmin=0.82)
     ax2.fill_between([5, 6.2], 600, 850, alpha=0.1, color='coral')
 
-    # Highlight misclassified region
-    ax2.fill_between([3, 5], 400, 600, alpha=0.15, color='#FFD700',
-                     label='Was "premium"\nnow "regular"')
+    # Highlight the full region that used to be premium under the old rule
+    # but is regular under the new rule
+    ax2.fill_between([3, 5], 400, 850, alpha=0.12, color='#FFD700',
+                     label='Was premium,\nnow regular')
+    ax2.fill_between([5, 6.2], 400, 600, alpha=0.12, color='#FFD700')
 
     ax2.set_xlabel('Orders per Week', fontsize=11)
     ax2.set_ylabel('Avg Spend (₹)', fontsize=11)
@@ -78,7 +80,7 @@ def generate(output_path: Path) -> Path:
     ax2.legend(fontsize=8, loc='upper left')
     ax2.set_xlim(0.8, 6.2)
     ax2.set_ylim(50, 850)
-    ax2.text(4, 500, 'Model says\n"premium"\nbut wrong!',
+    ax2.text(4.2, 520, 'Old model says\n"premium"\nbut wrong',
              fontsize=10, color='#c44536', ha='center', fontweight='bold',
              bbox=dict(boxstyle='round,pad=0.3', facecolor='#fff3f3', edgecolor='#c44536', alpha=0.8))
     ax2.spines['top'].set_visible(False)

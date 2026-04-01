@@ -27,7 +27,7 @@ def generate(output_path: Path) -> Path:
     cdf_prod = np.arange(1, len(prod) + 1) / len(prod)
 
     # Get KS statistic
-    ks_stat, p_value = ks_2samp(train, prod)
+    ks_stat, _ = ks_2samp(train, prod)
 
     # Find the point of maximum gap
     all_values = np.sort(np.concatenate([train, prod]))
@@ -58,15 +58,9 @@ def generate(output_path: Path) -> Path:
             f'D = {ks_stat:.3f}\n(max gap)',
             fontsize=13, fontweight='bold', color='#c44536', va='center')
 
-    # P-value annotation
-    ax.text(0.98, 0.05, f'p-value = {p_value:.2e}\np < 0.05 → DRIFT DETECTED',
-            transform=ax.transAxes, ha='right', va='bottom',
-            fontsize=11, color='#c44536', fontweight='bold',
-            bbox=dict(boxstyle='round,pad=0.4', facecolor='#fff3f3', edgecolor='#c44536', alpha=0.9))
-
     ax.set_xlabel('User Age', fontsize=12)
     ax.set_ylabel('Cumulative Fraction (CDF)', fontsize=12)
-    ax.set_title('KS Test: Find the Maximum Gap Between Two CDFs', fontsize=14, fontweight='bold')
+    ax.set_title('KS Test Step 2: Measure the Biggest Vertical Gap', fontsize=14, fontweight='bold')
     ax.legend(fontsize=11, loc='upper left')
     ax.set_ylim(-0.02, 1.05)
     ax.grid(alpha=0.2)

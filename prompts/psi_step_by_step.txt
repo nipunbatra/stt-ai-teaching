@@ -1,0 +1,9 @@
+An educational diagram showing PSI (Population Stability Index) computation step by step. Three panels top to bottom:
+
+Panel 1: Two overlapping histograms binned into 5 buckets. Blue bars labeled "Training" and red bars labeled "Production". The heights of some buckets differ noticeably.
+
+Panel 2: A table showing 5 rows (one per bucket) with columns: "Bucket", "Training %", "Production %", "Difference", "PSI contribution". Numbers filled in showing how PSI is computed per bucket.
+
+Panel 3: A single green/yellow/red thermometer-style gauge showing the final PSI score with thresholds marked at 0.1 and 0.25.
+
+Clean educational style, white background, large readable text.

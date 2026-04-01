@@ -1,0 +1,13 @@
+A beautiful, clean, professional Git cheat sheet reference card for university students. Dark navy blue background with white and colored text. Organized into sections with icons:
+
+SETUP: git init, git clone
+DAILY: git status, git add, git commit, git diff, git log
+BRANCHES: git branch, git checkout -b, git merge, git rebase
+REMOTE: git push, git pull, git fetch
+UNDO: git restore, git reset, git revert, git stash
+
+Include a small diagram showing: Working Dir → (git add) → Staging → (git commit) → Repository → (git push) → Remote
+
+At the bottom: "The Golden Rule: commit often, branch freely, never rebase shared branches"
+
+Modern flat design, high contrast, easy to read at a glance. Style like a professional developer reference card or poster.

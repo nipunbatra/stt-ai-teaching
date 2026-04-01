@@ -1,0 +1,11 @@
+A flowchart diagram showing the ML monitoring and response pipeline. Four connected stages flowing left to right:
+
+Stage 1 "MONITOR" (green box): Icons showing dashboards and charts, text "Track feature distributions over time"
+
+Stage 2 "DETECT" (yellow box): A warning bell icon, text "Statistical tests flag drift, Alert fires"
+
+Stage 3 "DIAGNOSE" (orange box): A magnifying glass icon, text "Which features drifted? Why? Is it real?"
+
+Stage 4 "ACT" (red box): Three sub-options branching down: "Retrain model", "Collect new labels", "Update features"
+
+A circular arrow from Act back to Monitor showing it's a continuous loop. Clean flat design, white background, educational style.

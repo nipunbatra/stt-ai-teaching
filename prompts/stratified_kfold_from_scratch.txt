@@ -1,0 +1,13 @@
+Educational diagram showing Stratified K-Fold Cross-Validation from scratch, step by step.
+
+Show a dataset with 15 samples: 10 blue circles labeled "Class A" and 5 orange triangles labeled "Class B" (70%/30% ratio).
+
+Step 1 "Separate by class": Show two rows - top row has 10 blue circles (Class A indices: 0,1,2,3,4,5,6,7,8,9), bottom row has 5 orange triangles (Class B indices: 10,11,12,13,14).
+
+Step 2 "Shuffle within each class": Same two rows but indices are shuffled randomly within each row.
+
+Step 3 "Deal round-robin into K=5 folds": Show 5 columns (Fold 1-5). From Class A, deal 2 indices to each fold. From Class B, deal 1 index to each fold. Use arrows showing the dealing pattern like dealing cards.
+
+Step 4 "Result": Show 5 folds, each containing 2 blue + 1 orange = 3 samples. Label each fold "2A + 1B = 67%/33%" showing preserved ratio.
+
+Clean white background, clear labels, educational style with sans-serif font. Use consistent blue and orange colors throughout.

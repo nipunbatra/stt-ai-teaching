@@ -1,0 +1,7 @@
+An educational diagram showing concept drift visually. Two scatter plots side by side.
+
+LEFT plot labeled "Training Time (2022)": Blue dots (class 0) in bottom-left, red dots (class 1) in top-right. A diagonal decision boundary line separates them cleanly. Caption: "Boundary works well."
+
+RIGHT plot labeled "Production (2026)": Same X and Y axes, same blue and red dots BUT the red dots have shifted — now they overlap with where blue dots used to be. The OLD decision boundary (shown as dashed line) now misclassifies many points. A NEW correct boundary (solid line) is in a different position. Caption: "Same boundary, wrong answers."
+
+Clean educational scatter plot style, white background, grid lines.

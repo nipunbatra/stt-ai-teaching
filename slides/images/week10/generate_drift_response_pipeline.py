@@ -22,7 +22,7 @@ def generate(output_path: Path) -> Path:
     steps = [
         {'x': 0.5, 'label': 'Monitor', 'sub': 'Track feature\ndistributions weekly',
          'color': '#4A90D9', 'icon': '📊'},
-        {'x': 3.3, 'label': 'Detect', 'sub': 'KS test / PSI\np < 0.05 → alert',
+        {'x': 3.3, 'label': 'Detect', 'sub': 'KS test / PSI\nthreshold crossed → alert',
          'color': '#E8A838', 'icon': '🔍'},
         {'x': 6.1, 'label': 'Diagnose', 'sub': 'Bug? Seasonal?\nNew users?',
          'color': '#D4652F', 'icon': '🔬'},

@@ -1,0 +1,11 @@
+Clean infographic diagram showing Git's three areas as a letter-mailing analogy. Three distinct colored sections side by side:
+
+SECTION 1 (left, red-tinted): "Working Directory" - Shows a person writing a letter at a desk. Below: "Your desk where you write and edit"
+
+SECTION 2 (middle, yellow-tinted): "Staging Area" - Shows a sealed envelope ready to go. Below: "Envelope sealed, ready to send"
+
+SECTION 3 (right, green-tinted): "Repository" - Shows a mailbox/post office archive. Below: "Permanently stored in the post office"
+
+Large arrows between sections labeled "git add" (between 1 and 2) and "git commit" (between 2 and 3).
+
+Clean flat illustration style, minimal text, professional tech diagram aesthetic. Dark background with vibrant colors. No handwritten text - use clean sans-serif typography only.
