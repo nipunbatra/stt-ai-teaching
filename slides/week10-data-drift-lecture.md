@@ -1097,16 +1097,18 @@ But be careful:
 3. Measure the largest gap between the two curves.
 4. If the gap is too large to be explained by random chance, flag drift.
 
-Important:
+---
 
-- this is the **conceptual idea**
+# Kolmogorov-Smirnov (KS) Test: What the Library Returns
+
+- `statistic` = the observed gap `D`
+- `p-value` = if there were really no drift, how surprising is a gap this large?
+
+One practical note:
+
+- this 4-step story is the **conceptual idea**
 - software does **not** usually try every possible re-split by brute force
-- it computes the observed `D` from your two samples, then uses KS-test mathematics to get the p-value efficiently
-
-What the outputs mean:
-
-- `statistic` = how far apart the two distributions are
-- `p-value` = if the distributions were actually the same, how surprising would this gap be?
+- it computes the observed `D`, then gets the p-value efficiently
 
 ---
 
@@ -1138,7 +1140,19 @@ Companion notebook:
 
 # Categorical Features Need a Different Test
 
-Suppose the feature is `city`, not a numeric value.
+Suppose one input row looks like this:
+
+- `X = (city, income, age)`
+- `Y = loan approved or rejected`
+
+Here we are checking only **one input column inside `X`**:
+
+- the `city` column
+
+So we ignore `income`, `age`, and even `Y` for the moment.
+We just ask:
+
+> "Did the mix of cities in the input data change?"
 
 | City | Train count | Production count |
 |:--|:--|:--|
@@ -1147,6 +1161,11 @@ Suppose the feature is `city`, not a numeric value.
 | Surat | 250 | 600 |
 
 This is not a job for KS test.
+
+Why not?
+
+- KS expects **numeric values** such as mileage or apartment size
+- `Ahmedabad`, `Rajkot`, and `Surat` are **categories**, not numbers with a natural CDF order
 
 Here we compare **category counts**.
 The usual tool is the **chi-squared (`chi^2`) test**.
@@ -1222,6 +1241,37 @@ Using the city example:
 Now add them:
 
 `chi^2 ≈ 33.3 + 33.3 + 20.5 + 20.5 + 72.1 + 72.1 = 251.7`
+
+---
+
+<!-- _class: compact -->
+
+# Chi-Squared (`chi^2`) Test: How Does This Connect to p-value?
+
+It is the same p-value logic as before.
+Only the statistic changed.
+
+- toy example -> statistic was the **mean gap**
+- KS test -> statistic was **`D`**
+- chi-squared test -> statistic is **`chi^2`**
+
+Here the two samples are:
+
+- `1000` city labels from training
+- `1000` city labels from production
+
+Under the **no-change** story, we could imagine:
+
+1. pooling all `2000` city labels together
+2. randomly reassigning `1000` to "train" and `1000` to "production"
+3. rebuilding the count table
+4. recomputing **`chi^2`**
+
+Then the p-value asks:
+
+> "How often would a `chi^2` this large or larger appear just by chance?"
+
+In real software, this is usually computed efficiently, not by brute force.
 
 ---
 
