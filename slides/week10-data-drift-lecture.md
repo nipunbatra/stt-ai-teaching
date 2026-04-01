@@ -19,7 +19,7 @@ paginate: true
 
 # A Story
 
-You build a spam filter in January. It's **95% accurate.** You deploy it. High five.
+You build a spam filter in January. It's **95% accurate.** You deploy it. 🎉
 
 Six months later, users complain: *"Why am I getting so much spam?"*
 
@@ -37,7 +37,7 @@ Same code. Same model. Same server. **What happened?**
 
 ---
 
-# ML Models Are Not Like Regular Software
+# ML Models ≠ Regular Software
 
 | Regular software | ML models |
 |:--|:--|
@@ -45,79 +45,451 @@ Same code. Same model. Same server. **What happened?**
 | `2 + 2 = 4` forever | "Buy crypto now!" wasn't spam in 2020, is spam in 2026 |
 | Bugs are in your **code** | Problems are in the **data** |
 
-A model is a **snapshot** of the world at training time. When the world moves on, the snapshot gets stale.
+A model is a **snapshot** of the world at training time.
+
+When the world moves on, the snapshot gets stale.
 
 ---
 
-<!-- _class: lead -->
+# Before We Go Further: X and Y
 
-# Part 1: What is Drift?
+In ML, we always have:
+
+- **X = the input** (what the model sees). Could be a number, an image, a text message.
+- **Y = the output** (what the model predicts). Could be a price, a label like "spam/not spam", etc.
+
+The model **learns a pattern from X to Y** during training.
+
+Drift means this pattern **stops working** after deployment. But it can break in different ways...
 
 ---
 
 # Three Types of Drift
 
-![w:850](images/week10/three_types_of_drift.png)
-
----
-
-# Type 1: Data Drift (Input Shift)
-
-**The inputs your model sees in production look different from training.**
-
-Example: You train a house price model on 2022 data.
-
-| Feature | Training (2022) | Production (2026) |
+| Type | Plain English | Shorthand |
 |:--|:--|:--|
-| Avg. house size | 1500 sq ft | 1200 sq ft (smaller homes trending) |
-| Avg. income | 8 LPA | 12 LPA (inflation) |
-| % remote workers | 15% | 45% (post-COVID) |
+| **Data Drift** | The inputs look different | The pattern of X values changed |
+| **Concept Drift** | Same input → different correct answer | The X→Y relationship changed |
+| **Label Drift** | The mix of outcomes shifted | The balance of Y values changed |
 
-The model was trained on a world that no longer exists.
-
-**Technically:** P(X) changed, but P(Y|X) stayed the same.
+Let's look at each with **detailed examples** from tables, images, and text.
 
 ---
 
-# Type 2: Concept Drift (Rules Changed)
+<!-- _class: lead -->
 
-**The relationship between inputs and outputs changed.**
+# Type 1: Data Drift
+## *The inputs your model sees have changed.*
+## The X values shifted, but the rules for X→Y stayed the same.
 
-Example: You train a food delivery demand predictor.
+---
 
-| Situation | Before Zomato Gold | After Zomato Gold |
+# Data Drift Example 1: Used Car Price Prediction
+
+**The setup:**
+
+- **X** (input) = kilometers driven (one number)
+- **Y** (output) = resale price in ₹ lakhs (one number)
+- **Model** = `LinearRegression` from sklearn
+
+We train on **relatively new cars** at a dealership (5,000–60,000 km).
+
+---
+
+# The True Relationship
+
+Car prices **don't** drop linearly with km. They follow an **exponential decay:**
+
+- First 30k km: price drops fast (₹8L → ₹4L)
+- After 60k km: price barely changes (₹3L → ₹2.5L)
+
+But in the **training range** (5k–60k km), a straight line fits well enough!
+
+```python
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+np.random.seed(42)
+km_train = np.random.normal(25000, 10000, 500).clip(5000, 60000)
+price_train = 8 * np.exp(-km_train / 50000) + np.random.normal(0, 0.3, 500)
+
+model = LinearRegression()
+model.fit(km_train.reshape(-1, 1), price_train)
+```
+
+**Quick jargon check:** R² (R-squared) measures how well the model fits. 1.0 = perfect, 0 = useless, negative = worse than just guessing the average every time. Clean test: **R² = 0.89** — good!
+
+---
+
+# 4 Years Later: High-Mileage Cars Flood the Market
+
+Same dealership, same city. But the used car market changed — people now sell **older, higher-mileage cars** (80k–150k km).
+
+**This is data drift:** the pattern of inputs shifted over time. The pricing rules didn't change — the same car at the same km still costs the same. But the **mix of cars people are selling has changed.**
+
+---
+
+# What Goes Wrong: The Visualization
+
+![w:850](images/week10/car_price_scatter.png)
+
+---
+
+# The Numbers Tell the Story
+
+| Metric | Clean (low-km) | Drifted (high-km) |
 |:--|:--|:--|
-| User orders 3x/week | High-value customer | Normal (everyone orders 3x/week now) |
-| Same input features | → predict "premium" | → predict "regular" |
+| **R²** | 0.89 | **-10.3** |
+| **MAE** | ₹0.28 lakh | **₹2.26 lakh** |
 
-Same X, **different correct Y.** The *meaning* of the data changed.
+**R² = -10.3** means the model is catastrophically wrong — worse than just predicting the average price every time. It even predicts **negative prices** for some cars!
 
-**Technically:** P(Y|X) changed. This is the hardest to detect and fix.
-
----
-
-# Concept Drift: The Decision Boundary Moved
-
-![w:800](images/week10/concept_drift_boundary.png)
-
-The **same data points** now belong to **different classes.** Your old decision boundary is wrong.
+**MAE** (Mean Absolute Error) = average of |predicted - actual|. It went from ₹0.28L to ₹2.26L — the model is off by ₹2+ lakhs on average.
 
 ---
 
-# Type 3: Label Drift (Outcome Mix Changed)
+# Data Drift Example 2: Digit Recognition (Images)
 
-**The proportion of outcomes shifted.**
+**The setup:**
 
-Example: Fraud detection
+- **X** = an image of a handwritten digit (8×8 pixels = 64 numbers)
+- **Y** = which digit (0, 1, 2, ... 9)
+- **Model** = `RandomForestClassifier`
 
-| | Training data | Production (2026) |
+We train on **clean, well-lit scans** from a lab scanner.
+
+Then the model is deployed on a **phone camera app** — photos are noisy, dark, sometimes blurry.
+
+---
+
+# What Is X? Images Are Just Numbers
+
+An 8×8 image is just **64 numbers** (pixel brightness 0–1):
+
+```
+0.0  0.0  0.3  0.9  0.9  0.3  0.0  0.0
+0.0  0.5  1.0  0.2  0.2  1.0  0.5  0.0
+0.0  0.5  1.0  0.2  0.2  1.0  0.5  0.0
+...
+```
+
+**X = a vector of 64 numbers.** Each pixel is a "feature."
+
+When the camera is noisy, these 64 numbers change — even though it's the same digit.
+
+---
+
+# Clean vs Drifted Images
+
+![w:800](images/week10/image_drift_example.png)
+
+Same digits! But the pixel values are very different. **The inputs (X) shifted.**
+
+---
+
+# But X Is 64-Dimensional — How to Detect Drift?
+
+We can't plot 64 dimensions. Instead, compute **summary statistics** per image and compare:
+
+![w:800](images/week10/image_drift_pixels.png)
+
+Now we can compare these histograms between training and production — just like any tabular feature! (We'll see formal tests for this soon.)
+
+---
+
+# Image Drift: The Code
+
+```python
+from sklearn.datasets import load_digits
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import numpy as np
+
+np.random.seed(42)
+digits = load_digits()
+X_train, y_train = digits.data[:1200], digits.target[:1200]
+X_test,  y_test  = digits.data[1200:], digits.target[1200:]
+
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+print(f"Clean:   {accuracy_score(y_test, model.predict(X_test)):.1%}")
+
+X_noisy = X_test + np.random.normal(0, 3, X_test.shape)  # add noise
+print(f"Noisy:   {accuracy_score(y_test, model.predict(X_noisy)):.1%}")
+
+X_dark = X_test * 0.3   # darken
+print(f"Dark:    {accuracy_score(y_test, model.predict(X_dark)):.1%}")
+```
+
+---
+
+# Data Drift Example 3: Spam Filter (Text)
+
+**The setup:**
+
+- **X** = a text message (converted to word-frequency scores — a vector of ~5000 numbers)
+- **Y** = spam or not spam (binary)
+- **Model** = `MultinomialNB` (Naive Bayes)
+
+Trained on **formal office emails.** Deployed on **WhatsApp messages.**
+
+---
+
+# What Is X for Text?
+
+The model doesn't read words directly. It converts text to numbers using **TF-IDF** (Term Frequency–Inverse Document Frequency) — each word gets a score based on how important it is in that document:
+
+```python
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+tfidf = TfidfVectorizer(max_features=5000)
+X_train = tfidf.fit_transform(train_emails)
+# X_train is now a matrix: each row = one email, each column = one word's score
+```
+
+**X = a vector of 5000 word-frequency scores.**
+
+Email vocabulary: "Dear", "meeting", "invoice", "regards"...
+WhatsApp vocabulary: "lol", "brb", "😂", "send"...
+
+Most WhatsApp words **don't exist** in the training vocabulary → model has no signal!
+
+---
+
+# Text Drift: What Changes
+
+![w:800](images/week10/text_drift_example.png)
+
+Message length, word choice, emoji usage — **everything about X is different.**
+
+---
+
+# Data Drift: The Pattern
+
+Every example follows the same pattern:
+
+| | Car Price | Digits | Spam |
+|:--|:--|:--|:--|
+| **X** | km driven (1 number) | pixels (64 numbers) | word scores (5000 numbers) |
+| **Y** | price in ₹ lakhs | digit 0-9 | spam/ham |
+| **Training** | Low-km cars | Clean scans | Office emails |
+| **Production** | High-km cars | Phone camera | WhatsApp |
+| **What shifted** | km range | Brightness, noise | Vocabulary, length |
+| **Result** | R²: 0.89 → -10.3 | Accuracy drops | Near-random |
+
+**In every case:** the inputs (X) changed. The model was never trained on this kind of input.
+
+---
+
+<!-- _class: lead -->
+
+# Type 2: Concept Drift
+## *Same inputs, different correct answer.*
+## The X→Y relationship changed.
+
+---
+
+# Concept Drift: What Makes It Different
+
+In data drift, the **inputs** change but the rules stay the same.
+
+In concept drift, the **rules** change — the same input now has a different correct answer.
+
+| | Data Drift | Concept Drift |
 |:--|:--|:--|
-| Fraud rate | 1% | 5% (UPI fraud increased) |
-| Model expects | 1 fraud per 100 | Still expects 1 per 100 |
+| X changed? | Yes | No (or maybe) |
+| Y\|X changed? | No | **Yes** |
+| Same input → same answer? | Yes | **No!** |
 
-Model's threshold is calibrated for 1%. At 5%, it misses most fraud.
+---
 
-**Technically:** P(Y) changed.
+# Concept Drift Example 1: Zomato Premium Customers
+
+**The setup:**
+
+- **X** = (orders per week, average spend in ₹) — 2 numbers
+- **Y** = premium customer (yes/no)
+- **Model** = `DecisionTreeClassifier`
+
+**In January 2024** (before Zomato Gold):
+- A customer ordering **3x/week** spending **₹500** = **premium**
+
+**In June 2024** (after Zomato Gold launched):
+- *Everyone* orders 3x/week now (Gold gives free delivery)
+- The **same customer** is now just... normal
+
+---
+
+# Before Zomato Gold: The Model Works
+
+```python
+# Model learned: orders > 3 AND spend > ₹400 → premium
+# This boundary worked well in January
+```
+
+| Customer | Orders/week | Avg Spend | Label (Jan) |
+|:--|:--|:--|:--|
+| Priya | 4 | ₹500 | **Premium** |
+| Rahul | 2 | ₹200 | Regular |
+| Ankit | 5 | ₹600 | **Premium** |
+| Neha | 1 | ₹150 | Regular |
+
+The model has **85% accuracy** on the clean test set. Life is good.
+
+---
+
+# After Zomato Gold: Same People, Different Labels
+
+| Customer | Orders/week | Avg Spend | Label (Jan) | Label (Jun) |
+|:--|:--|:--|:--|:--|
+| Priya | 4 | ₹500 | Premium | **Regular** |
+| Rahul | 2 | ₹200 | Regular | Regular |
+| Ankit | 5 | ₹600 | Premium | **Regular** |
+| Neha | 1 | ₹150 | Regular | Regular |
+
+**Priya's input didn't change.** But she's no longer "premium" because *everyone* orders 4x/week now.
+
+The old rule (orders > 3 = premium) **is no longer true.**
+
+---
+
+# Concept Drift: The Visualization
+
+![w:850](images/week10/concept_drift_detailed.png)
+
+The yellow zone = customers the model **confidently classifies as premium, but are now regular.**
+
+---
+
+# Concept Drift Example 2: The Word "Crypto"
+
+**The setup:**
+
+- **X** = email text (converted to word-frequency scores)
+- **Y** = spam or not spam
+
+Consider this exact email in two different years:
+
+> *"Invest in crypto for amazing returns! Limited opportunity!"*
+
+| Year | Same text → Label |
+|:--|:--|
+| 2018 | **Not spam** (crypto was mainstream investing) |
+| 2024 | **Spam** (crypto scams are everywhere) |
+
+**Same X, different correct Y.** The model from 2018 would let this through.
+
+---
+
+# Concept Drift Example 3: "Fast Delivery" Reviews
+
+**The setup:**
+
+- **X** = product review text
+- **Y** = helpful / not helpful
+
+| Year | Review text | Label |
+|:--|:--|:--|
+| 2019 | "Delivery was fast, got it in 2 days" | **Not helpful** (obvious, everyone gets fast delivery) |
+| 2021 (COVID) | "Delivery was fast, got it in 2 days" | **Helpful** (rare during COVID, very useful info) |
+
+**Same exact review text → different correct label.** The world context changed.
+
+---
+
+# Why Concept Drift Is the Hardest
+
+**You can't detect it by looking at X!**
+
+| Detection method | Data Drift | Concept Drift |
+|:--|:--|:--|
+| Compare input distributions | ✅ Works (inputs look different) | ❌ Inputs look the same! |
+| Compare image statistics | ✅ Works | ❌ Images look the same! |
+| Monitor model accuracy over time | Maybe | ✅ **Only way** |
+| Need labeled production data? | No | **Yes** |
+
+**You need ground truth labels from production** to detect concept drift. Without them, you're blind.
+
+---
+
+<!-- _class: lead -->
+
+# Type 3: Label Drift
+## *The mix of outcomes shifted.*
+## The balance of Y values changed.
+
+---
+
+# Label Drift: The Outcome Proportions Shifted
+
+The **balance of Y values** changed — not the inputs, not the rules, just **how often each outcome occurs:**
+
+![w:750](images/week10/label_drift_example.png)
+
+---
+
+# Label Drift Example 1: UPI Fraud Detection
+
+**The setup:**
+
+- **X** = transaction features (amount, time, merchant, device)
+- **Y** = fraudulent (yes/no)
+
+| | Training (2022) | Production (2026) |
+|:--|:--|:--|
+| Fraud rate | **1%** | **5%** |
+| Model's threshold | Tuned to flag top 1% | Still tuned for 1% |
+
+The model was tuned to flag the most suspicious 1% of transactions. But now 5% of transactions are actually fraud — it only catches 1 out of every 5 fraudulent ones!
+
+---
+
+# Label Drift Example 2: Pet Classifier at a Dog Park
+
+**The setup:**
+
+- **X** = photo of a pet
+- **Y** = cat / dog / bird
+
+| Class | Training | Production (dog park) |
+|:--|:--|:--|
+| Cat | 40% | **10%** |
+| Dog | 40% | **75%** |
+| Bird | 20% | 15% |
+
+The model expects to see cats 40% of the time. When it's uncertain between cat and dog, it often picks "cat" because that was common in training. At the dog park, that's wrong.
+
+---
+
+# Label Drift Example 3: Product Reviews After Redesign
+
+**The setup:**
+
+- **X** = review text
+- **Y** = positive / neutral / negative
+
+After a product redesign, customers love the new version:
+
+| Sentiment | Training | Production |
+|:--|:--|:--|
+| Positive | 30% | **65%** |
+| Neutral | 45% | 25% |
+| Negative | 25% | **10%** |
+
+Model over-predicts "negative" for borderline reviews because it expects 25% negative, not 10%.
+
+---
+
+# The Three Types: Summary So Far
+
+| | Data Drift | Concept Drift | Label Drift |
+|:--|:--|:--|:--|
+| **What changed** | Inputs shifted | X→Y rules changed | Outcome mix shifted |
+| **Example** | Car km: 30k→120k | Zomato Gold | Fraud 1%→5% |
+| **The inputs...** | Look different | Look the same! | May or may not change |
+| **The correct answer...** | Same rules apply | **Rules changed** | Same rules, different mix |
+| **Hardest to detect?** | No | **Yes** | No |
 
 ---
 
@@ -125,434 +497,146 @@ Model's threshold is calibrated for 1%. At 5%, it misses most fraud.
 
 | Scenario | Type |
 |:--|:--|
-| Your e-commerce model sees more users from tier-2 cities than before | Data drift |
-| "Work from home" used to predict low productivity, now predicts high | Concept drift |
-| Positive reviews went from 70% to 90% after a product redesign | Label drift |
+| Swiggy sees more users from tier-2 cities | Data drift |
+| "Work from home" used to predict low productivity, now high | Concept drift |
+| Positive reviews went from 70% to 90% after redesign | Label drift |
 | Average user age shifted from 25 to 40 | Data drift |
-| Same symptom now indicates a different disease (COVID) | Concept drift |
+| Same X-ray, but new WHO guidelines change the diagnosis | Concept drift |
+| Fraud rate doubled after UPI scam wave | Label drift |
 
 ---
 
 <!-- _class: lead -->
 
-# Part 2: How to See Drift
+# Hands-On: Watch Models Break
 
 ---
 
-# The Simplest Test: Just Look
-
-Plot the **same feature** from training data and production data.
+# Experiment 1: Car Price (Exponential Truth + Linear Model)
 
 ```python
-import matplotlib.pyplot as plt
-
-plt.hist(train["age"], bins=30, alpha=0.5, label="Training", color="steelblue")
-plt.hist(prod["age"], bins=30, alpha=0.5, label="Production", color="coral")
-plt.legend()
-plt.title("Age Distribution: Training vs Production")
-plt.show()
-```
-
-If the shapes look different, you probably have drift.
-
-**Problem:** "Look different" is subjective. We need a number.
-
----
-
-# The Histogram Test: Do These Look the Same?
-
-Two scenarios:
-
-| Scenario A | Scenario B |
-|:--|:--|
-| Training: ages 20-40, peak at 28 | Training: ages 20-40, peak at 28 |
-| Production: ages 20-40, peak at 29 | Production: ages 35-60, peak at 48 |
-| **Verdict:** Similar. No drift. | **Verdict:** Very different. Drift! |
-
-But where's the line? We need a **statistical test** to give us a yes/no answer.
-
----
-
-# First: What is a CDF?
-
-Before the KS test, let's understand **Cumulative Distribution Functions.**
-
-![w:800](images/week10/cdf_intuition.png)
-
-**CDF(x) = "What fraction of values are ≤ x?"**
-
-Example: If CDF(25) = 0.40, then **40% of people are age 25 or younger.**
-
----
-
-# CDF: A Concrete Example
-
-| Age | Count | Cumulative | CDF |
-|:---:|:-----:|:----------:|:---:|
-| 20 | 10 | 10 | 10/50 = 0.20 |
-| 25 | 10 | 20 | 20/50 = 0.40 |
-| 30 | 15 | 35 | 35/50 = 0.70 |
-| 35 | 10 | 45 | 45/50 = 0.90 |
-| 40 | 5 | 50 | 50/50 = 1.00 |
-
-CDF always starts near 0 and ends at 1. **The shape tells you the distribution.**
-
-- Steep jump → lots of values concentrated there
-- Flat region → few values in that range
-
----
-
-# Why CDFs? Two CDFs = One Picture of Drift
-
-If two datasets have the **same distribution**, their CDFs will overlap perfectly.
-
-If the distributions are **different**, the CDFs will separate.
-
-**The question becomes:** *How far apart are the two curves?*
-
-This is exactly what the KS test measures.
-
----
-
-# The KS Test: Intuition
-
-![w:750](images/week10/ks_test_intuition.png)
-
----
-
-# The KS Test: The Formula
-
-$$D = \max_x |F_{\text{train}}(x) - F_{\text{prod}}(x)|$$
-
-In plain English:
-
-| Symbol | Meaning |
-|:--|:--|
-| $F_{\text{train}}(x)$ | CDF of training data at point x |
-| $F_{\text{prod}}(x)$ | CDF of production data at point x |
-| $\|F_{\text{train}}(x) - F_{\text{prod}}(x)\|$ | The gap between the two curves at x |
-| $\max_x$ | Find the **biggest** gap across all x |
-| $D$ | The KS statistic (0 to 1) |
-
-**D = 0** → identical distributions. **D = 1** → completely different.
-
----
-
-# KS Test: Step-by-Step Intuition
-
-**Think of it like this:**
-
-1. Line up both datasets on a number line
-2. Walk from left to right
-3. At each point, ask: "What % of training data is below here? What % of production data?"
-4. The **biggest difference** you find is D
-
-| D value | Meaning |
-|:--|:--|
-| 0.02 | Almost identical — no drift |
-| 0.10 | Small difference — probably OK |
-| 0.25 | Noticeable shift — investigate |
-| 0.50 | Very different distributions — definite drift |
-
-**But how do we know if D is "big enough"?** → That's what the p-value tells us.
-
----
-
-# KS Test: The p-value
-
-The **p-value** answers: *"If the two distributions were actually identical, what's the probability of seeing a gap this large just by chance?"*
-
-- **p < 0.05** → "Less than 5% chance this is random" → **Drift detected**
-- **p ≥ 0.05** → "Could easily be random noise" → **No significant drift**
-
-**Important:** p-value depends on **sample size**!
-- 50 samples: need a big D to be significant
-- 10,000 samples: even tiny D can be significant
-
-**Rule of thumb for this course:** p < 0.05 = drift. Simple.
-
----
-
-# The KS Test: Code
-
-```python
-from scipy.stats import ks_2samp
-
-# Compare one feature between training and production
-stat, p_value = ks_2samp(train["age"], prod["age"])
-
-print(f"KS statistic: {stat:.4f}")   # the maximum gap
-print(f"p-value: {p_value:.4f}")     # is it significant?
-
-if p_value < 0.05:
-    print("DRIFT DETECTED in 'age' feature")
-else:
-    print("No significant drift in 'age'")
-```
-
-That's it. **One line** to test one feature. Loop over all features to check everything.
-
----
-
-# Checking All Features at Once
-
-```python
-from scipy.stats import ks_2samp
-
-features = ["age", "income", "city_tier", "order_count"]
-for feature in features:
-    stat, p_value = ks_2samp(train[feature], prod[feature])
-    status = "DRIFT" if p_value < 0.05 else "OK"
-    print(f"{feature:20s}  KS={stat:.3f}  p={p_value:.4f}  [{status}]")
-```
-
-```
-age                   KS=0.042  p=0.3812  [OK]
-income                KS=0.187  p=0.0001  [DRIFT]
-city_tier             KS=0.234  p=0.0000  [DRIFT]
-order_count           KS=0.031  p=0.6234  [OK]
-```
-
-**Now you know exactly which features shifted.** Income and city_tier drifted. Age and order_count are fine.
-
----
-
-# Another Approach: PSI (Population Stability Index)
-
-PSI is popular in finance/banking. No p-value — just a **score**.
-
-**Intuition:** Bin the feature into buckets. Compare the % in each bucket between training and production. If the percentages shifted a lot, you have drift.
-
-| PSI Score | Interpretation |
-|:--|:--|
-| < 0.1 | No drift. All good. |
-| 0.1 – 0.25 | Moderate shift. Monitor closely. |
-| > 0.25 | Significant drift. Investigate! |
-
-**Easy to remember:** Green / Yellow / Red traffic light.
-
----
-
-# PSI: The Formula
-
-$$\text{PSI} = \sum_{i=1}^{B} (P_i - Q_i) \cdot \ln\left(\frac{P_i}{Q_i}\right)$$
-
-| Symbol | Meaning |
-|:--|:--|
-| $B$ | Number of bins (typically 10) |
-| $P_i$ | % of **production** data in bin $i$ |
-| $Q_i$ | % of **training** data in bin $i$ |
-| $\ln(P_i / Q_i)$ | Log of the ratio — how much did this bin shift? |
-| $(P_i - Q_i)$ | Weights the shift by its size |
-
-**Key insight:** PSI is symmetric-ish — it penalizes both increases and decreases.
-
----
-
-# PSI: Step-by-Step Visual
-
-![w:800](images/week10/psi_step_by_step.png)
-
----
-
-# PSI: Worked Example
-
-Suppose we bin "age" into 5 bins:
-
-| Bin | Training (Q) | Production (P) | P - Q | ln(P/Q) | (P-Q)·ln(P/Q) |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| 18-25 | 30% | 15% | -0.15 | -0.69 | 0.104 |
-| 25-32 | 25% | 20% | -0.05 | -0.22 | 0.011 |
-| 32-40 | 20% | 25% | +0.05 | +0.22 | 0.011 |
-| 40-50 | 15% | 25% | +0.10 | +0.51 | 0.051 |
-| 50+ | 10% | 15% | +0.05 | +0.41 | 0.020 |
-| | | | | **PSI =** | **0.197** |
-
-PSI = 0.197 → **Yellow zone** (moderate shift). The user base got older.
-
----
-
-# PSI: How to Compute
-
-```python
-import numpy as np
-
-def compute_psi(reference, current, bins=10):
-    """Population Stability Index between two arrays."""
-    # Bin both datasets the same way
-    breakpoints = np.quantile(reference, np.linspace(0, 1, bins + 1))
-    ref_counts = np.histogram(reference, bins=breakpoints)[0] / len(reference)
-    cur_counts = np.histogram(current, bins=breakpoints)[0] / len(current)
-
-    # Avoid division by zero
-    ref_counts = np.clip(ref_counts, 0.001, None)
-    cur_counts = np.clip(cur_counts, 0.001, None)
-
-    # PSI formula
-    psi = np.sum((cur_counts - ref_counts) * np.log(cur_counts / ref_counts))
-    return psi
-```
-
-```python
-psi = compute_psi(train["income"], prod["income"])
-print(f"PSI = {psi:.3f}")  # → 0.342 → DRIFT!
-```
-
----
-
-# KS Test vs PSI: When to Use Which?
-
-| | KS Test | PSI |
-|:--|:--|:--|
-| **Output** | p-value (0 to 1) | Score (0 to infinity) |
-| **Threshold** | p < 0.05 = drift | > 0.25 = drift |
-| **Best for** | Continuous features | Binned/continuous features |
-| **Sensitive to** | Shape of distribution | Shift in proportions |
-| **Industry** | Academia, research | Banking, fintech |
-| **One-liner?** | `scipy.stats.ks_2samp()` | Custom function (15 lines) |
-
-**For this course:** use KS test. It's simpler and built into scipy.
-
----
-
-# Bonus: Jensen-Shannon Divergence
-
-**JS divergence** is a smooth, symmetric alternative to KL divergence:
-
-$$\text{JSD}(P \| Q) = \frac{1}{2} \text{KL}(P \| M) + \frac{1}{2} \text{KL}(Q \| M), \quad M = \frac{P + Q}{2}$$
-
-**Why care?** Unlike KL divergence, JSD is:
-- Always **symmetric**: JSD(P‖Q) = JSD(Q‖P)
-- Always **finite** (between 0 and 1 when using log₂)
-- Built into scipy!
-
-```python
-from scipy.spatial.distance import jensenshannon
-
-jsd = jensenshannon(train_hist, prod_hist)  # Returns sqrt(JSD)
-print(f"JS distance: {jsd:.4f}")
-```
-
-**When to use:** When you want a single number summarizing how different two distributions are, without needing a p-value.
-
----
-
-# Summary of Drift Detection Methods
-
-| Method | For | Output | One-liner |
-|:--|:--|:--|:--|
-| **KS test** | Continuous | p-value | `ks_2samp(a, b)` |
-| **Chi-squared** | Categorical | p-value | `chi2_contingency(table)` |
-| **PSI** | Continuous/binned | Score (0-∞) | Custom function |
-| **JS divergence** | Any (binned) | Distance (0-1) | `jensenshannon(p, q)` |
-| **Evidently** | Everything | Report | `Report(metrics=[...])` |
-
-**For this course:** Start with KS test + Evidently. Add PSI if working in fintech.
-
----
-
-# Live Demo: Visualizing the KS Statistic
-
-```python
-import numpy as np, matplotlib.pyplot as plt
-from scipy.stats import ks_2samp
-
-# Two samples — one shifted
 np.random.seed(42)
-train = np.random.normal(50, 10, 500)
-prod  = np.random.normal(55, 12, 500)  # shifted mean and wider
+km_train = np.random.normal(25000, 10000, 500)   # new-ish cars
+km_drift = np.random.normal(80000, 20000, 200)   # high-mileage cars
+model = LinearRegression().fit(km_train.reshape(-1,1), price_train)
+```
 
-# Sort and compute CDFs
-train_sorted = np.sort(train)
-prod_sorted  = np.sort(prod)
-cdf_train = np.arange(1, len(train)+1) / len(train)
-cdf_prod  = np.arange(1, len(prod)+1)  / len(prod)
+| Metric | Clean (low-km) | Drifted (high-km) |
+|:--|:--|:--|
+| **R²** | 0.89 | **-10.3** |
+| **MAE** | ₹0.28L | **₹2.26L** |
 
-plt.plot(train_sorted, cdf_train, label="Training CDF", color="steelblue")
-plt.plot(prod_sorted,  cdf_prod,  label="Production CDF", color="coral")
-plt.title(f"KS stat = {ks_2samp(train, prod).statistic:.3f}")
+---
+
+# Experiment 2: Pass/Fail from Study Hours
+
+```python
+hours_train = np.random.normal(15, 4, 500)  # regular students
+hours_drift = np.random.normal(30, 5, 200)  # coaching program
+model = DecisionTreeClassifier(max_depth=4).fit(...)
+```
+
+| Metric | Clean | Drifted |
+|:--|:--|:--|
+| **Accuracy** | 80.5% | **21.5%** |
+
+---
+
+# Experiment 3: Car Price (3 Features)
+
+| Feature | Training avg | Production avg | Changed? |
+|:--|:--|:--|:--|
+| km_driven | 30,000 | **120,000** | **YES — shifted** |
+| age_years | 3 | 3 | No |
+| engine_cc | 1,200 | 1,200 | No |
+
+| Metric | Clean | 1-feature drifted |
+|:--|:--|:--|
+| **R²** | 0.85 | **-30.1** |
+| **MAE** | ₹0.5 lakh | **₹5.8 lakh** |
+
+One feature shifted → model **completely broken.** We'll see how to detect this formally soon.
+
+---
+
+# Experiment 4: The Gotcha — Accuracy Can Lie
+
+Loan approval: income drops due to recession.
+
+| | Clean | 1-feat drift | All 3 drifted |
+|:--|:--|:--|:--|
+| **Accuracy** | 81.5% | 74.5% | **83.5%** |
+
+**Accuracy went UP?!** Yes — when everyone is low-income, the model correctly rejects everyone. High accuracy, useless model.
+
+**Lesson:** Monitor **input distributions**, not just accuracy. We'll see how next.
+
+---
+
+<!-- _class: lead -->
+
+# How to Detect Drift
+
+---
+
+# Detection: The Visual Test
+
+The simplest test: **plot the same feature from training and production.**
+
+```python
+plt.hist(train["sqft"], bins=30, alpha=0.5, label="Training", color="steelblue")
+plt.hist(prod["sqft"],  bins=30, alpha=0.5, label="Production", color="coral")
 plt.legend(); plt.show()
 ```
 
+If the shapes look different → probably drift. But "looks different" is subjective.
+
+We need a **number.**
+
 ---
 
-# For Categorical Features: Chi-Squared Test
+# Detection: The KS Test
 
-KS test works on numbers. For categories (city, device, browser), use chi-squared:
+**Idea:** Convert each histogram into a **running total** (called a CDF — Cumulative Distribution Function). A CDF shows "what fraction of values are below X?"
+
+Then find the **biggest gap** between the two CDFs. Bigger gap = more drift.
+
+![w:700](images/week10/ks_test_intuition.png)
+
+---
+
+# KS Test: The Code
 
 ```python
-from scipy.stats import chi2_contingency
-import pandas as pd
+from scipy.stats import ks_2samp
 
-# Count occurrences in each category
-train_counts = train["city"].value_counts()
-prod_counts = prod["city"].value_counts()
+stat, p = ks_2samp(train_km, prod_km)
 
-# Align categories
-all_cities = sorted(set(train_counts.index) | set(prod_counts.index))
-table = pd.DataFrame({
-    "train": [train_counts.get(c, 0) for c in all_cities],
-    "prod":  [prod_counts.get(c, 0) for c in all_cities]
-})
-
-chi2, p_value, _, _ = chi2_contingency(table.T)
-print(f"p-value: {p_value:.4f}")  # p < 0.05 → drift
+print(f"KS statistic: {stat:.3f}")  # the biggest gap (0 = identical, 1 = completely different)
+print(f"p-value: {p:.4f}")
 ```
 
----
+**p-value** = "if the two distributions were actually identical, what's the chance of seeing a gap this large by luck?" If p < 0.05, we say the difference is **statistically significant** → drift detected.
 
-<!-- _class: lead -->
-
-# Part 3: Evidently — Drift Detection in 4 Lines
+**One line** per feature. Loop over all features to check everything.
 
 ---
 
-# Why Evidently?
+# Detection: PSI (Population Stability Index)
 
-Checking features one by one is tedious. **Evidently** automates everything:
+**Idea:** Split data into bins (like a histogram). Compare what % falls in each bin between training and production. Big changes = drift.
 
-- Tests every feature automatically
-- Chooses the right test (KS for numbers, chi-squared for categories)
-- Generates a beautiful interactive **HTML report**
-- Shows histograms, p-values, drift/no-drift badges
+![w:750](images/week10/psi_step_by_step.png)
 
-```bash
-pip install evidently
-```
-
----
-
-# Evidently: The 4-Line Report
-
-```python
-from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset
-
-report = Report(metrics=[DataDriftPreset()])
-report.run(reference_data=df_train, current_data=df_production)
-report.save_html("drift_report.html")
-```
-
-Open `drift_report.html` in your browser. That's it.
+| PSI | Meaning | Action |
+|:--|:--|:--|
+| < 0.1 | No drift | All good |
+| 0.1–0.25 | Moderate | Monitor |
+| > 0.25 | Significant | Investigate! |
 
 ---
 
-# Evidently: What the Report Shows
-
-The report contains:
-
-1. **Overall drift summary** — "3 out of 8 features drifted"
-2. **Per-feature analysis** — for each column:
-   - Side-by-side histograms (training vs production)
-   - Statistical test used (KS, chi-squared, etc.)
-   - p-value and drift/no-drift badge
-3. **Correlation changes** — did relationships between features change?
-
-**Live demo:** Let's open the notebook and generate one.
-
----
-
-# Evidently: In a Jupyter Notebook
+# Detection: Evidently (Automate Everything)
 
 ```python
 from evidently.report import Report
@@ -560,385 +644,113 @@ from evidently.metric_preset import DataDriftPreset
 
 report = Report(metrics=[DataDriftPreset()])
 report.run(reference_data=df_train, current_data=df_prod)
-
-# Display inline in the notebook (no need to save HTML)
-report
+report.save_html("drift_report.html")
 ```
 
-The report renders right inside the notebook — interactive, scrollable, clickable.
+**4 lines.** Tests every feature automatically, picks the right test (KS for numbers, chi-squared for categories), generates a full HTML report.
+
+---
+
+# Detection Summary
+
+| What to Detect | Method | Python |
+|:--|:--|:--|
+| Numeric features shifted? | KS test | `ks_2samp(a, b)` |
+| Categorical features shifted? | Chi-squared (compares category counts) | `chi2_contingency(table)` |
+| Check everything at once | Evidently (picks the right test for you) | `Report(metrics=[DataDriftPreset()])` |
+| Concept drift (X→Y rules changed) | Monitor accuracy over time | Need labeled production data |
+| Label drift (outcome mix changed) | Track class proportions | `y_pred.value_counts()` |
 
 ---
 
 <!-- _class: lead -->
 
-# Part 4: Hands-On — Let's Create and Detect Drift
+# How to Fix Drift
 
 ---
 
-# Setup: The Iris Dataset
-
-```python
-from sklearn.datasets import load_iris
-import pandas as pd
-import numpy as np
-
-iris = load_iris()
-df = pd.DataFrame(iris.data, columns=iris.feature_names)
-df["target"] = iris.target
-
-# Split: first 100 rows = "training", last 50 = "production"
-df_train = df.iloc[:100].copy()
-df_prod = df.iloc[100:].copy()
-```
-
-Right now there's no artificial drift — let's add some.
-
----
-
-# Experiment 1: No Drift (Baseline)
-
-```python
-from scipy.stats import ks_2samp
-
-for col in iris.feature_names:
-    stat, p = ks_2samp(df_train[col], df_prod[col])
-    print(f"{col:25s}  p={p:.4f}  {'DRIFT' if p < 0.05 else 'OK'}")
-```
-
-Some features may show drift because the last 50 rows are mostly class 2 (virginica). This is **label drift** — the class mix changed!
-
-**Discussion:** "Even a simple train/test split can introduce drift if the classes aren't balanced."
-
----
-
-# Experiment 2: Simulate Data Drift
-
-```python
-# Shift petal_length by +2 cm in "production"
-df_prod_shifted = df_prod.copy()
-df_prod_shifted["petal length (cm)"] += 2.0
-
-for col in iris.feature_names:
-    stat, p = ks_2samp(df_train[col], df_prod_shifted[col])
-    print(f"{col:25s}  p={p:.4f}  {'DRIFT' if p < 0.05 else 'OK'}")
-```
-
-```
-sepal length (cm)          p=0.0023  DRIFT
-sepal width (cm)           p=0.0912  OK
-petal length (cm)          p=0.0000  DRIFT  ← we shifted this!
-petal width (cm)           p=0.0001  DRIFT
-```
-
-**The KS test caught it.** And petal_length has the smallest p-value — exactly the one we shifted.
-
----
-
-# Experiment 3: Evidently Report
-
-```python
-from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset
-
-report = Report(metrics=[DataDriftPreset()])
-report.run(reference_data=df_train, current_data=df_prod_shifted)
-report
-```
-
-**Walk through the report together:**
-
-- Which features are flagged?
-- Look at the histograms — can you see the shift?
-- What test did Evidently choose for each feature?
-
----
-
-# Experiment 4: Gradual Drift
-
-Real drift doesn't happen overnight. Let's simulate a gradual shift:
-
-```python
-months = []
-for month in range(1, 13):
-    df_month = df_prod.copy()
-    # Shift increases each month
-    df_month["petal length (cm)"] += month * 0.3
-    stat, p = ks_2samp(df_train["petal length (cm)"],
-                        df_month["petal length (cm)"])
-    months.append({"month": month, "ks_stat": stat, "p_value": p})
-
-pd.DataFrame(months).plot(x="month", y="ks_stat",
-                           title="Drift Gets Worse Over Time")
-```
-
-**The KS statistic grows month by month.** This is what real drift looks like — a slow slide, not a sudden break.
-
----
-
-# Experiment 5: Impact on Model Performance
-
-**The big question:** Does drift actually hurt predictions?
-
-```python
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-
-# Train on original data
-model = RandomForestClassifier(random_state=42)
-model.fit(df_train.drop("target", axis=1), df_train["target"])
-
-# Test on original production data
-acc_original = accuracy_score(df_prod["target"],
-    model.predict(df_prod.drop("target", axis=1)))
-
-# Test on shifted production data
-acc_shifted = accuracy_score(df_prod["target"],
-    model.predict(df_prod_shifted.drop("target", axis=1)))
-
-print(f"Accuracy (no drift):   {acc_original:.1%}")
-print(f"Accuracy (with drift): {acc_shifted:.1%}")
-```
-
-**This is the slide that motivates everything.** Drift isn't academic — it breaks your model.
-
----
-
-# Experiment 6: Real-World Dataset (Wine)
-
-```python
-# Wine quality dataset — imagine training on red wine, deploying on white
-from sklearn.datasets import load_wine
-wine = load_wine()
-df_wine = pd.DataFrame(wine.data, columns=wine.feature_names)
-df_wine["target"] = wine.target
-
-# "Training" = class 0 and 1, "Production" = class 2
-df_ref = df_wine[df_wine["target"].isin([0, 1])].drop("target", axis=1)
-df_cur = df_wine[df_wine["target"] == 2].drop("target", axis=1)
-
-report = Report(metrics=[DataDriftPreset()])
-report.run(reference_data=df_ref, current_data=df_cur)
-report
-```
-
-**Discussion:** "This simulates deploying a model trained on one population and testing on another — a very common real-world scenario."
-
----
-
-<!-- _class: lead -->
-
-# Part 5: Real-World Drift Stories
-
----
-
-# Case 1: COVID Broke Everything (2020)
-
-**Uber/Ola ride demand prediction:**
-
-- Model trained on 2019 data: commute patterns, weekend spikes, festival surges
-- March 2020: rides drop 90% overnight
-- Model keeps predicting "high demand Monday 9 AM" — nobody's commuting
-
-**Type:** Data drift (inputs changed) + Concept drift (relationship changed)
-
-**Lesson:** Black swan events cause catastrophic drift. No model survives.
-
----
-
-# Case 2: Spam Evolves (Adversarial Drift)
-
-**Gmail spam filter:**
-
-- 2020 spam: "CONGRATULATIONS! You WON $1,000,000!!!"
-- 2026 spam: "Hi, following up on our conversation about the Q3 report..."
-
-Spammers use ChatGPT to write emails that look like normal business communication.
-
-**Type:** Concept drift — the *definition* of spam changed.
-
-**Lesson:** In adversarial settings, drift is intentional. The attacker is actively trying to fool your model.
-
----
-
-# Case 3: UPI Fraud in India
-
-**Fraud detection model trained on 2022 UPI data:**
-
-- 2022: Fraud rate ~0.1%, mostly SIM swap attacks
-- 2025: Fraud rate ~0.5%, new tactics (QR code scams, fake UPI apps)
-
-| What changed | Type |
-|:--|:--|
-| Fraud rate 0.1% → 0.5% | Label drift |
-| New scam methods | Concept drift |
-| More rural users on UPI | Data drift |
-
-**All three types at once.** This is typical in production.
-
----
-
-# Case 4: College Admission Predictor
-
-**Relatable example for students:**
-
-- Model trained on 5 years of admission data
-- Predicts acceptance probability based on: GPA, test scores, extracurriculars
-- 2025: College drops SAT requirement
-
-| Before | After |
-|:--|:--|
-| SAT score is top predictor | SAT score is missing/irrelevant |
-| GPA distribution: 3.0–4.0 | GPA distribution: 2.5–4.0 (more applicants) |
-| Acceptance rate: 15% | Acceptance rate: 12% (more applicants) |
-
-**The features lost their meaning.** The model is useless.
-
----
-
-<!-- _class: lead -->
-
-# Part 6: What To Do About Drift
-
----
-
-# The Drift Response Pipeline
+# The Response Pipeline
 
 ![w:850](images/week10/drift_response_pipeline.png)
 
 ---
 
-# Step 1: Monitor
+# First: Is It Drift or a Bug?
 
-**Set up dashboards that track feature distributions over time.**
+| Symptom | Drift | Bug |
+|:--|:--|:--|
+| Feature mean shifted gradually | Probably drift | Unlikely |
+| Feature suddenly all zeros | Unlikely | Broken data source |
+| All values multiplied by 100 | Unlikely | Unit conversion error |
 
-```python
-# Run Evidently weekly on production data
-import datetime
-
-report = Report(metrics=[DataDriftPreset()])
-report.run(reference_data=df_train, current_data=df_this_week)
-report.save_html(f"reports/drift_{datetime.date.today()}.html")
-```
-
-Compare this week's data to training data. Automate with a cron job or GitHub Actions.
+**Always check the pipeline first.** Retraining on buggy data makes things worse.
 
 ---
 
-# Step 2: Detect & Alert
+# Fix Strategies by Drift Type
 
-**Set thresholds. Alert when drift crosses them.**
-
-```python
-from evidently.test_suite import TestSuite
-from evidently.tests import TestShareOfDriftedColumns
-
-# PASS if fewer than 30% of columns drifted, FAIL otherwise
-suite = TestSuite(tests=[TestShareOfDriftedColumns(lt=0.3)])
-suite.run(reference_data=df_train, current_data=df_this_week)
-
-if not suite.as_dict()["summary"]["all_passed"]:
-    print("ALERT: Significant drift detected!")
-    # Send Slack/email alert
-```
+| Type | Detect | Fix |
+|:--|:--|:--|
+| **Data Drift** (inputs shifted) | KS test, PSI, Evidently | Retrain with new data, data augmentation, collect more diverse training data |
+| **Concept Drift** (X→Y changed) | Monitor accuracy (need labels!) | Sliding window (retrain on only the last N months), update model continuously |
+| **Label Drift** (outcome mix shifted) | Track class proportions | Recalibrate thresholds, adjust `class_weight` |
 
 ---
 
-# Step 3: Diagnose
-
-Before retraining, understand **why** drift happened:
-
-| Cause | Action |
-|:--|:--|
-| Bug in data pipeline | Fix the pipeline, not the model |
-| Seasonal pattern (summer → winter) | Expected — maybe use separate models |
-| New user segment | Collect labels for new segment, retrain |
-| World actually changed (COVID, new regulation) | Major retrain with new data |
-
-**Not all drift is bad.** Sometimes the data legitimately expanded (more users = good!).
-
----
-
-# Step 4: Act — Retrain
+# The Universal Fix: Retrain
 
 ```python
 # Combine old training data with new labeled production data
 df_combined = pd.concat([df_train, df_new_labeled])
 
-# Retrain
 model_v2 = RandomForestClassifier(random_state=42)
 model_v2.fit(df_combined.drop("target", axis=1), df_combined["target"])
-
-# Package in Docker (Week 9!) for reproducibility
-# Track with TrackIO (Week 8!) for comparison
 ```
 
-**Connection to previous weeks:**
-- **Docker** &rarr; same environment for retraining
-- **TrackIO** &rarr; compare v1 vs v2 metrics
-- **Seeds** &rarr; reproducible retraining
+**Connections to previous weeks:**
+- **Docker** (Week 9) → same environment for retraining
+- **TrackIO** (Week 8) → compare v1 vs v2 metrics
+- **Seeds** (Week 9) → reproducible retraining
 
 ---
 
-# Retraining: The Recovery
+# Retraining Keeps Your Model Alive
 
 ![w:800](images/week10/retrain_recovery.png)
 
-**Each retrain boosts accuracy back up.** Without monitoring, you don't even know it dropped.
-
----
-
-# Drift in Your Course Project
-
-**How to apply this in your CS 203 project:**
-
-1. **Split your data by time** if possible (train on older, test on newer)
-2. **Run KS test** on each feature between train and test
-3. **Generate an Evidently report** — include it in your project submission
-4. **If drift exists:** document it! This is a **finding**, not a failure
-
-```python
-# Minimum viable monitoring for your project
-from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset
-
-report = Report(metrics=[DataDriftPreset()])
-report.run(reference_data=df_train, current_data=df_test)
-report.save_html("drift_report.html")
-print("Open drift_report.html to see results")
-```
+Without monitoring, you don't even know accuracy dropped.
 
 ---
 
 <!-- _class: lead -->
 
-# Part 7: Summary
+# Summary
 
 ---
 
-# The Complete Picture
+# The Three Types — One Slide
 
-```
-Week 7:  Evaluate properly          (is the model good?)
-Week 8:  Track experiments           (which model is best?)
-Week 9:  Reproduce everything        (can someone else run it?)
-Week 10: Monitor after deployment    (is it STILL good?)
-```
-
-**Deployment is not the finish line. It's the starting line.**
+| Type | What Changed | Detect | Fix |
+|:--|:--|:--|:--|
+| **Data Drift** | Inputs shifted | KS test / Evidently | Retrain |
+| **Concept Drift** | X→Y rules changed | Monitor accuracy | Retrain on recent data |
+| **Label Drift** | Outcome mix shifted | Track proportions | Recalibrate thresholds |
 
 ---
 
 # Key Takeaways
 
-1. **Models rot** because the world changes — data drift, concept drift, label drift
+1. **Models rot** — data drift, concept drift, label drift
 
-2. **Detection is simple:** plot histograms, run KS test (`scipy.stats.ks_2samp`), or use Evidently (4 lines)
+2. **Data drift:** detect with `ks_2samp()` or Evidently (4 lines)
 
-3. **Not all drift is bad** — diagnose before reacting
+3. **Concept drift:** hardest — need labeled production data to detect
 
-4. **The response:** Monitor &rarr; Detect &rarr; Diagnose &rarr; Retrain
+4. **Label drift:** track class proportions over time, recalibrate
 
-5. **Everything connects:** Docker (same env), Seeds (same results), TrackIO (track versions)
+5. **Accuracy can lie** — always monitor distributions, not just metrics
+
+6. **The fix:** Monitor → Detect → Diagnose (bug or drift?) → Retrain
 
 ---
 
@@ -946,27 +758,25 @@ Week 10: Monitor after deployment    (is it STILL good?)
 
 | Task | Tool | One-liner |
 |:--|:--|:--|
-| Test one numeric feature | scipy | `ks_2samp(train, prod)` |
-| Test one categorical feature | scipy | `chi2_contingency(table)` |
-| Test all features at once | Evidently | `Report(metrics=[DataDriftPreset()])` |
+| Test numeric feature | scipy | `ks_2samp(train, prod)` |
+| Test categorical feature | scipy | `chi2_contingency(table)` |
+| Test all features | Evidently | `Report(metrics=[DataDriftPreset()])` |
 | Set pass/fail thresholds | Evidently | `TestSuite(tests=[...])` |
 | Monitor over time | Evidently + cron | Save weekly reports |
 
 ---
 
-# Reading & References
+# References
 
 **Books:**
-- Chip Huyen, *Designing Machine Learning Systems* (O'Reilly, 2022) — Ch. 8 (best practical treatment)
-- Kevin Murphy, *Probabilistic ML: Advanced Topics* (2023) — Ch. 19 (formal: covariate shift, domain adaptation)
-- Cathy Chen et al., *Reliable Machine Learning* (O'Reilly, 2022) — production monitoring focus
+- Chip Huyen, *Designing ML Systems* (O'Reilly, 2022) — Ch. 8
+- Kevin Murphy, *Probabilistic ML: Advanced Topics* (2023) — Ch. 19
 
 **Tutorials:**
 - Evidently AI: [What is Data Drift?](https://www.evidentlyai.com/ml-in-production/data-drift)
-- DataCamp: [Understanding Data Drift](https://www.datacamp.com/tutorial/understanding-data-drift-model-drift)
 
 **Tools:**
-- [Evidently GitHub](https://github.com/evidentlyai/evidently) — open-source, 7k+ stars
-- [scipy.stats](https://docs.scipy.org/doc/scipy/reference/stats.html) — KS test, chi-squared
+- [Evidently](https://github.com/evidentlyai/evidently) — open-source drift detection
+- [scipy.stats](https://docs.scipy.org/doc/scipy/reference/stats.html)
 
-**Paper:** Gama et al., *A Survey on Concept Drift Adaptation* (ACM Computing Surveys, 2014)
+**Paper:** Gama et al., *A Survey on Concept Drift Adaptation* (ACM, 2014)
