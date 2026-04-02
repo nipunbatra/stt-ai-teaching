@@ -51,9 +51,10 @@ Can we use **fewer bytes per number**? Yes. But first, let's understand how comp
 | Part | Topic | Time | Analogy |
 |:-----|:------|:-----|:--------|
 | 1 | How computers store numbers | 10 min | The foundation |
-| 2 | Profiling — find the bottleneck | 25 min | Doctor's checkup |
-| 3 | Quantization — shrink the model | 25 min | Packing carry-on instead of suitcase |
-| 4 | The full optimization toolkit | 15 min | Combining all the tools |
+| 2 | Profiling — find the bottleneck | 20 min | Doctor's checkup |
+| 3 | Quantization — shrink the model | 20 min | Packing carry-on instead of suitcase |
+| 4 | Modern LLM Engines | 15 min | The sports cars of deployment |
+| 5 | The Full Toolkit | 10 min | Combining all the tools |
 
 > **Rule:** Profile first. Optimize what matters. Measure again.
 
@@ -606,7 +607,73 @@ Then Georgi Gerganov built **llama.cpp** with 4-bit quantization:
 
 <!-- _class: lead -->
 
-# Part 4: The Full Optimization Toolkit
+# Part 4: Modern LLM Engines
+*Why standard `transformers` is not enough for production.*
+
+---
+
+# Why Not Just Use Hugging Face `transformers`?
+
+`model.generate()` is amazing for research and prototyping. But in production, it struggles:
+
+1. **KV Cache Fragmentation:** Standard generation pre-allocates contiguous memory for the maximum possible sequence length. If a user only generates 10 tokens, 90% of that memory is wasted!
+2. **Python Overhead:** Global Interpreter Lock (GIL) and slow loops.
+3. **Naive Batching:** Users send requests at different times. Standard batching forces everyone to wait for the slowest request.
+
+**Result:** You run out of GPU memory (VRAM) very quickly, serving only a few users at a time.
+
+---
+
+# vLLM & PagedAttention: The Throughput King
+
+**vLLM** revolutionized LLM serving by borrowing an idea from Operating Systems: **Virtual Memory & Paging**.
+
+- **PagedAttention:** Divides the KV cache into fixed-size "pages" (e.g., 16 tokens).
+- Allocates memory on-demand dynamically.
+- **Zero fragmentation:** Pages don't need to be contiguous in memory.
+
+**Result:** Memory waste drops from ~60% to <4%. You can batch dramatically more requests together, leading to **2x-4x higher throughput** than standard Hugging Face.
+
+---
+
+# SGLang: The Prompt Caching Master
+
+What if 100 users are chatting with a bot that has the exact same 500-word System Prompt? Standard engines compute that prompt 100 times.
+
+**SGLang** (from LMSYS) introduces **RadixAttention**:
+- It builds a Radix Tree of the KV cache across all active requests.
+- It **caches and shares** prefixes (like system prompts or few-shot examples) so they are only computed once.
+
+**Bonus:** SGLang is extremely fast at **Structured Generation** (forcing the LLM to output valid JSON matching a schema) by cleverly manipulating vocabulary probabilities.
+
+---
+
+# llama.cpp: AI on the Edge
+
+We mentioned `llama.cpp` earlier, but why is it so special?
+- **Zero Python for Inference:** The core engine is written in pure C/C++. No GIL, minimal dependencies.
+- **GGUF Format:** A file format specifically designed for fast loading and memory mapping (`mmap`).
+- **Hardware Optimized:** Custom assembly for Apple Silicon (Accelerate), Intel/AMD CPUs (AVX2/AVX-512), and edge GPUs (CUDA/Metal).
+
+*If you are running an LLM on a laptop, Raspberry Pi, or CPU server, you are almost certainly using `llama.cpp` under the hood.*
+
+---
+
+# Unsloth: The Fine-Tuning Cheat Code
+
+Optimization isn't just for serving. What if you want to *train* (fine-tune) an LLM?
+
+**Unsloth** rewrote the core math of LLM training using custom **Triton kernels** (highly optimized GPU code):
+- Recomputes certain values on-the-fly instead of saving them to memory (saves massive VRAM).
+- Heavily optimizes RoPE (Rotary Position Embeddings) and cross-entropy loss math.
+
+**Result:** Fine-tuning (LoRA/QLoRA) is **2x faster** and uses **70% less VRAM**. It allows you to fine-tune LLaMA-7B on a free Google Colab GPU, and instantly export the result to `GGUF` for `llama.cpp`.
+
+---
+
+<!-- _class: lead -->
+
+# Part 5: The Full Optimization Toolkit
 *Quantization is the main course. Here are the side dishes.*
 
 ---
@@ -679,11 +746,11 @@ Same task. Nearly same accuracy. **7x smaller. 11x faster.**
 
 | Target | Size Budget | Speed Budget | Framework |
 |:-------|:-----------|:-------------|:----------|
-| **Cloud API** | Unlimited | < 100 ms | PyTorch, ONNX |
-| **Mobile app** | < 50 MB | < 50 ms | TF Lite, ONNX |
-| **IoT / Edge** | < 10 MB | CPU only | TF Lite, ONNX |
-| **Web browser** | < 5 MB | JS only | ONNX.js, TF.js |
-| **LLM on laptop** | < 16 GB | Usable | llama.cpp (INT4) |
+| **Cloud API** | Unlimited | < 100 ms | vLLM, SGLang |
+| **Mobile app** | < 50 MB | < 50 ms | TF Lite, CoreML |
+| **IoT / Edge** | < 10 MB | CPU only | llama.cpp, ONNX |
+| **Web browser** | < 5 MB | JS only | WebLLM, ONNX.js |
+| **LLM on laptop** | < 16 GB | Usable | llama.cpp, Ollama |
 
 > **Training happens once. Inference happens millions of times.**
 
@@ -709,17 +776,16 @@ Every ms saved, every MB trimmed — multiplied by every user, every request, ev
 
 ```
 1. PROFILE first
-   → time.time(), cProfile, line_profiler
+   → time.time(), cProfile, line_profiler, torch.profiler
    → Find the actual bottleneck (it's never where you think!)
 
 2. Fix the OBVIOUS things
    → Load model once, not per-request
    → Vectorize loops (batch processing)
-   → Use float32 instead of float64
 
-3. QUANTIZE if the model is too big
-   → PyTorch: quantize_dynamic (one line)
-   → sklearn: export to ONNX → quantize
+3. CHOOSE the right engine
+   → Serving? Use vLLM or SGLang.
+   → Edge? Use llama.cpp.
 
 4. MEASURE everything
    → Before/after: size, latency, accuracy
@@ -751,11 +817,11 @@ Every ms saved, every MB trimmed — multiplied by every user, every request, ev
 
 1. **Numbers in computers:** FP32 = 4 bytes (precise), INT8 = 1 byte (good enough for inference)
 
-2. **Profile first, optimize the bottleneck** — don't guess, measure
+2. **Profile first, optimize the bottleneck** — don't guess, measure. `torch.profiler` for GPUs!
 
-3. **`cProfile`** = which function is slow. **`line_profiler`** = which line.
+3. **Load models/data once at startup** — the #1 speedup for web apps (250x!)
 
-4. **Load models/data once at startup** — the #1 speedup for web apps (250x!)
+4. **Modern LLM Engines:** `vLLM` (PagedAttention), `SGLang` (Prompt Caching), `llama.cpp` (Edge), `Unsloth` (Fast Fine-Tuning).
 
 5. **Quantization = highest ROI** — one line of code, 2–4x smaller, ~0% accuracy loss
 
@@ -767,15 +833,14 @@ Every ms saved, every MB trimmed — multiplied by every user, every request, ev
 
 # Tools Cheat Sheet
 
-| Task | Tool | One-liner |
+| Task | Tool | Example |
 |:--|:--|:--|
-| Time a function | timeit | `timeit.timeit(lambda: f(), number=100)` |
-| Find slow function | cProfile | `cProfile.run('my_function()')` |
-| Find slow line | line_profiler | `kernprof -l -v script.py` |
-| Memory usage | memory_profiler | `python -m memory_profiler script.py` |
+| GPU Profiling | torch.profiler | `with torch.profiler.profile(...)` |
+| Cloud Serving | vLLM / SGLang | `python -m vllm.entrypoints.openai.api_server` |
+| Fast Fine-Tuning | Unsloth | `FastLanguageModel.get_peft_model(model)` |
+| Run Locally | llama.cpp | `./llama-cli -m model.gguf -p "Hello"` |
 | Quantize PyTorch | torch | `quantize_dynamic(model, {nn.Linear}, torch.qint8)` |
 | Quantize sklearn | ONNX | `quantize_dynamic("fp32.onnx", "int8.onnx")` |
-| Export to ONNX | torch | `torch.onnx.export(model, dummy, "m.onnx")` |
 | Run ONNX | onnxruntime | `ort.InferenceSession("m.onnx").run(...)` |
 
 ---
