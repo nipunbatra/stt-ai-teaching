@@ -16,221 +16,474 @@ paginate: true
 
 ---
 
-# The Problem
+# Where We Are in the Course
 
-Your spam classifier works. Docker container runs. FastAPI endpoint is live.
+```
+Week 7-8:   Build and tune the model     → Is it good?
+Week 9:     Reproducibility               → Can someone re-run it?
+Week 10:    Data drift                    → Is it STILL good?
+Week 11:    Profiling & Quantization      → Is it FAST and SMALL?  ← today
+Week 12:    APIs & Deployment             → Can the world use it?
+```
 
-But:
-- The endpoint takes **2.5 seconds** per request
-- The model file is **50 MB** — too big for a mobile app
-- Your Raspberry Pi runs out of memory loading the model
+So far, we have **made models that work**. Today we ask:
 
-**Two questions:**
-1. **Why is it slow?** → Profiling (find the bottleneck)
-2. **Can we make it smaller?** → Quantization (use fewer bits per number)
+> Can the model also run *fast enough* and *fit on the device* we want to use?
 
 ---
 
-# How Big Are Real Models?
+# A Story to Start With
 
-| Model | Size (FP32) | Your Laptop RAM |
-|-------|-------------|-----------------|
-| sklearn spam filter | 50 MB | 16 GB — fits easily |
-| BERT-base | 440 MB | 16 GB — fits |
-| **LLaMA-7B** | **28 GB** | 16 GB — **doesn't fit!** |
-| GPT-3 | 700 GB | 16 GB — needs 44 laptops |
+You build a spam classifier in CS 203. It works. You wrap it in a FastAPI app, put it in Docker, push it to a tiny cloud server.
 
-**Why so big?** Every number in the model takes 4 bytes. A 7-billion-parameter model = 7B × 4 bytes = 28 GB.
+Three things go wrong:
 
-Can we use **fewer bytes per number**? Yes. But first, let's understand how computers store numbers.
+| Problem | What you see |
+|:--|:--|
+| Slow API | Each request takes **2.5 seconds** |
+| Big file | The model file is **50 MB**, too big for the mobile app |
+| Out of memory | The Raspberry Pi crashes when loading the model |
+
+Two questions:
+
+1. **Why is it slow?** → *profile* the code
+2. **Can it be smaller?** → *quantize* the model
+
+---
+
+# By the End of This Lecture
+
+You should be able to explain:
+
+1. How a computer stores numbers, in plain words
+2. What **profiling** means and why "I think it's slow" is not enough
+3. The most common speedup for web apps (load once, not per request)
+4. What **quantization** is and why it almost always helps
+5. The big idea behind **pruning** and **distillation**
+6. Why **ONNX** exists, in one sentence
+
+You should **not** need to memorize bit layouts, IEEE formulas, or hardware names.
 
 ---
 
 # Today's Plan
 
-| Part | Topic | Time | Analogy |
-|:-----|:------|:-----|:--------|
-| 1 | How computers store numbers | 8 min | The foundation |
-| 2 | Profiling — find the bottleneck | 20 min | Doctor's checkup |
-| 3 | Quantization — shrink the model | 20 min | Packing carry-on instead of suitcase |
-| 4 | Optional: where this goes next | 8 min | Bigger picture |
-| 5 | Optional: two more optimization ideas | 5 min | Extra tools |
+| Part | Topic | Run alongside |
+|:--|:--|:--|
+| 1 | How computers store numbers | `01-floating-point-basics` |
+| 2 | Models, parameters and memory | `02-parameter-count-and-memory` |
+| 3 | Profiling — find the bottleneck | `03-profiling-basics` |
+| 4 | Batching — work smarter, not harder | `04-batching-benchmark` |
+| 5 | Quantization in PyTorch and ONNX | `05-pytorch-dynamic-quantization`, `06-onnx-export-and-quantization` |
+| 6 | Two more ideas: pruning and distillation | `07-pruning-basics`, `08-distillation-basics` |
+| 7 | Putting it all together | (table built from 05–08) |
 
-> **Rule:** Profile first. Optimize what matters. Measure again.
-
-**Core for today:** Parts 1-3. Parts 4-5 are only for context if time permits.
-
----
-
-# What You Should Leave With
-
-By the end of this lecture, you should be able to:
-
-1. Explain **profiling** in one sentence: "measure first, don't guess."
-2. Use `timeit` or `cProfile` to find a bottleneck.
-3. Explain **quantization** in one sentence: "store weights with fewer bits."
-4. Know that tools like ONNX and `llama.cpp` exist, without memorizing their internals.
+> **About half of today is hands-on.** When a slide says ▶ **Run now**, open the
+> linked Colab and run it before we move on. Rule of thumb: profile first,
+> optimize what matters, measure again.
 
 ---
 
-<!-- _class: lead -->
+# Companion Notebooks — Colab Links
+
+All eight notebooks live in `lecture-demos/week11/colab-notebooks/` and run on free Colab CPU.
+
+| # | Notebook | Open |
+|:--:|:--|:--|
+| 01 | Floating-point basics | [Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/01-floating-point-basics.ipynb) |
+| 02 | Parameter count and memory | [Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/02-parameter-count-and-memory.ipynb) |
+| 03 | Profiling basics | [Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/03-profiling-basics.ipynb) |
+| 04 | Batching benchmark | [Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/04-batching-benchmark.ipynb) |
+| 05 | PyTorch dynamic quantization | [Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/05-pytorch-dynamic-quantization.ipynb) |
+| 06 | ONNX export and quantization | [Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/06-onnx-export-and-quantization.ipynb) |
+| 07 | Pruning basics (unstructured + structured) | [Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/07-pruning-basics.ipynb) |
+| 08 | Distillation basics | [Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/08-distillation-basics.ipynb) |
+
+---
+
+<!-- _class: section-divider -->
 
 # Part 1: How Computers Store Numbers
+
 *Before we shrink numbers, let's understand what they are.*
 
 ---
 
-# Bits and Bytes: The Basics
+# Bits and Bytes — The Basics
 
-A **bit** = one switch: either 0 or 1.
+A **bit** is one switch: either `0` or `1`.
 
-A **byte** = 8 bits = 8 switches.
+A **byte** is 8 bits, so 8 switches in a row.
 
-With 8 switches, you can represent **2⁸ = 256** different values (0 to 255).
+With 8 switches, you can write down `2⁸ = 256` different values.
 
 ```python
-# Try it!
 print(2**8)    # 256
 print(2**16)   # 65,536
-print(2**32)   # 4,294,967,296 (4 billion!)
+print(2**32)   # 4,294,967,296   (about 4 billion)
 ```
 
-**More bits = more possible values = more precision.** But also more memory.
+> **More bits = more possible values = more precision.** It also costs more memory.
 
 ---
 
-# Integers: Easy
+# Integers Are Easy
 
-Integers are straightforward. The number **42** in binary:
+The number **42** in binary is just place values: which "powers of 2" do you add up?
 
 ```
 42 = 32 + 8 + 2 = 2⁵ + 2³ + 2¹
 
-Binary: 0 0 1 0 1 0 1 0
-        ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
-       128 64 32 16 8  4  2  1
+Binary:  0 0 1 0 1 0 1 0
+        128 64 32 16 8 4 2 1
 ```
 
-One byte stores integers 0–255. Four bytes store 0 to ~4 billion.
+**Algorithm — divide by 2 repeatedly, write the remainders bottom-up:**
 
-**But what about decimal numbers like 3.14159?**
+```
+42 ÷ 2 = 21  remainder 0   ← lowest bit
+21 ÷ 2 = 10  remainder 1
+10 ÷ 2 =  5  remainder 0
+ 5 ÷ 2 =  2  remainder 1
+ 2 ÷ 2 =  1  remainder 0
+ 1 ÷ 2 =  0  remainder 1   ← highest bit
 
-Computers have no decimal point key. They need a clever trick...
+Read the remainders bottom→top:  101010   ✓
+```
+
+One byte stores `0`–`255`. Four bytes store `0` to ~4 billion. But what about `3.14159`?
 
 ---
 
-# Floating Point: Scientific Notation for Computers
+# Floating Point — Scientific Notation for Computers
 
 You already know scientific notation:
 
-| Number | Scientific Notation |
+| Number | Scientific notation |
 |:--|:--|
 | 3.14159 | 3.14159 × 10⁰ |
 | 0.00042 | 4.2 × 10⁻⁴ |
 | 98,700,000 | 9.87 × 10⁷ |
 
-Computers do the same, but in **base 2** instead of base 10.
+A floating-point number stores three pieces:
 
-They store three pieces:
-- **Sign** (positive or negative) — 1 bit
-- **Exponent** (how big or small) — determines the scale
-- **Mantissa** (the significant digits) — determines the precision
+- **Sign** — is it positive or negative?
+- **Exponent** — how big or how small?
+- **Mantissa** — the significant digits
 
-For this course, the main idea is enough:
-
-> floating point stores an **approximation** using a sign, a scale, and some significant digits.
-
-You do **not** need to memorize the exact IEEE formula.
+That's it. You do **not** need to memorize the IEEE formula.
 
 ---
 
-# FP32: 32 Bits to Store One Decimal Number
+# FP32: The Three Boxes
 
-![w:850](images/week11/fp32_detail.png)
+A 32-bit float is just three fields packed next to each other:
 
-Every `float` in Python, every weight in your neural network — stored like this.
+```
+[ sign : 1 bit ] [ exponent : 8 bits ] [ mantissa : 23 bits ]
+```
+
+| Field | Asks the question | Bits |
+|:--|:--|:--:|
+| Sign | positive or negative? | 1 |
+| Exponent | how big or how small? | 8 |
+| Mantissa | what are the significant digits? | 23 |
+
+To see how it works, we'll **encode the number 6.5** across the next three slides.
 
 ---
 
-# FP32 vs FP16 vs INT8: The Tradeoff
+# Encoding 6.5 — Steps 1 & 2
 
-![w:850](images/week11/fp_comparison.png)
+**Step 1 — the sign bit.** 6.5 is positive, so:
+```
+sign = 0
+```
 
-**Fewer bits = less memory, but less precision.**
+**Step 2 — write 6.5 in binary.** Whole part and fractional part separately:
+
+```
+Whole part:  6  = 4 + 2          → 110
+Fractional:  0.5 = 1/2           → .1
+
+So:    6.5 (decimal) = 110.1 (binary)
+```
+
+That `.1` after the point means *one half*, exactly like `.5` in decimal means *five tenths*.
+
+---
+
+# Encoding 6.5 — Step 3 (normalize)
+
+**Step 3 — slide the binary point** so there is exactly **one non-zero digit
+before the point**. This is the same trick as scientific notation in base 10
+(`6300 = 6.3 × 10³`), but in base 2.
+
+```
+   110.1            ← what we had
+→   11.01 × 2¹      ← slide point left 1 place
+→    1.101 × 2²     ← slide point left 1 more place
+```
+
+Now the point is right after the leading `1`. We shifted 2 places, so the
+**exponent is 2**. That gives us two pieces to store:
+
+```
+mantissa = 1.101    ← the significant digits (always of the form "1.something")
+exponent = 2        ← how many places we shifted
+```
+
+---
+
+# Step 4a — A curious pattern
+
+Look at what happens when we **normalize different numbers** the way we did 6.5
+(slide the binary point so exactly one non-zero digit sits before it):
+
+```
+ 6.5  →  1.101   × 2²          the leading digit is 1
+ 0.75 →  1.100   × 2⁻¹         the leading digit is 1
+42.0  →  1.01010 × 2⁵          the leading digit is 1
+ 3.25 →  1.101   × 2¹          the leading digit is 1
+```
+
+**Every single normalized number starts with a `1.`**
+
+Why? Because in binary there are only two possible digits, `0` and `1`. If the
+digit before the point were `0`, the number wouldn't be normalized — you would
+have shifted the point one more place to the left.
+
+> Analogy in base 10: "scientific notation" always looks like `3.14 × 10⁵`,
+> never `0.314 × 10⁶` or `31.4 × 10⁴`. Base 2 is even stricter: the only
+> legal leading digit is `1`.
+
+---
+
+# Step 4b — So we don't bother storing it
+
+The leading `1` carries **zero information** — it is always `1`, every time,
+for every non-zero number.
+
+Spending one of our 23 precious bits on it would be wasteful.
+
+So FP32 uses a trick called the **implicit leading one**:
+
+- **Don't store** the leading `1.`
+- **Assume it silently** when reading the weight back
+
+Bonus: we get **24 effective bits** of mantissa from only **23 stored bits**.
+
+---
+
+# Step 4c — Applying it to 6.5
+
+```
+normalized mantissa:             1.101
+
+drop the "1." (it's implicit)  →  101
+
+pad with zeros on the right    →  10100000000000000000000   (23 bits)
+```
+
+When the CPU reads this back:
+1. it sees the 23 stored bits `10100000000000000000000`
+2. it prepends the implicit `1.` → `1.101` (binary)
+3. that equals `1 + 0.5 + 0.125 = 1.625` in decimal.
+
+The `1` was never gone — just not stored.
+
+---
+
+# Edge Case — Zero
+
+Every non-zero number fits the `1.xxx × 2ⁿ` pattern. But **zero does not**:
+
+```
+0.0 = 1.? × 2^?       ← no values of ? can make this work
+```
+
+FP32 handles this with a **special rule**: if all 8 exponent bits are `0`,
+the number is interpreted as **zero** (regardless of the mantissa).
+
+That's the *one* place the "implicit leading one" trick is turned off.
+You don't need to remember the detail — just know that zero is a special case.
+
+---
+
+# Step 5 — The Exponent Problem
+
+The exponent can be:
+
+- **positive** — for large numbers (`42 = 1.01010 × 2⁵`)
+- **negative** — for small numbers (`0.25 = 1.0 × 2⁻²`)
+
+Eight bits can hold values `0..255`. How do we squeeze a negative number in there?
+
+---
+
+# Step 5 — The Biased Exponent Trick
+
+**Always add 127 before storing, subtract 127 when reading.**
+
+This is called a **biased exponent** (bias = 127).
+
+| Real exponent | Stored as (add 127) | Binary |
+|:--:|:--:|:--|
+| −126 | 1   | `00000001` (smallest) |
+| 0   | 127 | `01111111` |
+| **2** (ours) | **129** | **`10000001`** |
+| 127 | 254 | `11111110` (largest) |
+
+For 6.5 the real exponent is `2`, so we store `2 + 127 = 129 = 10000001`.
+
+---
+
+# Putting All 32 Bits Together
+
+```
+ sign       exponent                 mantissa
+  0        10000001       10100000000000000000000
+  ↑          ↑                   ↑
+ pos.    129 = 127+2       "101" with implicit 1.
+```
+
+**Three fields, three decisions we made:**
+
+- sign = 0 (positive)
+- exponent = 129 → real exponent is `129 − 127 = 2`
+- mantissa = `101` → real mantissa is `1.101` (binary)
+
+---
+
+# Decoding It Back to 6.5
+
+Let's run the encoding in reverse to check our work:
+
+```
+1.  sign bit:   0                →   positive
+2.  exponent:   10000001 = 129    →   real exponent 129 − 127 = 2
+3.  mantissa:   101  (+ implicit 1.)
+                →  1.101 (binary)
+                =  1 + 0.5 + 0.125
+                =  1.625  (decimal)
+
+4.  Final value  =  + 1.625 × 2²
+                 =  1.625 × 4
+                 =  6.5  ✓
+```
+
+**That's how every `float` in Python and every weight in a neural network is stored.**
+
+---
+
+# FP32 vs FP16 vs INT8
+
+Same number, three different "boxes" to put it in:
+
+```
+FP32  [S][ 8-bit exponent ][      23-bit mantissa      ]   32 bits = 4 bytes
+FP16  [S][5-bit exp][   10-bit mantissa   ]                16 bits = 2 bytes
+INT8  [S][   7 bits   ]                                     8 bits = 1 byte
+```
+
+| Format | Bytes | Roughly how many distinct values | Typical use |
+|:--|:--:|:--|:--|
+| FP32 | 4 | ~4 billion | Training (needs precision for tiny gradients) |
+| FP16 | 2 | ~65 thousand | Mixed-precision training, GPU inference |
+| INT8 | 1 | 256 (−128 … 127) | Inference on CPU, mobile, edge |
+
+**Fewer bits → smaller box → fewer distinct values you can represent.** That's the only tradeoff.
+
+> ▶ **Run now — Notebook 01: Floating-point basics**
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/01-floating-point-basics.ipynb)
+> See why `0.1 + 0.2` is not exactly `0.3`, look at the actual bit patterns, and try
+> rounding a weight from FP32 down to "fake INT8".
 
 ---
 
 # How Much Precision Do We Actually Need?
 
-**Training:** gradients can be tiny and unstable, so we usually keep higher precision.
+Two very different jobs:
 
-**Inference:** we mainly apply a trained model. A small rounding change like 0.237 vs 0.24 often does not matter much.
-
-| Situation | Analogy | Precision needed |
+| Job | Analogy | Needed precision |
 |:--|:--|:--|
-| Training | Measuring a microchip | Nanometers (FP32) |
-| Inference | Measuring a room for furniture | Centimeters (INT8 is fine!) |
+| **Training** | Measuring a microchip | Nanometers (FP32) |
+| **Inference** | Measuring a room for furniture | Centimeters is fine |
+
+The key insight: **using** a trained model doesn't need the same precision that
+**training** it did. Training accumulates tiny gradient updates (often `1e-7`),
+which would be wiped out by rounding. Inference just multiplies and adds — small
+rounding errors barely move the final answer.
+
+> We'll see in Part 5 *how* INT8 actually represents weights (it doesn't store
+> `0.24` — it stores integers like `30` plus a shared scale factor).
+
+---
+
+<!-- _class: section-divider -->
+
+# Part 2: Models, Parameters, and Memory
+
+---
+
+# A Model Is Just a Big Bag of Numbers
+
+A trained model is a list of weights. Each weight is one decimal number.
 
 ```python
-import numpy as np
-# FP32 vs INT8 difference for a typical weight
-w_fp32 = np.float32(0.23741)
-w_int8 = np.float32(0.24)  # rounded
-print(f"Difference: {abs(w_fp32 - w_int8):.5f}")  # 0.00259 — negligible!
+import torch.nn as nn
+
+model = nn.Sequential(
+    nn.Linear(64, 128),     # 64 * 128 + 128 = 8,320 weights
+    nn.ReLU(),
+    nn.Linear(128, 10),     # 128 * 10 + 10 = 1,290 weights
+)
+# Total: 9,610 parameters
 ```
 
----
+**Model size in memory ≈ number of parameters × bytes per parameter.**
 
-# The Cost of Precision: Model Size
+| Format | Bytes per number |
+|:--|:--:|
+| FP32 | 4 |
+| FP16 | 2 |
+| INT8 | 1 |
 
-| Format | Bytes per number | 100M params | 7B params (LLaMA) |
-|--------|:---:|:---:|:---:|
-| **FP32** | 4 | 400 MB | **28 GB** |
-| **FP16** | 2 | 200 MB | 14 GB |
-| **INT8** | 1 | 100 MB | 7 GB |
-| **INT4** | 0.5 | 50 MB | **3.5 GB** |
-
-LLaMA-7B in FP32: needs a ₹8 lakh GPU with 32+ GB.
-LLaMA-7B in INT4: **fits on your laptop with 4 GB free.**
-
-**Same model. Same knowledge. Fewer bits per number.**
+> ▶ **Run now — Notebook 02: Parameter count and memory**
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/02-parameter-count-and-memory.ipynb)
+> Count the parameters of an MLP and convert that count into KB / MB at FP32, FP16, and INT8.
 
 ---
 
-# Key Insight
+# Real Models Get Big Fast
 
-> Every weight in your neural network is just a decimal number stored in memory.
->
-> **Quantization = use fewer bits per weight. That's it.**
+![w:920](images/week11/model_size_bars.png)
 
-But before we make the model smaller, let's first check: **is the model even the bottleneck?**
+LLaMA-7B has 7 billion weights. At 4 bytes each (FP32) that's 28 GB — more RAM
+than most laptops. Storing the *same* weights as INT8 (1 byte each) drops it to
+~7 GB, which fits in a MacBook.
 
 ---
 
-<!-- _class: lead -->
+<!-- _class: section-divider -->
 
-# Part 2: Profiling — The Checkup
-*Before any diet, visit the doctor first.*
+# Part 3: Profiling — The Doctor's Checkup
+
+*Don't guess where the time goes. Measure.*
 
 ---
 
 # "My Code Is Slow" Is Not Useful
 
-That's like saying "I spent too much money."
+That's like saying *"I spent too much money."* You need the **itemized receipt**:
 
-You need the **itemized receipt:**
-
-> "80% of your time is spent in one function."
+> "80% of the time was in **one** function."
 
 A **profiler** gives you that receipt.
 
-```
-Profile → Find bottleneck → Optimize → Profile again
-```
+![w:920](images/week11/profile_loop.png)
 
 > *"Premature optimization is the root of all evil."* — Donald Knuth
-
-Without profiling, you'll optimize the wrong thing.
 
 ---
 
@@ -238,36 +491,34 @@ Without profiling, you'll optimize the wrong thing.
 
 Think of a restaurant kitchen:
 
-![w:750](images/week11/compute_vs_memory.png)
+![w:780](images/week11/compute_vs_memory.png)
 
 ---
 
-# Two Types of Bottlenecks
+# Two Kinds of Slowness
 
-| | Compute-Bound | Memory-Bound |
-|---|---|---|
-| **Analogy** | Chef is too slow cooking | Waiter can't bring ingredients fast enough |
-| **Bottleneck** | Not enough math power | Not enough data bandwidth |
-| **When?** | Large batches, big matrix multiplies | Small batches, loading weights |
-| **Fix** | Fewer operations, faster hardware | Smaller model, better caching |
+| | Compute-bound | Memory-bound |
+|:--|:--|:--|
+| **Picture** | Chef is slow at cooking | Waiter can't bring ingredients fast enough |
+| **Bottleneck** | Not enough math power | Not enough data movement |
+| **When** | Big batches, big matmuls | Loading weights, small batches |
+| **Fix** | Fewer ops, faster hardware | Smaller model, better caching |
 
-**Key insight:** Most inference (especially LLMs) is **memory-bound.**
-
-The GPU spends more time *loading* weights than *computing* with them. This is why quantization helps — fewer bytes to load!
+> Most LLM inference is **memory-bound** — the chip waits for weights more than it does math.
+> That's why making the model *smaller* (quantization!) directly makes it *faster*.
 
 ---
 
-# Four Profiling Tools (Simple → Detailed)
+# Four Profiling Tools, From Simple to Detailed
 
-| Tool | What It Tells You | Analogy |
-|:-----|:------------------|:--------|
+| Tool | What it tells you | Analogy |
+|:--|:--|:--|
 | `time.time()` | Total runtime | "The meal took 90 minutes" |
-| `%%timeit` | Average over many runs | "Average meal takes 85±5 min" |
-| `cProfile` | Time per **function** | "60 min was waiting for main course" |
-| `line_profiler` | Time per **line** | "Chef spent 45 min chopping onions" |
+| `%%timeit` | Average over many runs | "85 ± 5 minutes per meal" |
+| `cProfile` | Time per **function** | "60 min on the main course" |
+| `line_profiler` | Time per **line** | "45 min just chopping onions" |
 
-**For first use:** focus on `timeit` and `cProfile`.
-The other tools are useful later, but they are not the core of this lecture.
+For first use: focus on `timeit` and `cProfile`. The other two are good to know exist.
 
 ---
 
@@ -278,21 +529,27 @@ import time
 
 start = time.time()
 model.predict(X_test)
-elapsed = time.time() - start
-print(f"Prediction took {elapsed:.3f} seconds")
+print(f"Took {time.time() - start:.3f} s")
 ```
 
-**Problem:** One run is noisy. **Better:** Average many runs.
+One run is noisy. Average many runs:
 
 ```python
 import timeit
+
 t = timeit.timeit(lambda: model.predict(X_test), number=100)
-print(f"Average: {t/100*1000:.1f} ms per prediction")
+print(f"Average: {t / 100 * 1000:.1f} ms per call")
 ```
 
-In Jupyter: `%%timeit model.predict(X_test)`
+In Jupyter, just write:
 
-> **Notebook: Cell 1** — try this yourself!
+```python
+%%timeit
+model.predict(X_test)
+```
+
+> ▶ **Open Notebook 03 now — Profiling basics** (we'll use it for the next 3 slides)
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/03-profiling-basics.ipynb) — start with the `timeit` cell.
 
 ---
 
@@ -304,72 +561,48 @@ import cProfile
 def slow_endpoint(text):
     import pandas as pd
     data = pd.read_csv("training_data.csv")   # 50 MB file!
-    model = joblib.load("model.pkl")            # reload every time!
+    model = joblib.load("model.pkl")          # reload every time!
     return model.predict([text])
 
 cProfile.run('slow_endpoint("hello")')
 ```
 
-![w:750](images/week11/cprofile_bars.png)
+![w:780](images/week11/cprofile_bars.png)
+
+`predict()` is **not** the slow part — loading is.
 
 ---
 
 # The Fix: Load Once (250x Speedup!)
 
 ```python
-# BAD — loads on every request (2.4 seconds)
+# BAD — loads on every request (~2.4 s)
 @app.post("/predict")
 def predict(msg):
-    data = pd.read_csv("data.csv")      # 1.8s every time!
+    data = pd.read_csv("data.csv")       # 1.8s every time!
     model = joblib.load("model.pkl")     # 0.6s every time!
     return model.predict([msg.text])     # 0.001s
 
-# GOOD — load once at startup (0.001 seconds)
-data = pd.read_csv("data.csv")          # runs once
-model = joblib.load("model.pkl")        # runs once
+# GOOD — load once at startup (~0.001 s)
+data = pd.read_csv("data.csv")           # runs once
+model = joblib.load("model.pkl")         # runs once
 
 @app.post("/predict")
 def predict(msg):
     return model.predict([msg.text])     # only this runs per request
 ```
 
-**Moving two lines = 250x faster.** This is the #1 speedup for web apps.
+**Two lines moved → ~250x faster.** The single biggest speedup for web apps.
 
-> **Notebook: Cell 2** — profile the slow vs fast version yourself!
-
----
-
-# Bonus: line_profiler — Which Line Is Slow?
-
-When you know the function, find the exact **line:**
-
-```bash
-pip install line_profiler
-kernprof -l -v script.py
-```
-
-```python
-@profile
-def predict_batch(texts):
-    results = []
-    for text in texts:                    # Loop setup
-        vec = vectorizer.transform([text]) # 0.5ms each ← SLOW
-        pred = model.predict(vec)          # 0.1ms each
-        results.append(pred[0])            # 0.001ms
-    return results
-```
-
-**Fix:** Vectorize — process the whole batch at once:
-```python
-vecs = vectorizer.transform(texts)  # one call, not 1000
-preds = model.predict(vecs)         # one call, not 1000
-```
+> ▶ **In Notebook 03**, run the "slow endpoint" cell, then the "fast endpoint" cell,
+> and compare the two timings yourself.
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/03-profiling-basics.ipynb)
 
 ---
 
 # Bonus: Memory Profiling
 
-Sometimes the bottleneck isn't time — it's **memory.**
+Sometimes the bottleneck isn't time, it's **memory**.
 
 ```bash
 pip install memory_profiler
@@ -379,39 +612,15 @@ python -m memory_profiler script.py
 ```python
 @profile
 def load_data():
-    df = pd.read_csv("big_data.csv")    # +500 MB
-    X = df.values                        # +500 MB (copy!)
-    X_scaled = scaler.transform(X)       # +500 MB (another copy!)
+    df = pd.read_csv("big_data.csv")     # +500 MB
+    X = df.values                         # +500 MB (a copy!)
+    X_scaled = scaler.transform(X)        # +500 MB (another copy!)
     return X_scaled
 ```
 
-**1.5 GB** for a 500 MB CSV! Every operation creates a copy.
+A 500 MB file ends up using **1.5 GB of RAM**. Every operation can secretly copy.
 
-**Fix:** Use smaller datatypes: `pd.read_csv("data.csv", dtype="float32")` — half the memory.
-
-> **Notebook: Cell 3** — see memory usage of your model!
-
----
-
-# Bonus: Deep Learning Profiling (PyTorch)
-
-Standard Python profilers (`cProfile`) **fail for deep learning**. 
-
-Why? PyTorch operations are **asynchronous** on the GPU. `cProfile` only measures the CPU time taken to *launch* the kernel, not the actual GPU execution time.
-
-```python
-import torch
-
-# Use the built-in PyTorch profiler!
-with torch.profiler.profile(
-    activities=[torch.profiler.ProfilerActivity.CPU, 
-                torch.profiler.ProfilerActivity.CUDA],
-    record_shapes=True
-) as prof:
-    model(inputs)
-
-print(prof.key_averages().table(sort_by="cuda_time_total"))
-```
+**Quick fix:** smaller dtypes → `pd.read_csv("data.csv", dtype="float32")`.
 
 ---
 
@@ -430,79 +639,150 @@ print(prof.key_averages().table(sort_by="cuda_time_total"))
 4. "Is it using too much memory?"
    → @profile + python -m memory_profiler script.py
 
-5. "Does profiling slow down my code?"
-   → YES! It's like an X-ray: turn on, diagnose, turn off.
-     Never leave it on in production.
+Profilers slow your code down — they're an X-ray.
+Turn them on, diagnose, then turn them off.
 ```
 
 ---
 
-<!-- _class: lead -->
+<!-- _class: section-divider -->
 
-# Part 3: Quantization — The Diet
+# Part 4: Batching — Work Smarter, Not Harder
+
+---
+
+# Why Batching Helps
+
+Every model call pays a **fixed setup cost** — Python overhead, moving data to
+the GPU, launching the compute kernel. That cost is paid **per call**, not per example.
+
+**Dishwasher analogy:** running the dishwasher with 1 plate uses the same water,
+soap, and 90-minute cycle as running it with 30 plates. The smart move is to
+*fill it up first*.
+
+Two ways to handle 1000 inputs through your model:
+
+| Strategy | # of calls | Setup cost paid |
+|:--|:--|:--|
+| One example at a time | 1000 | **1000 ×** setup |
+| One batch of 1000 | 1 | **1 ×** setup |
+
+Same model, same answers — the second one is much faster.
+
+---
+
+# Batching in Practice
+
+![w:880](images/week11/batching_curve.png)
+
+Bigger batch → **less time per example**, until memory runs out.
+
+> ▶ **Notebook 04** — measure latency vs throughput for batch sizes 1 → 512.
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/04-batching-benchmark.ipynb)
+
+---
+
+<!-- _class: section-divider -->
+
+# Part 5: Quantization — The Diet
+
 *The single highest-ROI optimization you can do.*
 
 ---
 
-# What Is Quantization?
+# Start with the Grocery Store
 
-![w:700](images/week11/suitcase_analogy.png)
+Imagine adding three items in your head:
 
-**FP32** = 30 kg suitcase with an outfit for every weather.
-**INT8** = 7 kg carry-on. You round to "hot" or "cold." Tiny precision loss, but you fit on the budget airline and move 4x faster.
+```
+₹4.99281 + ₹3.00192 + ₹7.49837 = ₹15.49310    (precise — slow, painful)
+```
+
+You'd never do that. You'd round first:
+
+```
+₹5      + ₹3      + ₹7       = ₹15            (rounded — fast, "good enough")
+```
+
+That's the *whole idea* of quantization: **fewer distinct values per number,
+almost the same answer.** You trade a tiny bit of precision for a lot of speed
+and a lot less storage.
 
 ---
 
-# Hardware Acceleration: Why INT8 is Faster
+# What Is Quantization, Concretely?
 
-Two simple reasons:
+In a model, every weight is currently a 32-bit float. **Quantization stores each
+weight as a small integer instead** — but to know what that integer "means" we
+also keep one shared **scale factor**.
 
-1. **Smaller numbers are faster to move around** in memory.
-2. Many modern chips have **special support for 8-bit math**.
+```
+FP32 weight  →   integer (1 byte)   ×   scale
+   0.79              127             ×   0.00622
+  -0.42             -68              ×   0.00622
+   0.12              19              ×   0.00622
+```
 
-You do not need to memorize hardware names. The main idea is:
+So a list of weights becomes:
 
-> smaller numbers can be cheaper to store and cheaper to use.
+- a tiny array of `int8` values (the "snap-to-grid" positions), and
+- one `float32` scale factor for the whole layer
+
+Storage drops from **4 bytes/weight → 1 byte/weight** (≈4× smaller).
 
 ---
 
-# The Grocery Store Analogy
+# The Code Behind Quantization
 
-Instead of adding up:
-```
-₹4.99281 + ₹3.00192 + ₹7.49837 = ₹15.49310    (FP32: precise)
+```python
+import numpy as np
+
+w = np.array([-0.81, -0.42, -0.05, 0.12, 0.47, 0.79], dtype=np.float32)
+
+# 1. Pick a scale so the biggest |weight| maps to 127 (the INT8 max)
+scale = np.max(np.abs(w)) / 127        # 0.81 / 127 ≈ 0.00638
+
+# 2. Divide by scale and round → small integers
+q = np.round(w / scale).astype(np.int8)
+print(q)            # [-127, -66, -8, 19, 74, 124]   ← stored on disk
+
+# 3. To USE the weights, multiply back by the scale ("dequantize")
+w_back = q.astype(np.float32) * scale
+print(w_back)       # [-0.810, -0.421, -0.051, 0.121, 0.472, 0.791]
 ```
 
-Just round and add:
-```
-₹5 + ₹3 + ₹7 = ₹15                             (INT8: fast)
-```
-
-The total is close enough. And the mental math is **way** faster.
-
-**That's quantization.** Use fewer bits per number. Smaller model, faster inference, nearly the same accuracy.
+**Why convert back to float?** The CPU/GPU still does matrix multiplies in
+float arithmetic (or in special INT8 kernels that internally rescale). The
+*storage* is INT8; the *compute* still produces a float-like answer.
 
 ---
 
-# Quantization: The Number Line
+# Quantization on a Number Line
 
-![w:850](images/week11/quantization_number_line.png)
+![w:920](images/week11/quantization_number_line.png)
 
-Nearby FP32 values **snap** to the same INT8 level. Some precision is lost, but the overall pattern is preserved.
+Many nearby FP32 values **snap to the same INT8 level**. You lose the fine
+detail between snap points, but the overall shape of the weight distribution
+is preserved.
+
+> ▶ **Try it now — Notebook 01** (the "fake INT8" cell at the bottom)
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/01-floating-point-basics.ipynb)
+> Take a real weight array, quantize it with the 3-step recipe above, and plot
+> the original vs the snapped values on the same axis.
 
 ---
 
 # Why Does It Work? Look at the Weights
 
-![w:850](images/week11/weight_distribution.png)
+![w:920](images/week11/weight_distribution.png)
 
-Most weights are **near zero.** Rounding introduces tiny errors in the crowded region — the model barely notices.
+Most weights cluster near zero. The rounding error in that crowded region is tiny — the model barely notices.
 
-**Empirically:** INT8 quantization typically loses **< 1% accuracy.**
+> **Empirically:** INT8 quantization usually loses **less than 1%** accuracy.
 
 ---
 
-# Quantization in PyTorch: One Line
+# Quantization in PyTorch — One Line
 
 ```python
 import torch
@@ -514,253 +794,456 @@ model.eval()
 # One line. That's it.
 quantized_model = torch.quantization.quantize_dynamic(
     model,
-    {nn.Linear},       # which layers to quantize
-    dtype=torch.qint8, # target precision
+    {nn.Linear},        # which layers to quantize
+    dtype=torch.qint8,  # target precision
 )
 
-# Use it exactly like before
-prediction = quantized_model(input_data)
+prediction = quantized_model(input_data)   # use it like before
 ```
 
-**What you get:** 2–4x smaller model, faster inference on CPU.
-**What it costs:** Usually < 1% accuracy drop. No calibration data needed.
-
-> **Notebook: Cell 4** — quantize a real model and compare!
+**Expected:** 2–4× smaller on disk, usually **< 1% accuracy drop**, latency
+*depends on the model and hardware* (read the next slide before you run it).
 
 ---
 
-# Types of Quantization
+# What Gets Quantized?
 
-| Type | Effort | Quality | When to Use |
+`quantize_dynamic` only touches specific layer types — by default
+`nn.Linear` and `nn.LSTM`. Everything else (ReLU, dropout, batch norm, …) is
+left alone.
+
+For each of those layers, two things happen:
+
+1. **Weights** are converted to INT8 **once**, at the moment you call
+   `quantize_dynamic`, and kept that way forever.
+2. **Activations** (the inputs flowing *through* the layer at runtime) stay
+   in FP32 — they are only briefly quantized inside each forward pass.
+
+```
+┌────────────────────────────────────────────────┐
+│  Linear layer                                  │
+│                                                │
+│   FP32 input  →  [quantize on the fly]  →  ... │
+│                                                │
+│   INT8 weights (stored once)                   │
+└────────────────────────────────────────────────┘
+```
+
+---
+
+# What Does "Dynamic" Mean?
+
+**Dynamic** = the *activation* scale is recomputed on every forward pass.
+
+Inside each `nn.Linear` call, PyTorch does this sequence:
+
+```
+1. look at this batch of activations, find max(|x|)
+2. pick scale = max(|x|) / 127
+3. quantize activations:  x_int8 = round(x / scale)
+4. matmul in INT8:         y_int32 = W_int8 @ x_int8
+5. dequantize:             y = y_int32 × (W_scale × x_scale)
+```
+
+Steps 1–3 and 5 are **overhead paid on every call**. On a big matmul that
+overhead is negligible; on a tiny matmul it can dominate.
+
+---
+
+# When Does INT8 Actually Speed Things Up?
+
+| Model size | What you'll likely see |
+|:--|:--|
+| Tiny MLP (KB-sized, like Notebook 05) | INT8 **slower**, accuracy basically equal |
+| Medium model (a few MB) | INT8 same speed or a bit faster |
+| Large model (big transformer, LLM) | INT8 **much** faster **and** much smaller |
+
+**Two takeaways** (the only two you need to remember):
+
+- The **size win is always there** — weights literally use 1 byte instead of 4.
+- The **speed win only shows up once the matmul is big enough** that the
+  per-call scaling overhead disappears in the noise.
+
+---
+
+# Reading Your Notebook 05 Numbers
+
+Here's what students typically get on a Colab CPU:
+
+```
+   model    accuracy    size_kb    latency_ms
+0   fp32    0.955       70.0       0.45
+1   int8    0.958       22.0       2.14
+```
+
+**"INT8 is more accurate?!"** — random noise. The FP32 → INT8 rounding shifted
+*one or two* test predictions, and on a 360-sample test set that's `±0.3%`. Run
+the cell again with a different seed and the order will flip. The honest read
+is: **same accuracy.**
+
+**"INT8 is slower?!"** — yes, on this size of model. The matmul is on a
+`(64 × 128)` weight matrix; the per-call overhead of "look at the activations,
+pick a scale, quantize" costs more than the matmul saves. The speed win arrives
+once the matrices are 1000× bigger, which is exactly the regime real LLMs live in.
+
+> ▶ **Run now — Notebook 05** to see this on your machine.
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/05-pytorch-dynamic-quantization.ipynb)
+
+---
+
+# Three Flavours of Quantization
+
+| Type | Effort | Quality | When to use |
 |:--|:--|:--|:--|
 | **Dynamic** | 1 line of code | Good | Start here (easiest) |
 | **Static** | ~15 lines + calibration data | Better | When dynamic isn't enough |
-| **Quantization-Aware Training** | Retrain the model | Best | For production, maximum quality |
+| **Quantization-Aware Training** | Retrain the model | Best | Production, max quality |
 
-**For this course:** use **dynamic quantization** and stop there.
-
-The other two are good to know exist, but they are outside the core workflow for first-years.
+For this course: **use dynamic quantization and stop there.** The other two are good to know exist.
 
 ---
 
-# Quantization for sklearn Models (via ONNX)
+# Why Do We Need ONNX?
 
-sklearn models can also be quantized — through ONNX:
+You trained your model in PyTorch on a Linux server. Now you want to ship it.
+The problem is **everyone wants something different**:
+
+| Where it runs | What they need |
+|:--|:--|
+| iPhone app | Swift / Core ML — no Python interpreter on the phone |
+| Android app | Java / Kotlin — no PyTorch wheel for ARM Android |
+| Browser demo | JavaScript / WebAssembly |
+| Embedded device | C++, no GB-sized PyTorch install |
+| Another team's Java backend | They refuse to add a Python dependency |
+
+You don't want to **retrain or rewrite** the model 5 times.
+
+**ONNX (Open Neural Network Exchange)** solves this. You convert your trained
+model into a single `.onnx` file — a standard format that describes the
+computation graph. Then any of those targets can load that file with their own
+small "ONNX Runtime" library, **without ever installing PyTorch**.
+
+> Same idea as **PDF** for documents: write it once in Word/Docs/Pages, export
+> to PDF, and every device can read it without your editor installed.
+
+---
+
+# ONNX in Code
+
+```python
+# Export (3 lines)  — one-time, on your training machine
+import torch
+dummy_input = torch.randn(1, 3, 32, 32)
+torch.onnx.export(model, dummy_input, "model.onnx")
+
+# Run anywhere (3 lines) — no PyTorch needed at runtime
+import onnxruntime as ort
+session = ort.InferenceSession("model.onnx")
+result = session.run(None, {"image": input_array})
+```
+
+Bonus: ONNX Runtime auto-fuses operations, picks the best CPU/GPU kernels, and
+exposes the same `quantize_dynamic` we saw in Part 5 — so the *same* `.onnx`
+file can be shrunk to INT8 without retouching the training code.
+
+---
+
+# Quantizing an sklearn Model via ONNX
 
 ```python
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import FloatTensorType
 from onnxruntime.quantization import quantize_dynamic, QuantType
 
-# Step 1: Convert sklearn model to ONNX
-initial_type = [('input', FloatTensorType([None, n_features]))]
+# Step 1: convert sklearn → ONNX
+initial_type = [("input", FloatTensorType([None, n_features]))]
 onnx_model = convert_sklearn(clf, initial_types=initial_type)
 with open("model_fp32.onnx", "wb") as f:
     f.write(onnx_model.SerializeToString())
 
-# Step 2: Quantize
+# Step 2: quantize
 quantize_dynamic("model_fp32.onnx", "model_int8.onnx",
                  weight_type=QuantType.QUInt8)
 ```
 
 ```
-FP32:  3.82 MB  →  INT8: 0.98 MB  (74% smaller, <0.5% accuracy drop)
+FP32:  3.82 MB   →   INT8: 0.98 MB    (~4x smaller, <0.5% accuracy drop)
 ```
 
-> **Notebook: Cell 5** — try this with an MLP classifier!
-
----
-
-# Demo Results: Before vs After
-
-Run the notebook and you'll see something like this:
-
-| | FP32 (Original) | INT8 (Quantized) | ONNX Runtime |
-|:--|:--|:--|:--|
-| **Size** | 420 KB | 180 KB | 410 KB |
-| **Speed** | 3.5 ms/batch | 2.1 ms/batch | 1.8 ms/batch |
-| **Speedup** | 1.0x | 1.7x | 1.9x |
-| **Accuracy** | 100% (baseline) | 99.7% agreement | 100% match |
-
-*Actual numbers depend on your hardware. Run the notebook to see yours!*
-
----
-
-# ONNX — The PDF of Machine Learning
-
-You wrote a document in Google Docs. Your friend uses Word. Your client uses Pages.
-Export as **PDF** — everyone can read it.
-
-**ONNX** does the same for ML models. Train in PyTorch/sklearn, run **anywhere.**
-
-```python
-# Export (3 lines)
-dummy_input = torch.randn(1, 3, 32, 32)
-torch.onnx.export(model, dummy_input, "model.onnx",
-                  input_names=["image"], output_names=["prediction"])
-
-# Run without PyTorch! (3 lines)
-import onnxruntime as ort
-session = ort.InferenceSession("model.onnx")
-result = session.run(None, {"image": input_array})
-```
-
-**Why?** ONNX Runtime auto-optimizes, runs 2–5x faster, works on mobile/browser/any language.
-
-> **Notebook: Cell 6** — export, run with ONNX Runtime, compare speed!
+> ▶ **Run now — Notebook 06: ONNX export and quantization**
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/06-onnx-export-and-quantization.ipynb)
+> Train an MLP, export to ONNX, quantize the ONNX file, and run inference *without* PyTorch installed.
 
 ---
 
 # The LLaMA Story
 
 In 2023, Meta released **LLaMA-7B** — powerful but 28 GB in FP32.
-
-Then Georgi Gerganov built **llama.cpp** with 4-bit quantization:
+Then `llama.cpp` (Georgi Gerganov) released a 4-bit quantized version:
 
 | | Before (FP32) | After (INT4) |
-|---|---|---|
-| **Size** | 28 GB | 3.5 GB |
-| **Hardware** | ₹8 lakh GPU | MacBook Air |
-| **Cost** | Cloud GPU rental | Free (your laptop) |
-| **Privacy** | Data sent to cloud | Everything stays local |
-
-**Quantization democratized AI.** Every LLM you download today (Mistral, Llama 3, Phi) comes in quantized versions: GGUF, GPTQ, AWQ.
-
----
-
-<!-- _class: lead -->
-
-# Part 4: Optional — Where This Goes Next
-*A quick map of advanced deployment tools. Awareness matters more than details.*
-
----
-
-# A Simple Mental Model
-
-Different tools are good at different jobs:
-
-- **Research / experiments**: use the standard Python stack
-- **Serving many users**: use specialized serving engines
-- **Running locally on a laptop or CPU**: use lightweight local runtimes
-- **Fine-tuning on limited hardware**: use memory-efficient training tools
-
-You do **not** need to learn internal jargon like paging or cache trees today.
-Just remember that deployment often needs tools beyond plain `transformers`.
-
----
-
-# Four Names Worth Recognizing
-
-| Tool | Plain-English purpose | When to mention it |
 |:--|:--|:--|
-| `vLLM` | Serve many LLM requests efficiently | Cloud APIs |
-| `SGLang` | Fast structured or repeated prompting | LLM apps with repeated prompts |
-| `llama.cpp` | Run quantized models locally on CPUs/laptops | Edge and local demos |
-| `Unsloth` | Fine-tune large models with less GPU memory | Cheap fine-tuning |
+| **Size** | 28 GB | 3.5 GB |
+| **Hardware** | High-end GPU | MacBook Air |
+| **Cost** | Cloud GPU rental | Free, your laptop |
+| **Privacy** | Data sent to cloud | Stays on device |
 
-For this course, these are **recognition-level tools**, not implementation targets.
-
----
-
-<!-- _class: lead -->
-
-# Part 5: Optional — Two Other Ideas
-*Quantization is the main course. These are bonus ideas to recognize.*
+Quantization **democratized** running large models. Today every open LLM ships in quantized formats like GGUF, GPTQ, AWQ.
 
 ---
 
-# Pruning — The Jenga Approach
+# GGUF, GPTQ, AWQ — The Names You'll See
 
-**Remove weights that barely contribute.** Like Jenga: remove blocks that aren't structurally important.
+All three are ways of shipping **INT4 / INT8 LLMs**. They differ in whether
+they are a *file format* or an *algorithm for picking the scales*.
 
-```
-Before pruning:  [0.8, 0.001, -0.7, 0.002, 0.9, -0.003]
-After pruning:   [0.8,   0,   -0.7,   0,   0.9,    0  ]
-```
+| Name | Is it a … | Main idea (one line) |
+|:--|:--|:--|
+| **GGUF** | file format | Packs INT4/INT8 weights + scales + metadata into one portable file |
+| **GPTQ** | algorithm | Layer-by-layer: solve for INT4 values that minimize error on a small calibration set |
+| **AWQ**  | algorithm | *Activation-aware:* protect the few weight channels that matter most |
 
-Set near-zero weights to exactly zero. The model still works.
-
-**Why it helps:** zeros compress well on disk.
-
-**Important caveat:** pruning does **not always** make inference faster.
-It is easy to explain, but harder to get real speedups from.
+Common thread: all three let a 7B–70B LLM fit on a laptop or a single consumer
+GPU with **< 1% quality drop** vs the FP16 original.
 
 ---
 
-# Knowledge Distillation — Master and Apprentice
+# How to Recognize Them in the Wild
 
-A big "teacher" model trains a small "student" model.
+You don't need to implement any of these. You just need to **recognize the
+suffix** on a Hugging Face model name and know "it's already quantized, ready to run":
 
-The student doesn't learn from raw data — it learns from the teacher's **soft predictions**: not just "cat" but "90% cat, 8% lynx, 2% dog." That extra information is rich.
+| Name you'll see on Hugging Face | What it means |
+|:--|:--|
+| `llama-3-8b.Q4_K_M.gguf`         | GGUF file, 4-bit, for `llama.cpp` / Ollama / LM Studio |
+| `Llama-3-8B-Instruct-GPTQ`       | GPTQ-quantized, load via `transformers` + `auto-gptq` |
+| `Mistral-7B-Instruct-v0.2-AWQ`   | AWQ-quantized, served with vLLM / TGI |
 
-```
-Teacher: BERT-base   (440 MB, slow but smart)
-                ↓ "here's how I'd rate each answer..."
-Student: DistilBERT  (60 MB, fast and almost as smart)
-```
-
-**Main idea:** use a big model to teach a smaller model.
-
-This is useful to know, but you do not need to implement it in the first pass of the course.
+**Rule of thumb for this course:**
+recognize the suffix, pick the right runtime (`llama.cpp` for GGUF, vLLM for AWQ),
+and trust that someone else did the quantization work correctly.
 
 ---
 
-# Combining Techniques: The Full Pipeline
+<!-- _class: section-divider -->
 
-These optimizations can **stack:**
+# Part 6: Two More Ideas
+
+*Quantization is the main course. Pruning and distillation are good to recognize.*
+
+---
+
+# Pruning — Two Flavours
+
+![w:700](images/week11/pruning_edges_vs_nodes.png)
+
+A trained network has many weights near zero. Remove the unimportant ones and
+it keeps working — but *which* things do you remove?
+
+---
+
+# Unstructured vs Structured Pruning
+
+|  | Unstructured pruning | Structured pruning |
+|:--|:--|:--|
+| **What's removed** | Individual weights (edges) | Whole neurons / channels / heads (nodes) |
+| **Result on disk** | Dense matrix with lots of zeros | A genuinely smaller matrix |
+| **Accuracy impact** | Tiny (~0% at 40–60% sparsity) | Larger — you're deleting more at once |
+| **Speedup on normal CPU/GPU?** | **Not by default** — you still multiply by zero | **Yes** — the matrix is literally smaller |
+| **Speedup with special kernels?** | Yes (sparse BLAS, 2:4 sparsity on NVIDIA) | Always |
+
+**Rule of thumb:** unstructured pruning gives the best accuracy-vs-sparsity
+tradeoff; structured pruning gives the best real-world speedup without exotic hardware.
+
+---
+
+# Pruning — How (PyTorch in 4 Lines)
+
+```python
+import torch.nn.utils.prune as prune
+
+# (a) Unstructured — zero out the 40% smallest weights globally
+prune.global_unstructured(
+    [(model.fc1, "weight"), (model.fc2, "weight")],
+    pruning_method=prune.L1Unstructured,
+    amount=0.4,
+)
+
+# (b) Structured — drop entire output channels (rows) of a layer
+prune.ln_structured(model.fc1, name="weight", amount=0.3, n=2, dim=0)
+```
+
+- `amount=0.4` = remove 40%.
+- `L1Unstructured` picks weights with the smallest absolute value.
+- `ln_structured(dim=0)` removes whole *rows* (= output neurons) of `fc1`.
+
+> ▶ **Run now — Notebook 07: Pruning basics**
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/07-pruning-basics.ipynb)
+> Try both flavours side-by-side: unstructured at 40/60/80% and structured at
+> 30%, and compare sparsity vs accuracy.
+
+---
+
+# Distillation — Teacher Trains Student
+
+![w:680](images/week11/distillation_soft_labels.png)
+
+A **big teacher** and a **small student** see the same input. The student is
+trained to match the teacher's **output probabilities**, not just the label:
 
 ```
-Large Model (FP32, 440 MB, 90 ms)
-    │
-    ├── Distill    → Smaller architecture (fewer layers)
-    ├── Prune      → Remove useless weights
-    ├── Quantize   → INT8 (4x smaller per weight)
-    └── ONNX       → Fused operators, no framework overhead
-    │
-Small Model (INT8, 60 MB, 8 ms) — 97% accuracy
+teacher says:   7 → 87% · a bit like 1 (9%) · a bit like 9 (3%)
+student tries:  match that whole distribution
 ```
 
-The practical lesson is simple:
+Those **soft labels** carry much more information per example than a hard "7" label.
 
-> start with the easiest win first, then add more only if needed.
+---
+
+# Distillation — Matching at Other Levels
+
+Soft labels are the *default* distillation signal, but they're not the only one:
+
+| Level | What the student matches |
+|:--|:--|
+| **Outputs** (soft labels) | Teacher's output probabilities |
+| **Hidden features** | Teacher's intermediate activations |
+| **Attention maps** | Where a transformer teacher "looks" |
+
+Most research papers combine two or three of these. The extra signals help
+the student learn the teacher's *internal reasoning*, not just its final answers.
+
+> We'll only use **outputs** (soft labels) in Notebook 08 — the simplest case.
+
+---
+
+# The Mismatched-Size Catch
+
+Matching outputs is easy: teacher and student both end in "probabilities over
+10 classes", so their output vectors are the same shape.
+
+But **hidden layers don't match** — the student is *deliberately* smaller:
+
+```
+teacher:  Linear(64 → 1024)  →  hidden tensor of shape (batch, 1024)
+student:  Linear(64 →  256)  →  hidden tensor of shape (batch,  256)
+```
+
+You can't subtract a `(batch, 1024)` tensor from a `(batch, 256)` tensor.
+So how do you "match hidden features"?
+
+---
+
+# The Fix: a Throwaway Projection
+
+Add a tiny extra layer on top of the student's hidden output **only during training**:
+
+```
+student_hidden (256)  →  W_proj (256 → 1024)  →  compare with teacher (1024)
+                             ↑
+                   trained together with the student
+```
+
+- At **training time**, `W_proj` lets the distillation loss compare the
+  student's hidden state to the teacher's — the shapes now line up.
+- At **inference time**, you throw `W_proj` away. The student you ship is
+  still the small `256`-wide network with no extras.
+
+> ▶ **Run now — Notebook 08: Distillation basics**
+> [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/08-distillation-basics.ipynb)
+> Train a teacher, then two students (hard-label vs soft-label distilled) and
+> compare accuracies on a small training subset.
+
+---
+
+# These Ideas Stack
+
+![w:920](images/week11/optimization_stack.png)
+
+> Start with the cheapest win first (quantization), and only add more if you must.
+
+---
+
+<!-- _class: section-divider -->
+
+# Part 7: Putting It All Together
 
 ---
 
 # The Accuracy vs Size Tradeoff
 
-![w:750](images/week11/pareto_frontier.png)
+![w:780](images/week11/pareto_frontier.png)
 
-**Pick the point that meets YOUR requirements.** There's no single "best."
+**Pick the point that meets *your* requirements.** There is no single "best".
+
+---
+
+# Compare Everything in One Place
+
+A small results table is the most useful artifact in this whole lecture.
+**The numbers below are representative, not measured** — they show the
+*shape* of the tradeoff you should expect, not a recipe to reproduce exactly:
+
+| Variant | Size | Latency | Accuracy |
+|:--|:--:|:--:|:--:|
+| baseline FP32 | ~600 KB | ~5 ms | ~0.97 |
+| dynamic INT8 | **~200 KB** (↓3×) | ~3–5 ms (hardware-dependent) | ~0.96 |
+| ONNX FP32 | ~550 KB | ~3 ms | ~0.97 |
+| ONNX INT8 | **~180 KB** (↓3×) | ~2–3 ms | ~0.96 |
+| pruned (40%, unstructured) | ~600 KB (dense zeros) | ~5 ms | ~0.96 |
+| distilled student | **~90 KB** (↓7×) | **~2 ms** | ~0.95 |
+
+**What to read from this table** (more important than the digits):
+
+- **Quantization** is the biggest "free" win — ~3–4× smaller, ~0% accuracy cost.
+- **Unstructured pruning** shrinks only *compressed* size; runtime stays the same.
+- **Distillation** gives the best latency but costs real accuracy and extra training.
+
+> Build this table for *your own* model by copying the `size_kb` / `accuracy` /
+> `latency_ms` values you measured in Notebooks 05, 06, 07, and 08.
 
 ---
 
 # Deployment Targets Have Budgets
 
-| Target | Size Budget | Speed Budget | Framework |
-|:-------|:-----------|:-------------|:----------|
-| **Cloud API** | Large | fast responses | specialized servers |
-| **Mobile app** | small | low latency | mobile runtimes |
-| **IoT / Edge** | very small | CPU only | ONNX, `llama.cpp` |
-| **Web browser** | tiny | runs in JS/WebGPU | browser runtimes |
-| **LLM on laptop** | fits in RAM | usable speed | `llama.cpp`, Ollama |
+| Target | Size budget | Speed budget | Typical tools |
+|:--|:--|:--|:--|
+| Cloud API | Large | Throughput first | Specialized servers |
+| Mobile app | Small | Low latency | Mobile runtimes |
+| IoT / edge | Very small | CPU only | ONNX, `llama.cpp` |
+| Web browser | Tiny | JS / WebGPU | Browser runtimes |
+| LLM on laptop | Fits in RAM | Usable speed | `llama.cpp`, Ollama |
 
 > **Training happens once. Inference happens millions of times.**
-
-Every ms saved, every MB trimmed — multiplied by every user, every request, every day.
+> Every ms saved and every MB trimmed gets multiplied by every user, every request, every day.
 
 ---
 
 # Real Examples on Your Phone
 
-| App Feature | Model | Size | Runs On |
-|:-----------|:------|:-----|:--------|
-| Keyboard prediction | Small LSTM | < 5 MB | On-device |
-| Face unlock | MobileFaceNet | < 5 MB | On-device |
-| "Hey Siri" / "OK Google" | Wake word detector | < 1 MB | On-device |
-| Google Translate (offline) | Quantized transformer | ~50 MB | On-device |
-| Camera HDR | Tiny CNN | < 2 MB | On-device |
+| App feature | Model | Size | Runs |
+|:--|:--|:--|:--|
+| Keyboard prediction | Tiny LSTM | < 5 MB | On device |
+| Face unlock | MobileFaceNet | < 5 MB | On device |
+| "Hey Siri" / "OK Google" | Wake-word net | < 1 MB | On device |
+| Offline Google Translate | Quantized transformer | ~50 MB | On device |
+| Camera HDR / night mode | Tiny CNN | < 2 MB | On device |
 
-**None of these send data to a server.** Small enough to run locally = works offline, no latency, data stays private.
+**None of these send your data anywhere.** Small enough = works offline, no latency, private.
+
+---
+
+# A Few Tools Worth Recognizing
+
+| Tool | Plain-English purpose |
+|:--|:--|
+| **`vLLM`** | Serve many LLM users efficiently in the cloud |
+| **`SGLang`** | Fast structured / repeated prompting |
+| **`llama.cpp`** | Run quantized models locally on CPUs / laptops |
+| **`Ollama`** | Friendly wrapper over `llama.cpp` for desktop use |
+| **`Unsloth`** | Fine-tune large models with less GPU memory |
+
+For this course these are **recognition-level** — you should know they exist, not implement them.
 
 ---
 
@@ -768,21 +1251,20 @@ Every ms saved, every MB trimmed — multiplied by every user, every request, ev
 
 ```
 1. PROFILE first
-   → time.time(), cProfile, line_profiler, torch.profiler
-   → Find the actual bottleneck (it's never where you think!)
+   → time.time(), %%timeit, cProfile
+   → find the actual bottleneck (it's never where you think)
 
-2. Fix the OBVIOUS things
-   → Load model once, not per-request
-   → Vectorize loops (batch processing)
+2. Fix the obvious things
+   → load model and data ONCE, not per request
+   → batch your inputs
 
-3. CHOOSE the right runtime
-   → Python prototype? plain PyTorch / sklearn
-   → Deployment? ONNX or a specialized engine
-   → Local LLM? `llama.cpp`
+3. Quantize
+   → torch.quantization.quantize_dynamic(...)
+   → or export to ONNX and quantize there
 
 4. MEASURE everything
-   → Before/after: size, latency, accuracy
-   → Stop when you hit your target
+   → before/after: size, latency, accuracy
+   → stop when you hit your target
 ```
 
 ---
@@ -790,17 +1272,17 @@ Every ms saved, every MB trimmed — multiplied by every user, every request, ev
 # FAQ
 
 **Q: If INT8 is 4x smaller and just as accurate, why isn't everything quantized?**
-→ Training needs FP32 (tiny gradients need full precision). Quantization is done **after** training, and needs testing.
+→ Training needs FP32 because gradients can be tiny. Quantization is done **after** training and still needs to be tested for your task.
 
-**Q: I quantized my model but it's actually SLOWER. Why?**
-→ If your CPU lacks INT8 instructions, it converts INT8→FP32→compute→INT8 on every operation. Smaller on disk, but slower to run. Check your hardware!
+**Q: I quantized my model but it got *slower*. Why?**
+→ Some CPUs don't have native INT8 instructions. They convert INT8 → FP32 → compute → INT8 on every operation. Smaller on disk, slower to run. Check your hardware.
 
-**Q: Why ONNX instead of just .pkl files?**
-→ Pickle is Python-only. ONNX runs on iPhone, Android, browser, any language. It's the **PDF of ML.**
+**Q: Why ONNX instead of just `.pkl` files?**
+→ Pickle is Python-only. ONNX runs on iPhone, Android, browser, any language. It's the **PDF of ML**.
 
 ---
 
-<!-- _class: lead -->
+<!-- _class: section-divider -->
 
 # Summary
 
@@ -808,19 +1290,21 @@ Every ms saved, every MB trimmed — multiplied by every user, every request, ev
 
 # Key Takeaways
 
-1. **Numbers in computers:** FP32 = 4 bytes (precise), INT8 = 1 byte (good enough for inference)
+1. **Numbers in computers** — FP32 is precise (4 bytes), INT8 is good enough for inference (1 byte).
 
-2. **Profile first, optimize the bottleneck** — don't guess, measure.
+2. **Profile first.** Don't guess where the time goes — measure it.
 
-3. **Load models/data once at startup** — the #1 speedup for web apps (250x!)
+3. **Load once, not per request.** The single biggest speedup for web apps.
 
-4. **Advanced deployment tools exist** — `ONNX`, `llama.cpp`, and LLM serving engines — but you only need the big picture today.
+4. **Batch your work.** Same model, more examples per call.
 
-5. **Quantization = highest ROI** — one line of code, 2–4x smaller, ~0% accuracy loss
+5. **Quantization = highest ROI.** One line of code, 2–4x smaller, ~0% accuracy loss.
 
-6. **ONNX = the PDF of ML** — train in Python, run in many places
+6. **ONNX = the PDF of ML.** Train in Python, run anywhere.
 
-7. **Start simple, measure, stop when good enough**
+7. **Pruning and distillation exist** as extra tools — quantization comes first.
+
+8. **Stop when you hit your target.** "Good enough" beats "perfect" in production.
 
 ---
 
@@ -828,41 +1312,32 @@ Every ms saved, every MB trimmed — multiplied by every user, every request, ev
 
 | Task | Tool | Example |
 |:--|:--|:--|
-| Measure runtime | `timeit` | `timeit.timeit(...)` |
+| Measure runtime | `timeit` | `timeit.timeit(lambda: f(x), number=100)` |
 | Find slow function | `cProfile` | `cProfile.run('my_fn()')` |
 | Quantize PyTorch | `torch` | `quantize_dynamic(model, {nn.Linear}, torch.qint8)` |
-| Export / deploy model | `ONNX` | `torch.onnx.export(...)` |
-| Run locally (bonus) | `llama.cpp` | run quantized LLMs on CPUs |
-| Serve many LLM users (bonus) | `vLLM` | production LLM serving |
+| Export / deploy | `ONNX` | `torch.onnx.export(...)` |
+| Run locally (LLM) | `llama.cpp`, Ollama | quantized models on CPUs |
+| Serve many users | `vLLM`, `SGLang` | production LLM serving |
 
 ---
 
-# Notebook: What to Try
+# What to Try in the Notebooks
 
-The companion notebook set lives in `lecture-demos/week11/colab-notebooks/`:
-
-| # | What You'll Do | Key Result |
+| # | Notebook | Key result |
 |:--|:--|:--|
-| 1 | Floating point basics | See why 0.1 + 0.2 ≠ 0.3 |
-| 2 | Parameter count and memory | Connect parameters to model size |
-| 3 | Profiling basics | Find the real bottleneck |
-| 4 | Batching benchmark | See why batching can speed things up |
-| 5 | Dynamic quantization | Make a model smaller with one line |
-| 6 | ONNX export and quantization | Run a model outside Python |
-| 7 | Pruning basics | See the idea of removing weak weights |
-| 8 | Distillation basics | See teacher vs student models |
-| 9 | Comparison dashboard | Compare size, speed, and accuracy |
+| 01 | Floating point basics | Why `0.1 + 0.2 ≠ 0.3` |
+| 02 | Parameters and memory | Connect parameter counts to MB |
+| 03 | Profiling basics | Find the real bottleneck |
+| 04 | Batching benchmark | See latency drop with batch size |
+| 05 | PyTorch dynamic quantization | Smaller model in 1 line |
+| 06 | ONNX export and quantization | Run a model outside Python |
+| 07 | Pruning basics | Unstructured vs structured, and the accuracy cliff |
+| 08 | Distillation basics | Small student matches big teacher |
 
 ---
 
-# The Course Arc
+<!-- _class: title-slide -->
 
-```
-Week 7-8:   Evaluate & Tune       → Is the model good?
-Week 9:     Reproducibility        → Can someone else run it?
-Week 10:    Data Drift             → Is it STILL good?
-Week 11:    Profiling & Quant      → Is it FAST and SMALL?  ← you are here
-Week 12:    APIs & Deployment      → Can the world use it?
-```
+# Questions?
 
-**You can now build, track, test, deploy, monitor, AND optimize ML systems.**
+## Profile first. Measure twice. Quantize.

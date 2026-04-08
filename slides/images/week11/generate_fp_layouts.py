@@ -10,10 +10,16 @@ import matplotlib.patches as mpatches
 import numpy as np
 
 def draw_bit_bar(ax, y, sections, total_bits, label, height=0.6):
-    """Draw a segmented bit layout bar."""
+    """Draw a segmented bit layout bar.
+
+    `total_bits` is the FP32 reference width (used for visual scale only).
+    The displayed bit count comes from the sum of section widths so that
+    FP16 and INT8 show their real sizes, not FP32's.
+    """
+    actual_bits = sum(nbits for _, nbits, _ in sections)
     x = 0
     for name, nbits, color in sections:
-        width = nbits / total_bits * 10  # scale to 10 units wide
+        width = nbits / total_bits * 10  # scale to FP32 = 10 units wide
         rect = mpatches.FancyBboxPatch(
             (x, y - height/2), width, height,
             boxstyle=mpatches.BoxStyle.Round(pad=0.02),
@@ -25,7 +31,8 @@ def draw_bit_bar(ax, y, sections, total_bits, label, height=0.6):
         x += width
 
     ax.text(-0.5, y, label, ha='right', va='center', fontsize=12, fontweight='bold')
-    ax.text(x + 0.2, y, f'{total_bits} bits = {total_bits//8} bytes',
+    bytes_str = f"{actual_bits//8} byte" + ("s" if actual_bits//8 != 1 else "")
+    ax.text(x + 0.2, y, f'{actual_bits} bits = {bytes_str}',
             ha='left', va='center', fontsize=10, color='#555')
 
 def generate_comparison(output_path: Path) -> Path:
@@ -45,12 +52,12 @@ def generate_comparison(output_path: Path) -> Path:
 
     # FP16: 1 sign + 5 exponent + 10 mantissa = 16 bits
     draw_bit_bar(ax, 2.5, [('Sign', 1, SIGN), ('Exp', 5, EXP), ('Mantissa', 10, MANT)], 32, 'FP16')
-    # Show actual width = 16/32 of FP32
-    ax.text(5.2, 2.5, '← half the bits', fontsize=10, color='#888', va='center')
+    # Annotation goes far to the right of the FP32 bar end so it can't overlap
+    ax.text(11.0, 2.5, 'half the bits', fontsize=10, color='#888', va='center', style='italic')
 
     # INT8: 8 bits, no sign/exponent/mantissa — just a whole number
     draw_bit_bar(ax, 1, [('Integer value', 8, INT)], 32, 'INT8')
-    ax.text(2.7, 1, '← 1/4 the bits\nno decimal point', fontsize=10, color='#888', va='center')
+    ax.text(11.0, 1, 'no decimal point', fontsize=10, color='#888', va='center', style='italic')
 
     ax.set_title('How Numbers Are Stored: FP32 vs FP16 vs INT8',
                  fontsize=14, fontweight='bold', y=1.02)
