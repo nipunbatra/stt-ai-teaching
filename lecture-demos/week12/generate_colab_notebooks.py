@@ -201,7 +201,7 @@ This function wraps a lot of boilerplate into one call. Here's what each part do
 """
         ),
         code_cell(
-            """messages = [{"role": "user", "content": "What is the capital of India?"}]
+            """messages = [{"role": "user", "content": [{"type": "text", "text": "What is the capital of India?"}]}]
 result = generate(messages)
 print(result["text"])
 """
@@ -211,7 +211,7 @@ print(result["text"])
 """
         ),
         code_cell(
-            """messages = [{"role": "user", "content": "What is the weather in Gandhinagar right now?"}]
+            """messages = [{"role": "user", "content": [{"type": "text", "text": "What is the weather in Gandhinagar right now?"}]}]
 result = generate(messages)
 print(result["text"])
 """
@@ -235,7 +235,7 @@ LLMs predict tokens — they don't compute. Ask a hard math question and they'll
 """
         ),
         code_cell(
-            """messages = [{"role": "user", "content": "What is 4729 times 8314?"}]
+            """messages = [{"role": "user", "content": [{"type": "text", "text": "What is 4729 times 8314?"}]}]
 result = generate(messages)
 print("LLM says:", result["text"])
 print("Actual  :", 4729 * 8314)
@@ -316,7 +316,7 @@ The model reads this "menu" and **decides** whether to use the tool or answer di
 """
         ),
         code_cell(
-            """messages = [{"role": "user", "content": "What is 4729 times 8314?"}]
+            """messages = [{"role": "user", "content": [{"type": "text", "text": "What is 4729 times 8314?"}]}]
 result = generate(messages, tools=[calculator_tool])
 
 print("=== Parsed response ===")
@@ -332,15 +332,17 @@ The model did NOT compute the answer — it just said *"please run this function
         code_cell(
             """# Extract the tool call
 tool_call = result["parsed"]["tool_calls"][0]
-print(f"Model wants to call: {tool_call['name']}({tool_call['arguments']})")
+func_name = tool_call["function"]["name"]
+func_args = tool_call["function"]["arguments"]
+print(f"Model wants to call: {func_name}({func_args})")
 
 # Execute it
-answer = calculate(**tool_call["arguments"])
+answer = calculate(**func_args)
 print(f"Tool returned: {answer}")
 
-# Feed the result back to the model
-messages.append({"role": "assistant", "tool_calls": result["parsed"]["tool_calls"]})
-messages.append({"role": "tool", "name": tool_call["name"], "content": answer})
+# Feed the result back to the model (Gemma 4 format)
+messages.append({"role": "assistant", **result["parsed"]})
+messages.append({"role": "tool_response", "tool_responses": [{"name": func_name, "response": answer}]})
 
 # Generate the final answer
 final = generate(messages, tools=[calculator_tool])
@@ -356,10 +358,12 @@ Let's slow down and really understand the message flow:
 
 ```
 messages = [
-  {"role": "user",      "content": "What is 4729 times 8314?"}         # ① You ask
-  {"role": "assistant", "tool_calls": [{"name": "calculate", ...}]}    # ② Model requests tool
-  {"role": "tool",      "name": "calculate", "content": "39317006"}    # ③ You execute, feed result
-  # Now the model sees all three messages and writes a final answer     # ④ Model responds
+  {"role": "user",          "content": [{"type": "text", "text": "..."}]}     # ① You ask
+  {"role": "assistant",     "tool_calls": [{"function": {"name": "calculate",
+                                            "arguments": {"expression": "..."}}}]}  # ② Model requests
+  {"role": "tool_response", "tool_responses": [{"name": "calculate",
+                                                "response": "39317006"}]}     # ③ You execute
+  # Now the model sees all three messages and writes a final answer           # ④ Model responds
 ]
 ```
 
@@ -532,28 +536,28 @@ TOOL_FUNCTIONS = {
 }
 
 # Test: the model should pick get_weather
-messages = [{"role": "user", "content": "Is it raining in Bangalore?"}]
+messages = [{"role": "user", "content": [{"type": "text", "text": "Is it raining in Bangalore?"}]}]
 result = generate(messages, tools=ALL_TOOLS)
 print("Tool picked:", result["parsed"].get("tool_calls", "none — answered directly"))
 """
         ),
         code_cell(
             """# Test: the model should pick convert_units
-messages = [{"role": "user", "content": "I weigh 70 kg. What's that in pounds?"}]
+messages = [{"role": "user", "content": [{"type": "text", "text": "I weigh 70 kg. What's that in pounds?"}]}]
 result = generate(messages, tools=ALL_TOOLS)
 print("Tool picked:", result["parsed"].get("tool_calls", "none — answered directly"))
 """
         ),
         code_cell(
             """# Test: the model should pick search_notes
-messages = [{"role": "user", "content": "What week did we cover Docker?"}]
+messages = [{"role": "user", "content": [{"type": "text", "text": "What week did we cover Docker?"}]}]
 result = generate(messages, tools=ALL_TOOLS)
 print("Tool picked:", result["parsed"].get("tool_calls", "none — answered directly"))
 """
         ),
         code_cell(
             """# Test: the model should NOT use any tool
-messages = [{"role": "user", "content": "What is the capital of France?"}]
+messages = [{"role": "user", "content": [{"type": "text", "text": "What is the capital of France?"}]}]
 result = generate(messages, tools=ALL_TOOLS)
 if result["parsed"].get("tool_calls"):
     print("Used tool:", result["parsed"]["tool_calls"])
@@ -606,7 +610,7 @@ That's the entire architecture. Let's implement it:
         max_steps: Safety limit to prevent infinite loops
         verbose: If True, print each step for educational purposes
     \"\"\"
-    messages = [{"role": "user", "content": user_message}]
+    messages = [{"role": "user", "content": [{"type": "text", "text": user_message}]}]
 
     for step in range(1, max_steps + 1):
         if verbose:
@@ -624,15 +628,14 @@ That's the entire architecture. Let's implement it:
                 print(f"Final answer: {result['text']}")
             return result["text"]
 
-        # 3. Execute each tool call
-        messages.append({
-            "role": "assistant",
-            "tool_calls": result["parsed"]["tool_calls"]
-        })
+        # 3. Add the assistant's response (includes tool_calls)
+        messages.append({"role": "assistant", **result["parsed"]})
 
+        # 4. Execute each tool call and collect responses
+        tool_responses = []
         for tc in result["parsed"]["tool_calls"]:
-            name = tc["name"]
-            args = tc["arguments"]
+            name = tc["function"]["name"]
+            args = tc["function"]["arguments"]
             if verbose:
                 print(f"  Tool call: {name}({json.dumps(args)})")
 
@@ -645,11 +648,10 @@ That's the entire architecture. Let's implement it:
             if verbose:
                 print(f"  Result:    {tool_result}")
 
-            messages.append({
-                "role": "tool",
-                "name": name,
-                "content": str(tool_result),
-            })
+            tool_responses.append({"name": name, "response": str(tool_result)})
+
+        # 5. Feed all tool results back in one message (Gemma 4 format)
+        messages.append({"role": "tool_response", "tool_responses": tool_responses})
 
     return "Reached max steps without a final answer."
 """
