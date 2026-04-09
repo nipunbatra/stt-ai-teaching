@@ -60,7 +60,7 @@
     "href": "index.html#part-iii-engineering-weeks-913",
     "title": "CS 203: Software Tools and Techniques for AI",
     "section": "Part III: Engineering (Weeks 9–13)",
-    "text": "Part III: Engineering (Weeks 9–13)\n\n\n\nWeek\nTopic\nSlides\nHands-On\n\n\n\n\n9\nReproducibility: Docker, Seeds & Tracking\nHTML · PDF\nDocker Demos\n\n\n10\nFrom Script to Web App\nHTML · PDF\n\n\n\n11\nCI/CD & Automation\nHTML · PDF\nFollow-along · PDF\n\n\n11\nProfiling & Quantization\nHTML · PDF\n\n\n\n12\nAPIs & Demos\nHTML · PDF\nFollow-along · PDF\n\n\n12\nCourse Summary\nHTML · PDF\n\n\n\n13\nModel Profiling & Quantization\nHTML\nNotebook · Follow-along"
+    "text": "Part III: Engineering (Weeks 9–13)\n\n\n\nWeek\nTopic\nSlides\nHands-On\n\n\n\n\n9\nReproducibility: Docker, Seeds & Tracking\nHTML · PDF\nDocker Demos\n\n\n10\nData Drift & Model Monitoring\nHTML\nNotebook\n\n\n11\nProfiling & Quantization\nHTML · PDF\nColab Notebooks\n\n\n12\nBuilding AI Agents\nHTML · PDF\nColab Notebook\n\n\n13\nCourse Summary\nHTML · PDF"
   },
   {
     "objectID": "lecture-demos/week04/cleanlab_noisy_labels.html",
@@ -1419,5 +1419,12 @@
     "title": "Week 7 Lab: From Models to Experiments",
     "section": "Exercises",
     "text": "Exercises\n\nStratified CV: Use StratifiedKFold explicitly and compare with default cross_val_score\nMore models: Add XGBoost or LightGBM to the comparison\nOptuna for LR: Tune C and penalty for Logistic Regression using Optuna\nLearning curve for DT: Plot a learning curve for Decision Tree – does it overfit?\nAutoGluon presets: Try medium_quality vs good_quality – how much does extra time help?"
+  },
+  {
+    "objectID": "index.html#additional-content",
+    "href": "index.html#additional-content",
+    "title": "CS 203: Software Tools and Techniques for AI",
+    "section": "Additional Content",
+    "text": "Additional Content\n\n\n\nTopic\nSlides\nHands-On\n\n\n\n\nFrom Script to Web App\nHTML · PDF\n\n\n\nAPIs & Demos\nHTML · PDF\nFollow-along · PDF"
   }
 ]

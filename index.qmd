@@ -32,8 +32,13 @@ subtitle: "IIT Gandhinagar · Jan 2026 · Prof. Nipun Batra"
 |:----:|-------|:------:|:--------:|
 | 9 | Reproducibility: Docker, Seeds & Tracking | [HTML](html/week09-reproducibility-lecture.html) · [PDF](pdf/week09-reproducibility-lecture.pdf) | [Docker Demos](https://github.com/nipunbatra/docker-ml-demos) |
 | 10 | Data Drift & Model Monitoring | [HTML](html/week10-data-drift-lecture.html) | [Notebook](lecture-demos/week10/data_drift_notebook.html) |
-| 10 | From Script to Web App | [HTML](html/week10-web-apps-lecture.html) · [PDF](pdf/week10-web-apps-lecture.pdf) | |
-| 11 | Profiling & Quantization | [HTML](html/week11-profiling-quantization-lecture.html) · [PDF](pdf/week11-profiling-quantization-lecture.pdf) | |
-| 12 | APIs & Demos | [HTML](html/week12-apis-lecture.html) · [PDF](pdf/week12-apis-lecture.pdf) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) · [PDF](lecture-demos/week12/apis_followalong.pdf) |
-| 12 | Course Summary | [HTML](html/week12-course-summary-lecture.html) · [PDF](pdf/week12-course-summary-lecture.pdf) | |
-| 13 | Model Profiling & Quantization | [HTML](html/week13-profiling-lecture.html) | [Notebook](lecture-demos/week13/profiling_notebook.html) · [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week13/profiling_followalong.sh) |
+| 11 | Profiling & Quantization | [HTML](html/week11-profiling-quantization-lecture.html) · [PDF](pdf/week11-profiling-quantization-lecture.pdf) | [Colab Notebooks](lecture-demos/week11/colab-notebooks/) |
+| 12 | Building AI Agents | [HTML](html/week12-agents-lecture.html) · [PDF](pdf/week12-agents-lecture.pdf) | [Colab Notebook](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/colab-notebooks/01-agents-from-scratch.ipynb) |
+| 13 | Course Summary | [HTML](html/week13-course-summary-lecture.html) · [PDF](pdf/week13-course-summary-lecture.pdf) | |
+
+## Additional Content {.additional-section}
+
+| Topic | Slides | Hands-On |
+|-------|:------:|:--------:|
+| From Script to Web App | [HTML](html/week10-web-apps-lecture.html) · [PDF](pdf/week10-web-apps-lecture.pdf) | |
+| APIs & Demos | [HTML](html/week12-apis-lecture.html) · [PDF](pdf/week12-apis-lecture.pdf) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) · [PDF](lecture-demos/week12/apis_followalong.pdf) |

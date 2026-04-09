@@ -39,7 +39,7 @@ By the end of this course, you will be able to:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        CS 203: 15-Week Journey                          │
+│                        CS 203: 13-Week Journey                          │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  PART I: DATA ENGINEERING (Weeks 1-5)                                   │
@@ -49,19 +49,17 @@ By the end of this course, you will be able to:
 │  ├── Week 4: Optimizing Labeling (Active Learning, Weak Supervision)    │
 │  └── Week 5: Data Augmentation (Image, Text, Audio)                     │
 │                                                                         │
-│  PART II: MODEL DEVELOPMENT (Weeks 6-11)                                │
+│  PART II: MODEL DEVELOPMENT (Weeks 6-8)                                 │
 │  ├── Week 6: LLM APIs (Gemini, Prompt Engineering)                      │
-│  ├── Week 7: Model Training (AutoML, Fine-tuning)                       │
-│  ├── Week 8: Reproducibility (Docker, DVC, MLflow)                      │
-│  ├── Week 9: Interactive Demos (Streamlit, Gradio)                      │
-│  ├── Week 10: ML APIs (FastAPI, REST)                                   │
-│  └── Week 11: CI/CD (GitHub Actions, Testing)                           │
+│  ├── Week 7: Model Evaluation (CV, Bias-Variance)                       │
+│  └── Week 8: Tuning, AutoML & Tracking (Optuna, TrackIO)               │
 │                                                                         │
-│  PART III: PRODUCTION (Weeks 12-15)                                     │
-│  ├── Week 12: Edge Deployment (ONNX, Quantization)                      │
-│  ├── Week 13: Profiling & Optimization (AMP, Distillation)              │
-│  ├── Week 14: Monitoring (Drift Detection, Alerts)                      │
-│  └── Week 15: Course Summary & Future Trends                            │
+│  PART III: ENGINEERING (Weeks 9-13)                                     │
+│  ├── Week 9: Reproducibility (Docker, Seeds, Tracking)                  │
+│  ├── Week 10: Data Drift & Monitoring (KS test, PSI)                    │
+│  ├── Week 11: Profiling & Quantization (INT8, ONNX)                     │
+│  ├── Week 12: Building AI Agents (Tool Calling, Gemma 4)                │
+│  └── Week 13: Course Summary & What's Next                              │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -81,23 +79,21 @@ By the end of this course, you will be able to:
 
 ## Weekly Topics & Tools
 
-| Week | Topic | Key Tools | Lecture | Lab |
-|:----:|-------|-----------|:-------:|:---:|
-| 1 | Data Collection | curl, requests, BeautifulSoup | [PDF](pdf/week01-data-collection-lecture.pdf) | [PDF](pdf/week01-data-collection-lab.pdf) |
-| 2 | Data Validation | jq, Pydantic, pandas | [PDF](pdf/week02-data-validation-lecture.pdf) | [PDF](pdf/week02-data-validation-lab.pdf) |
-| 3 | Data Labeling | Label Studio, Cohen's Kappa | [PDF](pdf/week03-data-labeling-lecture.pdf) | [PDF](pdf/week03-data-labeling-lab.pdf) |
-| 4 | Optimizing Labeling | modAL, Snorkel, cleanlab | [PDF](pdf/week04-optimizing-labeling-lecture.pdf) | [PDF](pdf/week04-active-learning-lab.pdf) |
-| 5 | Data Augmentation | Albumentations, nlpaug | [PDF](pdf/week05-data-augmentation-lecture.pdf) | [PDF](pdf/week05-data-augmentation-lab.pdf) |
-| 6 | LLM APIs | Gemini API, OpenAI | [PDF](pdf/week06-llm-apis-lecture.pdf) | [PDF](pdf/week06-llm-apis-lab.pdf) |
-| 7 | Model Development | scikit-learn, AutoGluon | [PDF](pdf/week07-model-development-lecture.pdf) | [PDF](pdf/week07-model-development-lab.pdf) |
-| 8 | Reproducibility | Docker, DVC, MLflow | [PDF](pdf/week08-reproducibility-lecture.pdf) | [PDF](pdf/week08-reproducibility-lab.pdf) |
-| 9 | Interactive Demos | Streamlit, Gradio | [PDF](pdf/week09-interactive-demos-lecture.pdf) | [PDF](pdf/week09-interactive-demos-lab.pdf) |
-| 10 | HTTP & APIs | FastAPI, Pydantic | [PDF](pdf/week10-http-apis-lecture.pdf) | [PDF](pdf/week10-http-apis-lab.pdf) |
-| 11 | Git & CI/CD | GitHub Actions, pytest | [PDF](pdf/week11-git-cicd-lecture.pdf) | [PDF](pdf/week11-git-cicd-lab.pdf) |
-| 12 | Edge Deployment | ONNX, Quantization | [PDF](pdf/week12-deployment-constrained-lecture.pdf) | [PDF](pdf/week12-deployment-constrained-lab.pdf) |
-| 13 | Profiling | PyTorch Profiler, AMP | [PDF](pdf/week13-profiling-optimization-lecture.pdf) | [PDF](pdf/week13-profiling-optimization-lab.pdf) |
-| 14 | Monitoring | Evidently AI, Drift | [PDF](pdf/week14-model-monitoring-lecture.pdf) | [PDF](pdf/week14-model-monitoring-lab.pdf) |
-| 15 | Summary | — | [PDF](pdf/week15-course-summary-lecture.pdf) | — |
+| Week | Topic | Key Tools | Slides |
+|:----:|-------|-----------|:------:|
+| 1 | Data Collection | curl, requests, BeautifulSoup | [PDF](pdf/week01-data-collection-lecture.pdf) |
+| 2 | Data Validation | jq, Pydantic, pandas | [PDF](pdf/week02-data-validation-lecture.pdf) |
+| 3 | Data Labeling | Label Studio, Cohen's Kappa | [PDF](pdf/week03-data-labeling-lecture.pdf) |
+| 4 | Optimizing Labeling | modAL, Snorkel, cleanlab | [PDF](pdf/week04-optimizing-labeling-lecture.pdf) |
+| 5 | Data Augmentation | Albumentations, nlpaug | [PDF](pdf/week05-data-augmentation-lecture.pdf) |
+| 6 | LLM APIs | Gemini API, prompt engineering | [PDF](pdf/week06-llm-apis-lecture.pdf) |
+| 7 | Model Evaluation | scikit-learn, cross-validation | [PDF](pdf/week07-model-development-lecture.pdf) |
+| 8 | Tuning & Tracking | Optuna, TrackIO | [PDF](pdf/week08-tuning-tracking-lecture.pdf) |
+| 9 | Reproducibility | Docker, seeds, tracking | [PDF](pdf/week09-reproducibility-lecture.pdf) |
+| 10 | Data Drift | KS test, PSI, chi-squared | [HTML](html/week10-data-drift-lecture.html) |
+| 11 | Profiling & Quantization | cProfile, INT8, ONNX | [PDF](pdf/week11-profiling-quantization-lecture.pdf) |
+| 12 | Building AI Agents | Gemma 4, tool calling, agent loop | [PDF](pdf/week12-agents-lecture.pdf) |
+| 13 | Course Summary | — | [PDF](pdf/week13-course-summary-lecture.pdf) |
 
 ---
 

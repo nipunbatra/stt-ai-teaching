@@ -363,7 +363,7 @@ planned what to do — you just executed each step.
 
 <!-- _class: section-divider -->
 
-# Part 5: Where This Is Going
+# Part 4: Where This Is Going
 
 *From toy demos to real-world impact.*
 
