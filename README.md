@@ -136,15 +136,17 @@ make list
 
 ```
 stt-ai-teaching/
-├── slides/              # Source Markdown files
-│   ├── week01-*.md      # Week 1 lecture and lab
-│   ├── week02-*.md      # Week 2 lecture and lab
-│   └── ...
-├── pdf/                 # Generated PDF slides
-├── html/                # Generated HTML slides
-├── figures/             # Diagrams and images
+├── slides/              # Source Marp Markdown files (week01-*.md to week13-*.md)
+│   ├── images/          # Images referenced by slides
+│   └── archive/         # Deprecated slides (kept for reference)
+├── labs/                # Jupyter notebook labs
+├── lecture-demos/       # Code demos and Colab notebooks per week
+├── pdf/                 # Generated PDF slides (gitignored, selectively tracked)
+├── html/                # Generated HTML slides (gitignored, selectively tracked)
+├── backup/              # Old curriculum slides (pre-restructure)
 ├── diagram-generators/  # Python scripts to generate diagrams
-├── index.qmd            # Quarto source for course website
+├── index.qmd            # Quarto source for slides homepage
+├── custom.scss          # Quarto theme styling
 ├── Makefile             # Build automation
 └── README.md            # This file
 ```

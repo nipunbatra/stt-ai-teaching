@@ -22,6 +22,13 @@ COURSE_AUDIT.md
 DIAGRAM_GUIDE.md
 node_modules/
 
+# Generated diagrams and prompts
+outputs/
+prompts/
+
+# Python cache
+**/__pycache__/
+
 # Large datasets (download separately)
 **/data/cifar-10-python.tar.gz
 **/data/cifar-10-batches-py/
