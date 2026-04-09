@@ -324,7 +324,7 @@ print(json.dumps(result["parsed"], indent=2))
 """
         ),
         markdown_cell(
-            """**Look at the output carefully.** You should see a `tool_calls` list with `"name": "calculate"` and `"arguments": {"expression": "4729 * 8314"}`.
+            """**Look at the output carefully.** You should see a `tool_calls` list. Each tool call has a `"function"` dict with `"name": "calculate"` and `"arguments": {"expression": "4729 * 8314"}`.
 
 The model did NOT compute the answer — it just said *"please run this function with these arguments."* Now **we** execute the function and feed the result back:
 """
@@ -340,9 +340,19 @@ print(f"Model wants to call: {func_name}({func_args})")
 answer = calculate(**func_args)
 print(f"Tool returned: {answer}")
 
-# Feed the result back to the model (Gemma 4 format)
-messages.append({"role": "assistant", **result["parsed"]})
-messages.append({"role": "tool_response", "tool_responses": [{"name": func_name, "response": answer}]})
+# Feed the result back to the model
+# Gemma 4's processor requires every message to have "content" as a list
+parsed = result["parsed"]
+messages.append({
+    "role": "assistant",
+    "content": [{"type": "text", "text": parsed.get("content", "") or ""}],
+    "tool_calls": parsed["tool_calls"],
+})
+messages.append({
+    "role": "tool",
+    "content": [{"type": "text", "text": answer}],
+    "name": func_name,
+})
 
 # Generate the final answer
 final = generate(messages, tools=[calculator_tool])
@@ -358,12 +368,10 @@ Let's slow down and really understand the message flow:
 
 ```
 messages = [
-  {"role": "user",          "content": [{"type": "text", "text": "..."}]}     # ① You ask
-  {"role": "assistant",     "tool_calls": [{"function": {"name": "calculate",
-                                            "arguments": {"expression": "..."}}}]}  # ② Model requests
-  {"role": "tool_response", "tool_responses": [{"name": "calculate",
-                                                "response": "39317006"}]}     # ③ You execute
-  # Now the model sees all three messages and writes a final answer           # ④ Model responds
+  {"role": "user",      "content": [{"type": "text", "text": "..."}]}                  # ① You ask
+  {"role": "assistant", "content": [...], "tool_calls": [{"function": {...}}]}          # ② Model requests
+  {"role": "tool",      "content": [{"type": "text", "text": "39317006"}], "name": …}  # ③ You execute
+  # Now the model sees all three messages and writes a final answer                    # ④ Model responds
 ]
 ```
 
@@ -628,12 +636,16 @@ That's the entire architecture. Let's implement it:
                 print(f"Final answer: {result['text']}")
             return result["text"]
 
-        # 3. Add the assistant's response (includes tool_calls)
-        messages.append({"role": "assistant", **result["parsed"]})
+        # 3. Add the assistant's response (with tool_calls)
+        parsed = result["parsed"]
+        messages.append({
+            "role": "assistant",
+            "content": [{"type": "text", "text": parsed.get("content", "") or ""}],
+            "tool_calls": parsed["tool_calls"],
+        })
 
-        # 4. Execute each tool call and collect responses
-        tool_responses = []
-        for tc in result["parsed"]["tool_calls"]:
+        # 4. Execute each tool call and feed results back
+        for tc in parsed["tool_calls"]:
             name = tc["function"]["name"]
             args = tc["function"]["arguments"]
             if verbose:
@@ -648,10 +660,11 @@ That's the entire architecture. Let's implement it:
             if verbose:
                 print(f"  Result:    {tool_result}")
 
-            tool_responses.append({"name": name, "response": str(tool_result)})
-
-        # 5. Feed all tool results back in one message (Gemma 4 format)
-        messages.append({"role": "tool_response", "tool_responses": tool_responses})
+            messages.append({
+                "role": "tool",
+                "content": [{"type": "text", "text": str(tool_result)}],
+                "name": name,
+            })
 
     return "Reached max steps without a final answer."
 """
