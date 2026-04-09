@@ -1427,6 +1427,763 @@ student? Why? (Hint: what does temperature do to the teacher's probabilities?)
 
 
 # ----------------------------------------------------------------------------
+# 10 — Lab: profiling & quantization (student exercises)
+# ----------------------------------------------------------------------------
+def nb_lab() -> list[dict]:
+    return [
+        markdown_cell(
+            """# Week 11 Lab — Profiling and Quantization
+
+> **What this is.** A hands-on lab covering the first five parts of the Week 11
+> lecture: floating point, parameters & memory, profiling, batching, and
+> quantization (PyTorch + ONNX). Pruning and distillation are **not** in this lab.
+
+## How to work through this
+
+- Read each **Task** box carefully, then fill in the `# TODO:` lines in the
+  following code cell. Do not skip the markdown questions.
+- Each task ends with a tiny **check** cell that should print `PASS` if your
+  answer looks right. Don't edit the check cells.
+- At the end you'll produce one small **summary table** that compares all the
+  variants you built.
+
+## Before you start
+
+Run the setup cell below once. It installs ONNX libraries, imports everything,
+loads the digits dataset, and defines helpers used throughout the lab.
+"""
+        ),
+        markdown_cell(
+            """## Setup — run this first
+"""
+        ),
+        code_cell(
+            """%pip install -q onnx onnxruntime skl2onnx
+"""
+        ),
+        code_cell(
+            """import io
+import os
+import struct
+import time
+import timeit
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, TensorDataset
+
+torch.manual_seed(0)
+np.random.seed(0)
+
+# Digits dataset (8x8 grayscale, 10 classes) — tiny, CPU-friendly
+digits = load_digits()
+X = torch.tensor(digits.data / 16.0, dtype=torch.float32)
+y = torch.tensor(digits.target, dtype=torch.long)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+train_loader = DataLoader(TensorDataset(X_train, y_train), batch_size=64, shuffle=True)
+test_loader  = DataLoader(TensorDataset(X_test,  y_test),  batch_size=256)
+
+artifacts = Path("/tmp/week11_lab")
+artifacts.mkdir(exist_ok=True)
+
+print("Setup OK — train:", X_train.shape, "test:", X_test.shape)
+"""
+        ),
+        markdown_cell(
+            """---
+
+## Part A — Floating Point  *(Lecture Part 1)*
+
+Three quick tasks to build intuition about how decimals are stored.
+"""
+        ),
+        markdown_cell(
+            """### Task A1 — Why is `0.1 + 0.2` not `0.3`?
+
+Run the cell. In the markdown cell after it, **write one or two sentences**
+explaining the printed result in your own words (hint: look back at the FP32
+slides — 23 bits of mantissa can't represent `0.1` exactly).
+"""
+        ),
+        code_cell(
+            """a = 0.1 + 0.2
+print(f"0.1 + 0.2 = {a!r}")
+print(f"Equal to 0.3?  {a == 0.3}")
+print(f"Difference   : {a - 0.3:.2e}")
+"""
+        ),
+        markdown_cell(
+            """**Your explanation (Task A1):**
+
+> _Replace this line with your 1–2 sentence answer._
+"""
+        ),
+        markdown_cell(
+            """### Task A2 — Encode `3.25` in FP32 by hand, verify with numpy
+
+`3.25` in binary is `11.01`. Normalize it and fill in the three fields below.
+Then run the check cell to compare against numpy's real FP32 bits.
+"""
+        ),
+        code_cell(
+            """# TODO — fill these in by hand using the Lecture Part 1 recipe.
+# Hint: 3.25 = 11.01 (binary) = 1.101 × 2^?
+sign_bit             = None   # 0 for positive, 1 for negative
+real_exponent        = None   # the "? " in 2^?
+stored_exponent      = None   # = real_exponent + 127
+mantissa_23_bits_str = None   # 23-char string of 0s and 1s, leading "1." dropped
+"""
+        ),
+        code_cell(
+            """# --- check cell for A2 (do not edit) ---
+def fp32_bits(x: float) -> str:
+    return format(struct.unpack("I", struct.pack("f", x))[0], "032b")
+
+real = fp32_bits(3.25)
+real_sign = int(real[0])
+real_exp  = int(real[1:9], 2) - 127
+real_mant = real[9:]
+
+print(f"numpy says  sign={real_sign}, real_exp={real_exp}, mantissa={real_mant}")
+print(f"you said    sign={sign_bit}, real_exp={real_exponent}, mantissa={mantissa_23_bits_str}")
+assert sign_bit == real_sign, "sign bit wrong"
+assert real_exponent == real_exp, "real exponent wrong"
+assert stored_exponent == real_exp + 127, "stored exponent wrong"
+assert mantissa_23_bits_str == real_mant, "mantissa bits wrong"
+print("PASS")
+"""
+        ),
+        markdown_cell(
+            """### Task A3 — Build a "fake INT8" quantizer
+
+Finish the function below. It must:
+
+1. Find the scale: `max(|x|) / 127`.
+2. Divide by scale and round to the nearest integer.
+3. Clamp into `[-127, 127]` so it fits in INT8.
+4. Multiply the rounded integers by the scale to "dequantize" back to floats.
+
+Then run the check cell to see the maximum error.
+"""
+        ),
+        code_cell(
+            """def fake_int8_quantize(x: np.ndarray) -> tuple[np.ndarray, float]:
+    \"\"\"Return (dequantized_values, scale).\"\"\"
+    x = np.asarray(x, dtype=np.float32)
+    # TODO — replace the three "None" lines
+    scale   = None
+    q_int8  = None     # step 2 and 3 combined: round, cast to int8, clamp
+    x_back  = None     # step 4: back to float
+    return x_back, scale
+"""
+        ),
+        code_cell(
+            """# --- check cell for A3 (do not edit) ---
+rng = np.random.default_rng(0)
+w   = rng.normal(0, 0.3, size=500).astype(np.float32)
+
+w_back, scale = fake_int8_quantize(w)
+
+max_err = float(np.max(np.abs(w - w_back)))
+print(f"scale     : {scale:.6f}")
+print(f"max error : {max_err:.6f}")
+print(f"mean error: {float(np.mean(np.abs(w - w_back))):.6f}")
+assert max_err < 0.02, "error too large — did you forget to multiply back by the scale?"
+print("PASS")
+"""
+        ),
+        markdown_cell(
+            """---
+
+## Part B — Parameters and Memory  *(Lecture Part 2)*
+"""
+        ),
+        markdown_cell(
+            """### Task B1 — Count parameters manually
+
+Look at `LabMLP` below. **Before** running any code, compute the total number
+of parameters **by hand** (hint: every `nn.Linear(a, b)` has `a*b + b` params)
+and fill it into the TODO.
+"""
+        ),
+        code_cell(
+            """class LabMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 10),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+# TODO — your hand-computed total parameter count:
+my_param_count_guess = None
+"""
+        ),
+        code_cell(
+            """# --- check cell for B1 ---
+model = LabMLP()
+real_params = sum(p.numel() for p in model.parameters())
+print(f"PyTorch says: {real_params:,}")
+print(f"Your guess  : {my_param_count_guess}")
+assert my_param_count_guess == real_params, "recount — don't forget the biases!"
+print("PASS")
+"""
+        ),
+        markdown_cell(
+            """### Task B2 — Memory at FP32 / FP16 / INT8
+
+Fill in the function so it returns the model size in **kilobytes** for a given
+bytes-per-parameter. A parameter at FP32 takes 4 bytes, FP16 takes 2, INT8 takes 1.
+"""
+        ),
+        code_cell(
+            """def model_size_kb(num_params: int, bytes_per_param: int) -> float:
+    # TODO
+    return None
+
+
+# Use it on our LabMLP
+print("FP32:", model_size_kb(real_params, 4), "KB")
+print("FP16:", model_size_kb(real_params, 2), "KB")
+print("INT8:", model_size_kb(real_params, 1), "KB")
+"""
+        ),
+        code_cell(
+            """# --- check cell for B2 ---
+assert abs(model_size_kb(real_params, 4) - real_params * 4 / 1024) < 1e-9
+assert abs(model_size_kb(real_params, 1) - real_params * 1 / 1024) < 1e-9
+print("PASS")
+"""
+        ),
+        markdown_cell(
+            """### Task B3 — LLaMA-7B in three precisions
+
+LLaMA-7B has **7,000,000,000** parameters. Compute how many **GB** it needs in
+FP32, FP16, and INT8 (1 GB = 1024³ bytes ≈ 1.07e9 bytes; use the decimal
+definition `10^9` bytes to keep the math simple).
+"""
+        ),
+        code_cell(
+            """LLAMA_PARAMS = 7_000_000_000
+
+# TODO — fill in the three numbers (in GB, using 1 GB = 1e9 bytes)
+fp32_gb = None
+fp16_gb = None
+int8_gb = None
+
+print(f"FP32: {fp32_gb} GB")
+print(f"FP16: {fp16_gb} GB")
+print(f"INT8: {int8_gb} GB")
+"""
+        ),
+        code_cell(
+            """# --- check cell for B3 ---
+assert fp32_gb == 28, "FP32 should be 28 GB"
+assert fp16_gb == 14, "FP16 should be 14 GB"
+assert int8_gb == 7,  "INT8 should be 7 GB"
+print("PASS")
+"""
+        ),
+        markdown_cell(
+            """---
+
+## Part C — Profiling  *(Lecture Part 3)*
+"""
+        ),
+        markdown_cell(
+            """### Task C1 — `%timeit` two functions
+
+Both functions below compute the same thing. Use `%timeit` on each and report
+*which one is faster* and *by how much*. You do not need to edit the functions.
+"""
+        ),
+        code_cell(
+            """def dot_python(a, b):
+    total = 0.0
+    for i in range(len(a)):
+        total += a[i] * b[i]
+    return total
+
+
+def dot_numpy(a, b):
+    return float(np.dot(a, b))
+
+
+aa = np.random.rand(10_000).astype(np.float32)
+bb = np.random.rand(10_000).astype(np.float32)
+
+print("Python loop =", dot_python(aa, bb))
+print("NumPy       =", dot_numpy(aa, bb))
+"""
+        ),
+        code_cell(
+            """%timeit dot_python(aa, bb)
+"""
+        ),
+        code_cell(
+            """%timeit dot_numpy(aa, bb)
+"""
+        ),
+        markdown_cell(
+            """**Your answer (Task C1):**
+
+- Which is faster? _____
+- Roughly how many times faster? _____
+- Why is the faster one faster (one sentence)? _____
+"""
+        ),
+        markdown_cell(
+            """### Task C2 — cProfile a slow endpoint
+
+We've deliberately written `slow_endpoint` below to mimic the bug from the
+lecture. **Run the cProfile cell, read the top few rows, and identify the
+actual bottleneck**.
+
+Hint: look for the function with the biggest `cumtime`.
+"""
+        ),
+        code_cell(
+            """import joblib
+from sklearn.ensemble import RandomForestClassifier
+
+# Train and save a little RF model + a CSV "config file"
+rf = RandomForestClassifier(n_estimators=50, random_state=0)
+rf.fit(X_train.numpy(), y_train.numpy())
+joblib.dump(rf, artifacts / "rf.pkl")
+pd.DataFrame(X_train.numpy()).to_csv(artifacts / "config.csv", index=False)
+
+sample = X_test[0].numpy()
+
+
+def slow_endpoint(sample):
+    cfg = pd.read_csv(artifacts / "config.csv")       # reloaded every call!
+    model = joblib.load(artifacts / "rf.pkl")          # reloaded every call!
+    return model.predict([sample])[0]
+"""
+        ),
+        code_cell(
+            """import cProfile, pstats
+
+profiler = cProfile.Profile()
+profiler.enable()
+for _ in range(10):
+    slow_endpoint(sample)
+profiler.disable()
+
+pstats.Stats(profiler).strip_dirs().sort_stats("cumulative").print_stats(10)
+"""
+        ),
+        markdown_cell(
+            """**Your answer (Task C2):**
+
+- Which function takes the most cumulative time? _____
+- Is `model.predict(...)` in the top 3? (yes / no) _____
+"""
+        ),
+        markdown_cell(
+            """### Task C3 — Fix the slow endpoint, measure the speedup
+
+Write `fast_endpoint` that keeps the same behavior but loads the model and the
+CSV **once** at module level (outside the function). Then compare `%timeit`
+numbers.
+"""
+        ),
+        code_cell(
+            """# TODO — load these ONCE, outside the function
+cached_cfg   = None
+cached_model = None
+
+
+def fast_endpoint(sample):
+    # TODO — use cached_model here and return its prediction
+    pass
+"""
+        ),
+        code_cell(
+            """# --- check cell for C3 ---
+pred_slow = slow_endpoint(sample)
+pred_fast = fast_endpoint(sample)
+assert pred_fast is not None, "fast_endpoint is still returning None"
+assert pred_slow == pred_fast, "fast_endpoint returned a different prediction!"
+print("Predictions match. Now compare timings below:")
+"""
+        ),
+        code_cell(
+            """%timeit slow_endpoint(sample)
+"""
+        ),
+        code_cell(
+            """%timeit fast_endpoint(sample)
+"""
+        ),
+        markdown_cell(
+            """**Your answer (Task C3):**
+
+- slow_endpoint average: _____ ms
+- fast_endpoint average: _____ ms
+- Speedup (slow / fast): _____ ×
+"""
+        ),
+        markdown_cell(
+            """---
+
+## Part D — Batching  *(Lecture Part 4)*
+"""
+        ),
+        markdown_cell(
+            """### Task D1 — Benchmark latency vs batch size
+
+Fill in the loop so `rows` ends up as a list of dicts with these keys:
+`batch_size`, `avg_batch_ms`, `avg_per_example_ms`, `examples_per_second`.
+"""
+        ),
+        code_cell(
+            """bench_model = nn.Sequential(
+    nn.Linear(256, 512), nn.ReLU(),
+    nn.Linear(512, 512), nn.ReLU(),
+    nn.Linear(512, 10),
+)
+bench_model.eval()
+
+batch_sizes = [1, 8, 32, 128, 512]
+rows = []
+
+for bs in batch_sizes:
+    x = torch.randn(bs, 256)
+
+    # Warm-up
+    for _ in range(10):
+        with torch.no_grad():
+            bench_model(x)
+
+    # Time it: average of 100 forward passes
+    runs = 100
+    start = time.perf_counter()
+    for _ in range(runs):
+        with torch.no_grad():
+            bench_model(x)
+    avg_batch_ms = (time.perf_counter() - start) * 1000 / runs
+
+    # TODO — compute these from avg_batch_ms and bs
+    avg_per_example_ms  = None
+    examples_per_second = None
+
+    rows.append({
+        "batch_size":          bs,
+        "avg_batch_ms":        avg_batch_ms,
+        "avg_per_example_ms":  avg_per_example_ms,
+        "examples_per_second": examples_per_second,
+    })
+
+batch_df = pd.DataFrame(rows)
+batch_df
+"""
+        ),
+        code_cell(
+            """# --- check cell for D1 ---
+assert batch_df["avg_per_example_ms"].isna().sum() == 0, "fill in per-example latency"
+assert batch_df["examples_per_second"].isna().sum() == 0, "fill in throughput"
+assert batch_df.loc[batch_df["batch_size"] == 512, "avg_per_example_ms"].iloc[0] < \
+       batch_df.loc[batch_df["batch_size"] == 1,   "avg_per_example_ms"].iloc[0], \
+    "per-example latency at batch=512 should be LOWER than at batch=1"
+print("PASS")
+"""
+        ),
+        markdown_cell(
+            """### Task D2 — Plot it and interpret
+"""
+        ),
+        code_cell(
+            """batch_df.plot(
+    x="batch_size",
+    y=["avg_per_example_ms", "examples_per_second"],
+    subplots=True, figsize=(8, 6), grid=True, logx=True,
+    title=["Latency per example (lower is better)", "Throughput (higher is better)"],
+)
+"""
+        ),
+        markdown_cell(
+            """**Your answer (Task D2):**
+
+- At which batch size does the per-example latency stop dropping significantly? _____
+- In one sentence, *why* does batching speed up per-example latency? _____
+"""
+        ),
+        markdown_cell(
+            """---
+
+## Part E — PyTorch Dynamic Quantization  *(Lecture Part 5)*
+"""
+        ),
+        markdown_cell(
+            """### Task E1 — Train a small MLP and measure the FP32 baseline
+"""
+        ),
+        code_cell(
+            """try:
+    from torch.ao.quantization import quantize_dynamic
+except ImportError:
+    from torch.quantization import quantize_dynamic
+
+
+def evaluate(model):
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for xb, yb in test_loader:
+            preds = model(xb).argmax(dim=1)
+            correct += (preds == yb).sum().item()
+            total += len(yb)
+    return correct / total
+
+
+def measure_size_kb(model):
+    buf = io.BytesIO()
+    torch.save(model.state_dict(), buf)
+    return len(buf.getvalue()) / 1024
+
+
+def benchmark_ms(model, x, runs=300):
+    model.eval()
+    with torch.no_grad():
+        for _ in range(20):      # warm-up
+            model(x)
+        start = time.perf_counter()
+        for _ in range(runs):
+            model(x)
+        return (time.perf_counter() - start) * 1000 / runs
+
+
+torch.manual_seed(0)
+fp32_model = LabMLP()
+optimizer  = torch.optim.Adam(fp32_model.parameters(), lr=0.01)
+loss_fn    = nn.CrossEntropyLoss()
+
+for epoch in range(8):
+    fp32_model.train()
+    for xb, yb in train_loader:
+        loss = loss_fn(fp32_model(xb), yb)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+fp32_acc = evaluate(fp32_model)
+fp32_kb  = measure_size_kb(fp32_model)
+fp32_ms  = benchmark_ms(fp32_model, X_test[:256])
+
+print(f"FP32 — accuracy: {fp32_acc:.3f}   size: {fp32_kb:.1f} KB   latency: {fp32_ms:.3f} ms")
+"""
+        ),
+        markdown_cell(
+            """### Task E2 — Apply dynamic quantization in one line
+"""
+        ),
+        code_cell(
+            """# TODO — produce int8_model by calling quantize_dynamic on fp32_model.
+#        Quantize nn.Linear layers to torch.qint8.
+int8_model = None
+
+int8_acc = evaluate(int8_model)
+int8_kb  = measure_size_kb(int8_model)
+int8_ms  = benchmark_ms(int8_model, X_test[:256])
+
+print(f"INT8 — accuracy: {int8_acc:.3f}   size: {int8_kb:.1f} KB   latency: {int8_ms:.3f} ms")
+"""
+        ),
+        code_cell(
+            """# --- check cell for E2 ---
+assert int8_model is not None, "you forgot to assign int8_model"
+assert int8_kb < fp32_kb, "INT8 model should be smaller on disk"
+assert abs(int8_acc - fp32_acc) < 0.05, "accuracy drop is too large — did you quantize the right layers?"
+print("PASS")
+"""
+        ),
+        markdown_cell(
+            """### Task E3 — Write down what you observed
+
+Reminder from the lecture: on a tiny MLP, dynamic quantization usually makes
+the model **smaller** but NOT faster, because the per-call scaling overhead
+dominates the matmul itself. Noise on a small test set can even make INT8
+look slightly *more* accurate — that's normal.
+
+**Your answers:**
+
+- INT8 size / FP32 size = _____ (expect ~0.3)
+- INT8 latency / FP32 latency = _____ (could be anything 0.8–5)
+- Is the INT8 accuracy drop bigger than 1%? (yes / no) _____
+- In one sentence, why might INT8 be *slower* than FP32 here? _____
+"""
+        ),
+        markdown_cell(
+            """---
+
+## Part F — ONNX Export and Quantization  *(Lecture Part 5)*
+
+A separate toolchain that does the same "shrink the weights" trick, but
+produces a portable `.onnx` file that any language or device can load.
+"""
+        ),
+        markdown_cell(
+            """### Task F1 — Export `fp32_model` to ONNX, run with ONNX Runtime
+"""
+        ),
+        code_cell(
+            """import onnxruntime as ort
+from onnxruntime.quantization import QuantType, quantize_dynamic as onnx_quantize_dynamic
+
+onnx_fp32 = artifacts / "lab_fp32.onnx"
+onnx_int8 = artifacts / "lab_int8.onnx"
+
+# TODO — export fp32_model. Hints:
+#   - use torch.onnx.export
+#   - dummy input shape: (1, 64)
+#   - input_names=["input"], output_names=["logits"]
+#   - dynamic_axes={"input": {0: "batch"}, "logits": {0: "batch"}}
+# Finish the call below.
+dummy = torch.randn(1, 64)
+torch.onnx.export(
+    fp32_model, dummy, str(onnx_fp32),
+    input_names=["input"],
+    output_names=["logits"],
+    # TODO — add dynamic_axes here
+)
+print("FP32 ONNX size:", round(os.path.getsize(onnx_fp32) / 1024, 1), "KB")
+"""
+        ),
+        code_cell(
+            """# Load and run the exported ONNX model
+fp32_sess = ort.InferenceSession(str(onnx_fp32))
+probs = fp32_sess.run(None, {"input": X_test[:5].numpy()})[0]
+print("Output shape:", probs.shape)
+print("Predicted classes:", probs.argmax(axis=1).tolist())
+print("True classes     :", y_test[:5].tolist())
+"""
+        ),
+        markdown_cell(
+            """### Task F2 — Quantize the ONNX file to INT8
+"""
+        ),
+        code_cell(
+            """# TODO — call onnx_quantize_dynamic to turn onnx_fp32 into onnx_int8
+#        with weight_type=QuantType.QUInt8
+# YOUR CODE HERE
+
+print("INT8 ONNX size:", round(os.path.getsize(onnx_int8) / 1024, 1), "KB")
+"""
+        ),
+        code_cell(
+            """# --- check cell for F2 ---
+assert onnx_int8.exists(), "INT8 ONNX file was not produced"
+assert os.path.getsize(onnx_int8) < os.path.getsize(onnx_fp32), \
+    "INT8 ONNX file should be smaller than FP32"
+print("PASS")
+"""
+        ),
+        markdown_cell(
+            """### Task F3 — Benchmark the two ONNX files and record the numbers
+"""
+        ),
+        code_cell(
+            """int8_sess = ort.InferenceSession(str(onnx_int8))
+
+
+def onnx_accuracy(session):
+    preds = session.run(None, {"input": X_test.numpy()})[0].argmax(axis=1)
+    return float((preds == y_test.numpy()).mean())
+
+
+def onnx_latency_ms(session, n=200):
+    batch = X_test[:256].numpy()
+    for _ in range(20):
+        session.run(None, {"input": batch})
+    start = time.perf_counter()
+    for _ in range(n):
+        session.run(None, {"input": batch})
+    return (time.perf_counter() - start) * 1000 / n
+
+
+onnx_fp32_kb  = os.path.getsize(onnx_fp32) / 1024
+onnx_int8_kb  = os.path.getsize(onnx_int8) / 1024
+onnx_fp32_acc = onnx_accuracy(fp32_sess)
+onnx_int8_acc = onnx_accuracy(int8_sess)
+onnx_fp32_ms  = onnx_latency_ms(fp32_sess)
+onnx_int8_ms  = onnx_latency_ms(int8_sess)
+
+print(f"ONNX FP32 — acc {onnx_fp32_acc:.3f}  size {onnx_fp32_kb:.1f} KB  latency {onnx_fp32_ms:.3f} ms")
+print(f"ONNX INT8 — acc {onnx_int8_acc:.3f}  size {onnx_int8_kb:.1f} KB  latency {onnx_int8_ms:.3f} ms")
+"""
+        ),
+        markdown_cell(
+            """---
+
+## Part G — Summary Table (Submission)
+
+**Fill in** the comparison table below. The FP32 and INT8 (PyTorch) rows come
+from Part E; the two ONNX rows come from Part F. Then answer the reflection
+questions.
+"""
+        ),
+        code_cell(
+            """summary = pd.DataFrame(
+    [
+        {"variant": "pytorch_fp32", "size_kb": fp32_kb,       "accuracy": fp32_acc,       "latency_ms": fp32_ms},
+        {"variant": "pytorch_int8", "size_kb": int8_kb,       "accuracy": int8_acc,       "latency_ms": int8_ms},
+        {"variant": "onnx_fp32",    "size_kb": onnx_fp32_kb,  "accuracy": onnx_fp32_acc,  "latency_ms": onnx_fp32_ms},
+        {"variant": "onnx_int8",    "size_kb": onnx_int8_kb,  "accuracy": onnx_int8_acc,  "latency_ms": onnx_int8_ms},
+    ]
+)
+summary
+"""
+        ),
+        markdown_cell(
+            """### Reflection questions
+
+Write a short answer (1–2 sentences each) under each question.
+
+1. **Which variant has the smallest file size?** Is that the variant you would
+   actually ship? Why / why not?
+
+   > _your answer_
+
+2. **Did your INT8 model lose more than 1% accuracy?** Based on the lecture, is
+   that a typical result? (one sentence)
+
+   > _your answer_
+
+3. **Suppose you need to deploy this model inside a Java microservice**. Which
+   row of the table would you pick, and why (two sentences max)?
+
+   > _your answer_
+
+4. **In Part C you made the slow endpoint ~100× faster without changing the
+   model.** In one sentence, what was the actual bottleneck?
+
+   > _your answer_
+
+> 🧠 **Submit:** the completed notebook (`.ipynb`) with every PASS cell green
+> and every `> _your answer_` filled in.
+"""
+        ),
+    ]
+
+
+# ----------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------
 def main() -> None:
@@ -1439,6 +2196,7 @@ def main() -> None:
     write_notebook("06-onnx-export-and-quantization.ipynb",   nb_onnx())
     write_notebook("07-pruning-basics.ipynb",                 nb_pruning())
     write_notebook("08-distillation-basics.ipynb",            nb_distillation())
+    write_notebook("10-lab-profiling-and-quantization.ipynb", nb_lab())
 
 
 if __name__ == "__main__":
