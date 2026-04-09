@@ -73,28 +73,10 @@ and feeds it to the LLM, which then says:
 
 An **agent** = LLM + tools + a loop.
 
-```
-┌──────────────────────────────────────────────────┐
-│                   The Agent Loop                 │
-│                                                  │
-│   User question                                  │
-│        │                                         │
-│        ▼                                         │
-│   ┌─────────┐     "I need to call a tool"        │
-│   │   LLM   │ ─────────────────────────┐         │
-│   │ (think) │                          │         │
-│   └────┬────┘                          ▼         │
-│        │                        ┌──────────┐     │
-│        │ "I have the answer"    │ Tool     │     │
-│        │                        │ (act)    │     │
-│        ▼                        └────┬─────┘     │
-│   Final answer                      │            │
-│   to the user              result goes back      │
-│                              to the LLM          │
-└──────────────────────────────────────────────────┘
-```
+![w:550](images/week12/agent_loop.png)
 
-The LLM **decides** whether to use a tool. You **execute** the tool. Repeat.
+The LLM **decides** whether to use a tool. You **execute** the tool.
+The result goes back to the LLM. Repeat until done.
 
 ---
 
@@ -110,6 +92,44 @@ The LLM **decides** whether to use a tool. You **execute** the tool. Repeat.
 
 In every case: an LLM **decides** what action to take, your device
 **executes** it, and the result goes **back to the LLM** for the next step.
+
+---
+
+# Deep Dive: What Does Claude Code Actually Do?
+
+You type: **"Fix the failing test in test_api.py"**
+
+Claude Code doesn't magically know the answer. Here's what the agent loop does:
+
+| Step | Action | Tool used |
+|:--:|:--|:--|
+| 1 | Read `test_api.py` to understand the test | `Read file` |
+| 2 | Run `pytest test_api.py` to see the error | `Bash (shell)` |
+| 3 | Read the error traceback | `Read output` |
+| 4 | Read `app.py` (the file under test) to find the bug | `Read file` |
+| 5 | Edit line 42 of `app.py` to fix the bug | `Edit file` |
+| 6 | Run `pytest test_api.py` again to verify | `Bash (shell)` |
+| 7 | Tests pass → report success to user | *No tool — done* |
+
+**Seven steps, four different tools, zero human intervention.** The LLM
+decided what to do at every step based on what it saw.
+
+---
+
+# Exercise: Trace the Agent Loop (2 minutes)
+
+**Pick one of these prompts and write down what tools an agent would need
+and what steps it would take.** Share with your neighbour.
+
+| Prompt | Think about it... |
+|:--|:--|
+| "Book me a flight from Ahmedabad to Delhi under ₹5000" | What APIs? What order? |
+| "Summarize the top 3 news stories about AI today" | Search, scrape, summarize? |
+| "Generate a bar chart of India's GDP from 2015 to 2024" | Search data, write code, run it? |
+| "Review this pull request and leave comments" | Read diff, read code, write comments? |
+
+**There's no single right answer** — the fun part is thinking about which
+tools and in what order. This is what AI engineers design every day.
 
 ---
 
@@ -147,87 +167,7 @@ The chef (LLM) still has the knowledge. The tools let it **act on that knowledge
 
 <!-- _class: section-divider -->
 
-# Part 1: Running Gemma 4 on Free Colab
-
-*A powerful open model that fits on a free GPU.*
-
----
-
-# Why Gemma 4?
-
-| Feature | What it means for us |
-|:--|:--|
-| **Open weights** | Download and run locally — no API key needed |
-| **Apache 2.0 license** | Free for any use, including commercial |
-| **E2B model (2B params)** | Fits on a free Colab T4 GPU at 4-bit |
-| **Native tool calling** | Built-in support — no prompt hacking needed |
-| **128K context window** | Can read and reason over long documents |
-
-Other options exist (Llama, Mistral, Qwen), but Gemma 4 has the cleanest
-tool-calling support and runs on the smallest hardware.
-
----
-
-# Loading Gemma 4 E2B on Colab — The Setup
-
-```python
-!pip install -U transformers accelerate bitsandbytes -q
-
-import torch
-from transformers import AutoProcessor, AutoModelForCausalLM, BitsAndBytesConfig
-
-MODEL_ID = "google/gemma-4-e2b-it"
-
-# 4-bit quantization → fits in ~3 GB instead of ~8 GB
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_compute_dtype=torch.bfloat16,
-)
-
-processor = AutoProcessor.from_pretrained(MODEL_ID)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_ID,
-    quantization_config=bnb_config,
-    device_map="auto",
-)
-```
-
-This takes about 60 seconds on a T4. After that, generation is fast.
-
----
-
-# Your First Generation
-
-```python
-messages = [
-    {"role": "user", "content": "What is 2 + 2?"}
-]
-
-inputs = processor.apply_chat_template(
-    messages,
-    tokenize=True,
-    return_dict=True,
-    return_tensors="pt",
-    add_generation_prompt=True,
-).to(model.device)
-
-output = model.generate(**inputs, max_new_tokens=200)
-response = processor.decode(output[0][inputs.input_ids.shape[-1]:],
-                            skip_special_tokens=True)
-print(response)
-# → "2 + 2 = 4"
-```
-
-This is a normal LLM call — no tools yet. The model answered from its
-training data. Let's make it smarter.
-
----
-
-<!-- _class: section-divider -->
-
-# Part 2: Function Calling — Teaching the Model to Use Tools
+# Part 1: How Function Calling Works
 
 *The model describes what it wants. You execute it.*
 
@@ -236,34 +176,32 @@ training data. Let's make it smarter.
 # The Key Insight
 
 **Function calling is NOT the model running code.** The model never executes
-anything. Here's what actually happens:
+anything. Here's what happens:
 
-```
-1. You tell the model: "Here are tools you can use"
-     (a list of function names + descriptions)
-
-2. The model reads the user's question and DECIDES:
-     "I should call get_weather with city='Gandhinagar'"
-
-3. The model outputs a STRUCTURED request:
-     {"name": "get_weather", "arguments": {"city": "Gandhinagar"}}
-
-4. YOUR CODE executes the function and gets the result:
-     {"temp": 38, "condition": "Sunny"}
-
-5. You feed the result BACK to the model
-
-6. The model writes the final answer using the real data:
-     "It's 38°C and sunny in Gandhinagar."
-```
+| Step | Who does it | What happens |
+|:--:|:--|:--|
+| 1 | **You** | Hand the model a *menu* of available tools |
+| 2 | **Model** | Reads the question, *decides* which tool to call |
+| 3 | **Model** | Outputs a *structured request*: `{"name": "get_weather", "args": {"city": "Gandhinagar"}}` |
+| 4 | **You** | Execute the function, get the result |
+| 5 | **You** | Feed the result *back* to the model |
+| 6 | **Model** | Writes the final answer using the real data |
 
 The model is a **decision maker**. You are the **executor**.
 
 ---
 
-# Defining a Tool — It's Just a Dictionary
+# Defining a Tool = Writing a Menu Item
+
+Every tool has two parts: a Python function and a description (JSON schema).
 
 ```python
+# The function (what actually runs)
+def get_weather(city: str) -> str:
+    data = {"Gandhinagar": {"temp_c": 38, "condition": "Sunny"}, ...}
+    return json.dumps(data.get(city, {"error": "unknown city"}))
+
+# The description (what the model reads to decide)
 weather_tool = {
     "type": "function",
     "function": {
@@ -271,242 +209,97 @@ weather_tool = {
         "description": "Get current weather for a city.",
         "parameters": {
             "type": "object",
-            "properties": {
-                "city": {
-                    "type": "string",
-                    "description": "City name, e.g. 'Mumbai'"
-                }
-            },
+            "properties": {"city": {"type": "string"}},
             "required": ["city"]
         }
     }
 }
 ```
 
-This is a **menu** you're handing the model. It tells the model:
-- *What* the tool does (`description`)
-- *What inputs* the tool needs (`parameters`)
-- *What's required* vs optional
-
----
-
-# How Gemma 4 Calls a Tool
-
-```python
-messages = [{"role": "user", "content": "What's the weather in Gandhinagar?"}]
-
-inputs = processor.apply_chat_template(
-    messages,
-    tools=[weather_tool],          # ← hand the model the menu
-    tokenize=True, return_dict=True,
-    return_tensors="pt",
-    add_generation_prompt=True,
-).to(model.device)
-
-output = model.generate(**inputs, max_new_tokens=512)
-raw = processor.decode(output[0][inputs.input_ids.shape[-1]:],
-                       skip_special_tokens=False)
-parsed = processor.parse_response(raw)
-```
-
-`parsed` now contains:
-```python
-{
-    "tool_calls": [{"name": "get_weather",
-                    "arguments": {"city": "Gandhinagar"}}],
-    "content": None
-}
-```
-
-The model **chose** to call `get_weather`. It did NOT make up the answer.
-
----
-
-# Feeding the Result Back
-
-```python
-import json
-
-# 1. Record the model's decision in the conversation
-messages.append({
-    "role": "assistant",
-    "tool_calls": parsed["tool_calls"]
-})
-
-# 2. Execute the tool (YOUR code, not the model's)
-result = {"temp_c": 38, "condition": "Sunny"}
-
-# 3. Feed the result back
-messages.append({
-    "role": "tool",
-    "name": "get_weather",
-    "content": json.dumps(result)
-})
-
-# 4. Let the model write the final answer
-inputs = processor.apply_chat_template(
-    messages, tools=[weather_tool],
-    tokenize=True, return_dict=True,
-    return_tensors="pt", add_generation_prompt=True,
-).to(model.device)
-output = model.generate(**inputs, max_new_tokens=256)
-# → "It's currently 38°C and sunny in Gandhinagar."
-```
+The model never sees the function code — only the description.
 
 ---
 
 <!-- _class: section-divider -->
 
-# Part 3: Four Use Cases
+# Part 2: Four Use Cases
 
-*Each one shows a different kind of tool.*
-
----
-
-# Use Case 1: Calculator
-
-**Problem:** LLMs are bad at arithmetic. Ask "What is 4729 × 8314?" and the
-model will confidently give the wrong answer.
-
-**Fix:** Give it a calculator tool.
-
-```python
-def calculate(expression: str) -> str:
-    """Evaluate a math expression safely.
-    Args:
-        expression: A Python math expression like '4729 * 8314'
-    """
-    allowed = set("0123456789+-*/(). ")
-    if not all(c in allowed for c in expression):
-        return "Error: invalid characters"
-    return str(eval(expression))
-```
-
-Now ask: *"What is 4729 times 8314?"*
-
-The model produces:
-```json
-{"name": "calculate", "arguments": {"expression": "4729 * 8314"}}
-```
-
-Your code runs `eval("4729 * 8314")` → `39,317,006`. The model reports the
-exact answer instead of guessing.
+*Each one shows a different kind of tool and why it matters.*
 
 ---
 
-# Use Case 1: Calculator — Why It Matters
+# Use Case 1: Calculator — LLMs Can't Do Math
 
-This is not a toy example. Real agents use calculators constantly:
+Ask an LLM *"What is 4729 times 8314?"* and it will confidently give the
+wrong answer. Token prediction is not arithmetic.
 
-| Scenario | What the agent calculates |
+**Fix:** a `calculate(expression)` tool that calls Python's `eval()`.
+
+| What the user asks | What the model calls |
 |:--|:--|
-| "What's 18% tip on ₹2,450?" | `2450 * 0.18` |
-| "How many days until Aug 15?" | Date arithmetic |
-| "If I invest ₹10,000 at 8% for 5 years…" | `10000 * (1.08 ** 5)` |
-| "Average of these test scores: 82, 91, 76, 88" | `(82+91+76+88) / 4` |
+| "What's 18% tip on ₹2,450?" | `calculate("2450 * 0.18")` |
+| "If I invest ₹10,000 at 8% for 5 years?" | `calculate("10000 * (1.08 ** 5)")` |
+| "Average of 82, 91, 76, 88" | `calculate("(82+91+76+88) / 4")` |
+| "What's the square root of 2?" | `calculate("2 ** 0.5")` |
 
-Every time an LLM needs exact arithmetic, it should **call a tool** instead
-of trying to compute in its "head" (token prediction is not math).
+Every time an LLM needs *exact* arithmetic, it should call a tool instead
+of computing in its "head."
 
 ---
 
-# Use Case 2: Weather Lookup
+# Use Case 2: Weather — LLMs Have No Real-Time Data
 
-**Problem:** LLMs have no access to real-time data.
+An LLM's training data has a cutoff date. It can't tell you today's
+temperature any more than a textbook can.
 
-```python
-def get_weather(city: str) -> str:
-    """Get the current weather for a city.
-    Args:
-        city: City name, e.g. 'Gandhinagar'
-    """
-    # In a real app, this calls an API like OpenWeatherMap.
-    # For our demo, we use a mock.
-    data = {
-        "Gandhinagar": {"temp_c": 38, "condition": "Sunny", "humidity": 25},
-        "Mumbai":      {"temp_c": 32, "condition": "Humid", "humidity": 80},
-        "Bangalore":   {"temp_c": 28, "condition": "Rainy", "humidity": 65},
-    }
-    return json.dumps(data.get(city, {"error": f"No data for {city}"}))
-```
+**Fix:** a `get_weather(city)` tool backed by mock data (or a real API).
 
 Ask: *"Should I carry an umbrella in Bangalore today?"*
 
-The model calls `get_weather("Bangalore")`, sees `"Rainy"`, and answers:
-*"Yes — it's currently rainy in Bangalore with 65% humidity."*
+Model calls `get_weather("Bangalore")` → `{"condition": "Rainy", "humidity": 65}`
+→ *"Yes — it's rainy with 65% humidity."*
 
-It used **real data** (well, mock data) instead of guessing.
-
----
-
-# Use Case 3: Unit Converter
-
-**Problem:** Conversion mistakes are common. Is 100°F hot or cold?
-
-```python
-import math
-
-def convert_units(value: float, from_unit: str, to_unit: str) -> str:
-    """Convert between common units.
-    Args:
-        value: The numeric value to convert
-        from_unit: Source unit (e.g. 'celsius', 'kg', 'miles')
-        to_unit: Target unit (e.g. 'fahrenheit', 'pounds', 'km')
-    """
-    conversions = {
-        ("celsius", "fahrenheit"):  lambda v: v * 9/5 + 32,
-        ("fahrenheit", "celsius"):  lambda v: (v - 32) * 5/9,
-        ("kg", "pounds"):           lambda v: v * 2.20462,
-        ("pounds", "kg"):           lambda v: v / 2.20462,
-        ("km", "miles"):            lambda v: v * 0.621371,
-        ("miles", "km"):            lambda v: v / 0.621371,
-    }
-    fn = conversions.get((from_unit.lower(), to_unit.lower()))
-    if fn is None:
-        return f"Cannot convert {from_unit} to {to_unit}"
-    return f"{fn(value):.2f} {to_unit}"
-```
-
-Ask: *"I weigh 70 kg — what's that in pounds?"*
-Model calls `convert_units(70, "kg", "pounds")` → `"154.32 pounds"`.
+The model used **actual data** instead of guessing from training statistics.
 
 ---
 
-# Use Case 4: Course Notes Search
+# Use Case 3: Unit Converter — Precision Matters
 
-**Problem:** The student asks *"What week did we cover data drift?"* and the
-LLM doesn't know your specific course.
+Is 100°F hot or cold? Most people need to convert to answer that.
+
+**Fix:** a `convert_units(value, from_unit, to_unit)` tool with 10 conversion pairs.
+
+| What the user asks | What the model calls |
+|:--|:--|
+| "I weigh 70 kg — in pounds?" | `convert_units(70, "kg", "pounds")` |
+| "Convert 100°F to Celsius" | `convert_units(100, "fahrenheit", "celsius")` |
+| "How far is 5 miles in km?" | `convert_units(5, "miles", "km")` |
+
+---
+
+# Use Case 4: Course Notes Search — Your Own Knowledge Base
+
+*"What week did we cover data drift?"* — the LLM doesn't know *your* course.
+
+**Fix:** a `search_notes(query)` tool backed by a dict of CS 203 topics.
 
 ```python
-def search_notes(query: str) -> str:
-    """Search the CS 203 course topics.
-    Args:
-        query: A keyword or topic to search for
-    """
-    topics = {
-        "data drift": "Week 10: detecting distribution shift with KS test, PSI",
-        "profiling":  "Week 11: cProfile, timeit, finding bottlenecks",
-        "quantization": "Week 11: INT8, ONNX, dynamic quantization",
-        "docker":     "Week 10: containerization, Dockerfiles, reproducibility",
-        "fastapi":    "Week 12: building APIs, Pydantic validation, /predict",
-        "agents":     "Week 12: tool calling, Gemma 4, the agent loop",
-        "git":        "Week 9: version control, branching, merge conflicts",
-    }
-    query_lower = query.lower()
-    matches = {k: v for k, v in topics.items() if query_lower in k}
-    if matches:
-        return json.dumps(matches)
-    return f"No results for '{query}'"
+topics = {
+    "data drift":   "Week 10: KS test, PSI, distribution shift",
+    "profiling":    "Week 11: cProfile, timeit, bottlenecks",
+    "quantization": "Week 11: INT8, ONNX, model compression",
+    "docker":       "Week 10: containerization, Dockerfiles",
+    "agents":       "Week 12: tool calling, Gemma 4, agent loop",
+    ...
+}
 ```
 
 This is a **tiny RAG system**: retrieval (search the dict) + generation
-(the LLM writes a natural-language answer using the retrieved info).
+(model writes a natural-language answer from the result).
 
 ---
 
-# All Four Tools Together
-
-Give the model **all four tools at once**, and it picks the right one:
+# All Four Tools Together — The Model Picks the Right One
 
 | User question | Tool the model picks |
 |:--|:--|
@@ -516,93 +309,55 @@ Give the model **all four tools at once**, and it picks the right one:
 | "When did we learn about Docker?" | `search_notes("docker")` |
 | "What is the capital of France?" | *No tool* — answers from memory |
 
-The model reads the descriptions you gave it and **chooses which tool fits
-the question**, or answers directly if no tool is needed.
+The model reads the descriptions and **chooses which tool fits the question**,
+or answers directly if no tool is needed. You'll try all of these in the notebook.
 
 ---
 
 <!-- _class: section-divider -->
 
-# Part 4: The Agent Loop
+# Part 3: The Agent Loop
 
-*Ten lines of code that tie everything together.*
-
----
-
-# The Complete Agent Loop
-
-```python
-def agent(user_message, tools, tool_functions, max_steps=5):
-    messages = [{"role": "user", "content": user_message}]
-
-    for step in range(max_steps):
-        # 1. Ask the model
-        inputs = processor.apply_chat_template(
-            messages, tools=tools, tokenize=True,
-            return_dict=True, return_tensors="pt",
-            add_generation_prompt=True,
-        ).to(model.device)
-        output = model.generate(**inputs, max_new_tokens=512)
-        raw = processor.decode(output[0][inputs.input_ids.shape[-1]:],
-                               skip_special_tokens=False)
-        parsed = processor.parse_response(raw)
-
-        # 2. If no tool call → we have the final answer
-        if not parsed.get("tool_calls"):
-            return processor.decode(output[0][inputs.input_ids.shape[-1]:],
-                                    skip_special_tokens=True)
-
-        # 3. Execute each tool call
-        messages.append({"role": "assistant",
-                         "tool_calls": parsed["tool_calls"]})
-        for tc in parsed["tool_calls"]:
-            result = tool_functions[tc["name"]](**tc["arguments"])
-            messages.append({"role": "tool", "name": tc["name"],
-                             "content": str(result)})
-
-    return "Reached max steps without a final answer."
-```
+*The only architecture diagram you need to remember.*
 
 ---
 
-# Walking Through a Multi-Step Example
-
-Ask: *"What's the square root of 144 plus the temperature in Mumbai in Fahrenheit?"*
+# The Agent Loop in Pseudocode
 
 ```
-Step 1:  Model thinks → calls calculate("144 ** 0.5")
-         Result: "12.0"
+messages = [user's question]
 
-Step 2:  Model thinks → calls get_weather("Mumbai")
-         Result: {"temp_c": 32, "condition": "Humid"}
+repeat (up to max_steps):
+    response = model.generate(messages, tools=...)
 
-Step 3:  Model thinks → calls convert_units(32, "celsius", "fahrenheit")
-         Result: "89.60 fahrenheit"
+    if response has NO tool call:
+        return response as final answer     ← done!
 
-Step 4:  Model thinks → calls calculate("12.0 + 89.60")
-         Result: "101.6"
+    for each tool_call in response:
+        result = execute(tool_call)         ← YOUR code runs
+        append result to messages
 
-Step 5:  Model answers: "The square root of 144 is 12, and the temperature
-         in Mumbai is 32°C (89.6°F). Added together: 101.6."
+    go back to top of loop                  ← model sees the result
 ```
+
+That's it. ~10 lines of real Python. You'll write it yourself in the notebook.
+
+---
+
+# Multi-Step Example
+
+*"What's the square root of 144 plus the temperature in Mumbai in Fahrenheit?"*
+
+| Step | Model decides | Tool called | Result |
+|:--:|:--|:--|:--|
+| 1 | "I need sqrt(144)" | `calculate("144 ** 0.5")` | `12.0` |
+| 2 | "I need Mumbai's temp" | `get_weather("Mumbai")` | `32°C` |
+| 3 | "Convert 32°C to °F" | `convert_units(32, "celsius", "fahrenheit")` | `89.6°F` |
+| 4 | "Add them" | `calculate("12.0 + 89.6")` | `101.6` |
+| 5 | *No tool needed* | — | "The answer is 101.6" |
 
 **Four tool calls, three different tools, one coherent answer.** The model
-*planned* which tools to call and in what order — you just executed them.
-
----
-
-# What Just Happened?
-
-The model did five things that a plain LLM can't:
-
-1. **Decomposed** a compound question into sub-problems
-2. **Selected** the right tool for each sub-problem
-3. **Formatted** the arguments correctly (JSON)
-4. **Waited** for each result before proceeding
-5. **Synthesized** all the results into one answer
-
-The model didn't "learn" how to do math or check weather.
-**You gave it hands (tools) and it figured out how to use them.**
+planned what to do — you just executed each step.
 
 ---
 

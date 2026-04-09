@@ -62,6 +62,18 @@ def nb_agents() -> list[dict]:
 
 > **Week 12 Lab** — CS 203: Software Tools and Techniques for AI
 
+## What is an agent?
+
+An **agent** = LLM + tools + a loop.
+
+- **LLM** — the "brain" that reads your question, reasons about it, and decides what to do next.
+- **Tools** — Python functions the LLM can ask you to call (a calculator, a weather API, a file reader, etc.).
+- **Loop** — you keep asking the LLM "what next?" and executing tool calls until it says "I'm done, here's the answer."
+
+**The LLM never runs any code.** It just *describes* what it wants (as a JSON object), and *your* code actually runs the function. The result goes back to the LLM, and it decides the next step.
+
+> **Real-world examples:** Claude Code reads/edits files from your terminal. Google Assistant calls the clock API when you say "set a timer." Perplexity calls a search API and then summarizes the results. They're all the same pattern.
+
 ## What you will build
 
 By the end of this notebook you will have:
@@ -84,8 +96,11 @@ By the end of this notebook you will have:
 
 ## Step 0: Install and import everything
 
-This cell takes ~1 minute. It installs the latest `transformers` and
-`bitsandbytes` for 4-bit quantization.
+We need two key packages:
+- **`transformers`** — Hugging Face's library for loading and running LLMs
+- **`bitsandbytes`** — enables 4-bit quantization so Gemma 4 fits on a free T4 GPU (remember Week 11!)
+
+This cell takes ~1 minute.
 """
         ),
         code_cell(
@@ -109,12 +124,19 @@ if torch.cuda.is_available():
 
 ## Step 1: Load Gemma 4 E2B on a T4 GPU
 
-Gemma 4 E2B has 2 billion parameters. At full precision (FP16) it needs
-~4 GB of VRAM. With **4-bit quantization** we cut that to ~1.5 GB, leaving
-plenty of room for the T4's 15 GB.
+### What is Gemma 4 E2B?
 
-This cell takes ~60 seconds the first time (downloading the model) and
-~15 seconds on subsequent runs (loading from cache).
+[**Gemma 4 E2B**](https://huggingface.co/google/gemma-4-e2b-it) is a 2-billion parameter open model from Google, released under the Apache 2.0 license. The **"E2B"** means it's part of the efficient model family, and **"it"** means it's instruction-tuned (trained to follow instructions and have conversations).
+
+Most importantly for us: Gemma 4 has **native tool-calling support** — it was trained to output structured JSON tool calls, not just free-form text. This makes it ideal for building agents.
+
+### Why 4-bit quantization?
+
+At full precision (FP16), Gemma 4 E2B needs ~4 GB of VRAM. With **4-bit quantization** (using `bitsandbytes`), we cut that to ~1.5 GB — well within the free T4's 15 GB.
+
+If you did Week 11, this is the same idea: represent each weight with fewer bits to shrink the model. We use the `nf4` (NormalFloat4) format with double quantization for the best quality-size tradeoff.
+
+This cell takes ~60 seconds the first time (downloading ~1.5 GB) and ~15 seconds on subsequent runs (loading from cache).
 """
         ),
         code_cell(
@@ -141,8 +163,16 @@ print("Model loaded!")
 
 ## Step 2: Basic generation (no tools yet)
 
-Before we add tools, let's confirm the model works with a simple question.
-This is a plain LLM call — the model answers from its training data.
+Before we add tools, let's build a helper function and confirm the model works.
+
+### The `generate()` helper
+
+This function wraps a lot of boilerplate into one call. Here's what each part does:
+
+1. **`apply_chat_template`** — converts our Python list of messages (user, assistant, tool) into the specific token format Gemma 4 expects. When we pass `tools=...`, it also injects the tool descriptions into the prompt so the model knows what's available.
+2. **`model.generate`** — runs the model and produces output tokens.
+3. **Decode** — converts tokens back to text. We decode twice: once *with* special tokens (for parsing tool calls) and once *without* (for clean display).
+4. **`parse_response`** — extracts structured tool calls from the raw output, if any. This is Gemma 4's built-in parser that turns the model's JSON output into a Python dict.
 """
         ),
         code_cell(
@@ -166,6 +196,10 @@ This is a plain LLM call — the model answers from its training data.
     return {"raw": raw, "text": text, "parsed": parsed}
 """
         ),
+        markdown_cell(
+            """### Test: a question the model can answer from memory
+"""
+        ),
         code_cell(
             """messages = [{"role": "user", "content": "What is the capital of India?"}]
 result = generate(messages)
@@ -173,8 +207,7 @@ print(result["text"])
 """
         ),
         markdown_cell(
-            """The model answered from memory. Now let's see what happens when we ask
-something it **can't** answer from memory:
+            """The model answered from memory — it knows facts from its training data. Now let's see what happens when we ask something it **can't** answer from memory:
 """
         ),
         code_cell(
@@ -184,11 +217,13 @@ print(result["text"])
 """
         ),
         markdown_cell(
-            """The model probably said something like *"I don't have access to real-time
-data"* or it guessed based on general knowledge.
+            """The model probably said something like *"I don't have access to real-time data"* or it guessed based on general knowledge.
 
-**This is the problem we're going to solve.** We'll give the model a
-`get_weather` tool so it can look up real data instead of guessing.
+**This is the core problem we're going to solve.** An LLM is just a text predictor — it can only generate the next word. It can't open a browser, call an API, run code, or check a database.
+
+But what if the model could say: *"I need to check the weather. Let me call a weather API."* — and then your code actually calls the API, gets the result, and feeds it back to the model?
+
+**That's exactly what we're about to build.**
 
 ---
 
@@ -196,8 +231,7 @@ data"* or it guessed based on general knowledge.
 
 ### Why does an LLM need a calculator?
 
-LLMs predict tokens, they don't compute. Ask a hard math question and
-they'll confidently give the wrong answer. Let's see:
+LLMs predict tokens — they don't compute. Ask a hard math question and they'll confidently give the wrong answer. Let's see:
 """
         ),
         code_cell(
@@ -208,13 +242,30 @@ print("Actual  :", 4729 * 8314)
 """
         ),
         markdown_cell(
-            """Probably wrong! Let's fix this by giving the model a calculator tool.
+            """Probably wrong! LLMs are great at language but terrible at arithmetic. Let's fix this by giving the model a calculator tool.
 
-### Defining the tool
+### How function calling works
+
+**The key insight: function calling is NOT the model running code.** The model never executes anything. Here's the flow:
+
+| Step | Who does it | What happens |
+|:--:|:--|:--|
+| 1 | **You** | Hand the model a *menu* of available tools (JSON schemas) |
+| 2 | **Model** | Reads the question, *decides* which tool to call |
+| 3 | **Model** | Outputs a *structured request*: `{"name": "calculate", "args": {"expression": "4729 * 8314"}}` |
+| 4 | **You** | Execute the function with those arguments, get the result |
+| 5 | **You** | Feed the result *back* to the model |
+| 6 | **Model** | Writes the final answer using the real data |
+
+The model is a **decision maker**. You are the **executor**.
+
+### Defining a tool
 
 A tool has two parts:
-1. A **Python function** that does the actual work
-2. A **JSON schema** that tells the model what the function does and what arguments it expects
+1. A **Python function** that does the actual work (the model never sees this code)
+2. A **JSON schema** that describes the function — name, what it does, what arguments it expects (this is what the model reads to decide)
+
+Think of it like a restaurant menu: the diner (model) reads the menu (schema) and places an order. The kitchen (your code) actually makes the food (runs the function).
 """
         ),
         code_cell(
@@ -257,8 +308,11 @@ print(calculate("144 ** 0.5"))
         markdown_cell(
             """### Making the model use the calculator
 
-Now we pass `tools=[calculator_tool]` when generating. The model will see
-the tool description and **decide** whether to use it.
+Now we pass `tools=[calculator_tool]` when generating. Behind the scenes, `apply_chat_template` injects the tool's JSON schema into the prompt, so the model sees something like:
+
+> *"You have the following tools available: calculate — Evaluate a mathematical expression..."*
+
+The model reads this "menu" and **decides** whether to use the tool or answer directly.
 """
         ),
         code_cell(
@@ -270,11 +324,9 @@ print(json.dumps(result["parsed"], indent=2))
 """
         ),
         markdown_cell(
-            """You should see a `tool_calls` list with `"name": "calculate"` and
-`"arguments": {"expression": "4729 * 8314"}`.
+            """**Look at the output carefully.** You should see a `tool_calls` list with `"name": "calculate"` and `"arguments": {"expression": "4729 * 8314"}`.
 
-The model did NOT compute the answer — it asked US to compute it. Let's
-execute the tool and feed the result back:
+The model did NOT compute the answer — it just said *"please run this function with these arguments."* Now **we** execute the function and feed the result back:
 """
         ),
         code_cell(
@@ -298,24 +350,41 @@ print(f"\\nFinal answer: {final['text']}")
         markdown_cell(
             """The model now gives the **exact** answer: 39,317,006.
 
-**Recap of what just happened:**
-1. We asked a math question
-2. The model decided to use the calculator tool (instead of guessing)
-3. It formatted the arguments correctly as a JSON object
-4. We executed the function and got the result
-5. We fed the result back to the model
-6. The model wrote a natural-language answer using the real result
+### What just happened — step by step
+
+Let's slow down and really understand the message flow:
+
+```
+messages = [
+  {"role": "user",      "content": "What is 4729 times 8314?"}         # ① You ask
+  {"role": "assistant", "tool_calls": [{"name": "calculate", ...}]}    # ② Model requests tool
+  {"role": "tool",      "name": "calculate", "content": "39317006"}    # ③ You execute, feed result
+  # Now the model sees all three messages and writes a final answer     # ④ Model responds
+]
+```
+
+This is the **entire mechanism** behind function calling. Every agent — Claude Code, ChatGPT with browsing, Google Assistant — works this way. The rest of this notebook is just making it more powerful.
 
 ---
 
 ## Step 4: Three more tools
 
-Let's build a toolkit of four tools. Together, these will make a surprisingly
-capable agent.
+Now let's build a toolkit of four tools. Each one addresses a different limitation of LLMs:
+
+| Tool | LLM limitation | What the tool does |
+|:--|:--|:--|
+| `calculate` | LLMs can't do exact arithmetic | Evaluates math expressions |
+| `get_weather` | LLMs have no real-time data | Looks up current weather |
+| `convert_units` | LLMs approximate conversions | Precise unit conversion |
+| `search_notes` | LLMs don't know *your* course | Searches CS 203 topics |
+
+Together, these four tools will let the model answer questions it could never answer alone.
+
+### Tool 2: Weather lookup
 """
         ),
         code_cell(
-            """# --- Tool 2: Weather lookup ---
+            """# --- Tool 2: Weather lookup (real-time data the model doesn't have) ---
 def get_weather(city: str) -> str:
     \"\"\"Get current weather for a city (mock data for demo).\"\"\"
     data = {
@@ -348,8 +417,14 @@ weather_tool = {
 print("Weather tool OK:", get_weather("Mumbai"))
 """
         ),
+        markdown_cell(
+            """### Tool 3: Unit converter
+
+Is 100°F hot or cold? Most people need to convert to answer that. LLMs approximate unit conversions but often get the decimals wrong. A tool gives exact answers.
+"""
+        ),
         code_cell(
-            """# --- Tool 3: Unit converter ---
+            """# --- Tool 3: Unit converter (precision matters) ---
 def convert_units(value: float, from_unit: str, to_unit: str) -> str:
     \"\"\"Convert between common units.\"\"\"
     conversions = {
@@ -390,8 +465,14 @@ converter_tool = {
 print("Converter tool OK:", convert_units(100, "celsius", "fahrenheit"))
 """
         ),
+        markdown_cell(
+            """### Tool 4: Course notes search — your own knowledge base
+
+*"What week did we cover data drift?"* — the LLM doesn't know your specific course. This tool is a tiny **RAG system** (Retrieval-Augmented Generation): the tool *retrieves* matching topics from a dictionary, and the model *generates* a natural-language answer from the retrieved data.
+"""
+        ),
         code_cell(
-            """# --- Tool 4: Course notes search ---
+            """# --- Tool 4: Course notes search (private knowledge base) ---
 def search_notes(query: str) -> str:
     \"\"\"Search CS 203 course topics by keyword.\"\"\"
     topics = {
@@ -436,10 +517,9 @@ print("Search tool OK:", search_notes("quantization"))
 """
         ),
         markdown_cell(
-            """### Let's test each tool individually
+            """### Testing tool selection
 
-Before building the full agent loop, let's verify the model picks the right
-tool for different questions.
+We now have four tools. Let's give the model **all four** at once and see if it picks the right one for each question. This is the critical test — can the model read the "menu" and "order" correctly?
 """
         ),
         code_cell(
@@ -482,17 +562,35 @@ else:
 """
         ),
         markdown_cell(
-            """**If the model picked the right tool every time, congratulations — you have
-a model that can read a menu and order correctly.**
+            """**If the model picked the right tool every time, congratulations — you have a model that can read a menu and order correctly.**
 
-Now let's build the loop that actually *executes* the tools and feeds the
-results back.
+Notice the last test: for "What is the capital of France?", the model should answer directly *without calling any tool*. It knows the answer from training data, so no tool is needed. **A good agent knows when NOT to use a tool.**
 
 ---
 
 ## Step 5: The complete agent loop
 
-This is the entire agent, in one function. Read every line — there's no magic.
+So far we've been doing tool calls manually — calling `generate()`, extracting the tool call, executing it, feeding the result back, calling `generate()` again. That's tedious.
+
+The **agent loop** automates this entire cycle. Here's the pseudocode:
+
+```
+messages = [user's question]
+
+repeat (up to max_steps):
+    response = model.generate(messages, tools=...)
+
+    if response has NO tool call:
+        return response as final answer     ← done!
+
+    for each tool_call in response:
+        result = execute(tool_call)         ← YOUR code runs
+        append result to messages
+
+    go back to top of loop                  ← model sees the result
+```
+
+That's the entire architecture. Let's implement it:
 """
         ),
         code_cell(
@@ -558,25 +656,27 @@ This is the entire agent, in one function. Read every line — there's no magic.
         ),
         markdown_cell(
             """### Let's try it!
+
+Run each cell below and **watch the step-by-step output**. The `verbose=True` flag shows you exactly what the agent is doing at each step — which tool it calls, what arguments it passes, and what result it gets back.
 """
         ),
         code_cell(
-            """# Simple: one tool call
+            """# Simple: one tool call — should use calculate
 agent("What is 4729 times 8314?")
 """
         ),
         code_cell(
-            """# Weather question
+            """# Weather: should use get_weather (possibly twice to compare)
 agent("What's the temperature in Delhi right now? Is it hotter than Mumbai?")
 """
         ),
         code_cell(
-            """# Unit conversion
+            """# Unit conversion: should use convert_units
 agent("Convert 5 miles to kilometers.")
 """
         ),
         code_cell(
-            """# Course notes
+            """# Course notes: should use search_notes
 agent("Which week covered experiment tracking?")
 """
         ),
@@ -586,10 +686,11 @@ agent("What does HTML stand for?")
 """
         ),
         markdown_cell(
-            """### Multi-step: questions that need multiple tool calls
+            """### Multi-step reasoning: questions that need multiple tool calls
 
-These are the fun ones — the model has to plan, call multiple tools, and
-combine the results.
+These are the fun ones — the model has to **plan**, call **multiple tools** in sequence, and **combine** the results into a single answer.
+
+Watch how the agent uses 2-4 steps to answer questions that require chaining different tools together:
 """
         ),
         code_cell(
@@ -612,9 +713,14 @@ agent("If I run 5 km every day for a week, how many miles is that total?")
 
 ## Step 6: Add your own tool
 
-Now it's your turn. Write a new tool, add it to the agent, and test it.
+Now it's your turn! **Writing a new tool** is the core skill of an AI engineer building agents. The process is always the same:
 
-### Example: a dictionary / definition lookup tool
+1. **Write a Python function** that does the thing you want
+2. **Write a JSON schema** describing the function (name, description, parameters)
+3. **Add both** to the agent's toolkit
+4. **Test** that the model uses it correctly
+
+Below is a starter example (a CS/ML dictionary). You can modify it or write something completely different — a calorie counter, a timezone converter, a joke generator, a recipe lookup, etc.
 """
         ),
         code_cell(
@@ -683,20 +789,42 @@ agent("What does 'epoch' mean, and if I train for 10 epochs with batch size 32 o
         markdown_cell(
             """---
 
-## Step 7: Reflection and submission
+## Step 7: The big picture
 
 ### What you built
 
-You just built an AI agent from scratch. Let's recap the pieces:
+You just built an AI agent from scratch. Let's recap the three pieces:
 
-| Component | What it does | Lines of code |
+| Piece | What it does | Analogy |
 |:--|:--|:--|
-| `generate()` | Wraps the model call + parsing | ~15 lines |
-| Tool functions | `calculate`, `get_weather`, `convert_units`, `search_notes` | ~10 lines each |
-| Tool schemas | JSON descriptions of each tool | ~15 lines each |
-| `agent()` | The loop: generate → check for tool call → execute → repeat | ~30 lines |
+| **LLM** (Gemma 4) | Thinks, reasons, decides what to do next | The brain |
+| **Tools** (4 functions) | Functions the LLM can call | The hands |
+| **Loop** (`agent()`) | Keeps going until the task is done | The work ethic |
 
 **Total: about 100 lines of Python.** That's the entire agent.
+
+### This is the architecture behind every AI agent
+
+| Agent | What it does | Tools it uses |
+|:--|:--|:--|
+| **Claude Code** | Writes, edits, and tests code from your terminal | File read/write, bash, grep, git |
+| **Cursor / Windsurf** | AI-powered code editors | File system, LSP, terminal |
+| **Devin** | Autonomous software engineer | Browser, terminal, code editor |
+| **Perplexity** | Search engine with citations | Web search, web scrape |
+| **Google Deep Research** | Multi-step research reports | Search, summarize, cite |
+
+Every one of these is the **same pattern**: LLM + tools + loop. The tools are more powerful, the models are bigger, but the architecture is identical to what you just built.
+
+### Guardrails: when agents go wrong
+
+Our `max_steps=5` parameter is the simplest guardrail. Real-world agents also need:
+
+| Risk | Example | Guardrail |
+|:--|:--|:--|
+| **Infinite loop** | Agent keeps calling tools forever | `max_steps` parameter |
+| **Wrong tool** | Agent calls `delete_file` when it meant `read_file` | Require user confirmation for dangerous tools |
+| **Hallucinated args** | `get_weather("Narnia")` | Validate arguments before execution |
+| **Cost explosion** | Agent makes 1000 API calls | Budget / rate limiting |
 
 ### Reflection questions
 
@@ -746,7 +874,7 @@ would it need?
 
 ## Bonus: Try these challenges
 
-If you have time, try these (no auto-grading — just for fun):
+If you have time, try these (no auto-grading — just for fun and learning):
 
 1. **Add a `get_time` tool** that returns the current time using
    `datetime.datetime.now()`. Ask the agent "What time is it?" and
@@ -761,6 +889,30 @@ If you have time, try these (no auto-grading — just for fun):
 
 4. **Chain 3+ tools.** Write a question that forces the model to call at
    least three different tools to answer. Does it succeed?
+
+---
+
+## Going further: MCP — the universal tool standard
+
+In this notebook, you defined tools as Python dicts. But what if you want to share tools across different LLMs and applications?
+
+**MCP (Model Context Protocol)** is an open standard from Anthropic that lets anyone publish tools that any agent can use — like USB-C for AI tools. One tool definition, many LLMs.
+
+```
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│  Claude  │     │ Gemma 4  │     │  GPT-5   │
+└────┬─────┘     └────┬─────┘     └────┬─────┘
+     │                │                │
+     └────────┬───────┘────────┬───────┘
+              │                │
+         ┌────┴────┐     ┌────┴────┐
+         │ Weather │     │  Slack  │
+         │  MCP    │     │  MCP    │
+         │ Server  │     │ Server  │
+         └─────────┘     └─────────┘
+```
+
+This is an active and exciting area — the tools you build today could be published as MCP servers that anyone in the world can use with any LLM.
 """
         ),
     ]
