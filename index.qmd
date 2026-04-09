@@ -41,4 +41,5 @@ subtitle: "IIT Gandhinagar · Jan 2026 · Prof. Nipun Batra"
 | Topic | Slides | Hands-On |
 |-------|:------:|:--------:|
 | From Script to Web App | [HTML](html/week10-web-apps-lecture.html) · [PDF](pdf/week10-web-apps-lecture.pdf) | |
+| CI/CD & Automation | [HTML](html/week11-cicd-lecture.html) · [PDF](pdf/week11-cicd-lecture.pdf) | |
 | APIs & Demos | [HTML](html/week12-apis-lecture.html) · [PDF](pdf/week12-apis-lecture.pdf) | [Follow-along](https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh) · [PDF](lecture-demos/week12/apis_followalong.pdf) |
