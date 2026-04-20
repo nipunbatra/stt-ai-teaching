@@ -23,16 +23,16 @@ subtitle: "IIT Gandhinagar · Jan 2026 · Prof. Nipun Batra"
 | Week | Topic | Slides | Hands-On |
 |:----:|-------|:------:|:--------:|
 | 6 | LLM APIs & Multimodal AI | [HTML](html/week06-llm-apis-lecture.html) · [PDF](pdf/week06-llm-apis-lecture.pdf) | [Lab](labs/week06-llm-apis-lab.html) |
-| 7 | Model Evaluation | [HTML](html/week07-model-development-lecture.html) · [PDF](pdf/week07-model-development-lecture.pdf) | [Notebook](lecture-demos/week07/week07_evaluation_notebook.html) · [Lab](labs/week07-model-development-lab.html) |
-| 8 | Tuning, AutoML & Tracking | [HTML](html/week08-tuning-tracking-lecture.html) · [PDF](pdf/week08-tuning-tracking-lecture.pdf) | [Notebook](lecture-demos/week08/tuning_tracking_notebook.html) |
+| 7 | Model Evaluation | [HTML](html/week07-model-development-lecture.html) · [PDF](pdf/week07-model-development-lecture.pdf) | [Notebook](lecture-demos/week07/week07_evaluation_notebook.html) · [Lab](labs/week07-model-development-lab.html) · [CV Lab (Colab)](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/labs/week07-cross-validation-lab.ipynb) |
+| 8 | Tuning, AutoML & Tracking | [HTML](html/week08-tuning-tracking-lecture.html) · [PDF](pdf/week08-tuning-tracking-lecture.pdf) | [Notebook](lecture-demos/week08/tuning_tracking_notebook.html) · [Lab (Colab)](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/labs/week08-hyperparameter-tuning-lab.ipynb) |
 
 ## Part III: Engineering (Weeks 9–13) {.engineering-section}
 
 | Week | Topic | Slides | Hands-On |
 |:----:|-------|:------:|:--------:|
-| 9 | Reproducibility: Docker, Seeds & Tracking | [HTML](html/week09-reproducibility-lecture.html) · [PDF](pdf/week09-reproducibility-lecture.pdf) | [Docker Demos](https://github.com/nipunbatra/docker-ml-demos) |
+| 9 | Reproducibility: Docker, Seeds & Tracking | [HTML](html/week09-reproducibility-lecture.html) · [PDF](pdf/week09-reproducibility-lecture.pdf) | [Docker Demos](https://github.com/nipunbatra/docker-ml-demos) · [Lab (Colab)](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/labs/week09-reproducibility-lab.ipynb) |
 | 10 | Data Drift & Model Monitoring | [HTML](html/week10-data-drift-lecture.html) | [Notebook](lecture-demos/week10/data_drift_notebook.html) |
-| 11 | Profiling & Quantization | [HTML](html/week11-profiling-quantization-lecture.html) · [PDF](pdf/week11-profiling-quantization-lecture.pdf) | [Colab Notebooks](lecture-demos/week11/colab-notebooks/) |
+| 11 | Profiling & Quantization | [HTML](html/week11-profiling-quantization-lecture.html) · [PDF](pdf/week11-profiling-quantization-lecture.pdf) | [Colab Notebooks](lecture-demos/week11/colab-notebooks/) · [Lab (Colab)](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/labs/week11-profiling-quantization-lab.ipynb) |
 | 12 | Building AI Agents | [HTML](html/week12-agents-lecture.html) · [PDF](pdf/week12-agents-lecture.pdf) | [Colab Notebook](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/colab-notebooks/01-agents-from-scratch.ipynb) |
 | 13 | Course Summary | [HTML](html/week13-course-summary-lecture.html) · [PDF](pdf/week13-course-summary-lecture.pdf) | |
 
