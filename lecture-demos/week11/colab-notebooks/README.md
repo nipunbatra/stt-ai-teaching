@@ -27,6 +27,8 @@ These notebooks are simple, CPU-friendly companions for
 | [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/09-quantization-from-scratch.ipynb) |  |
 | `10-lab-profiling-and-quantization.ipynb` | **student lab** — exercises covering FP / params / profiling / batching / quantization |
 | [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/10-lab-profiling-and-quantization.ipynb) |  |
+| `11-quantization-llm-from-scratch.ipynb` | INT8 quantization from scratch applied to a tiny decoder-only transformer (~60K params) trained on Hamlet's soliloquy — same three-line math extended to a real LLM |
+| [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/11-quantization-llm-from-scratch.ipynb) |  |
 
 ## Notes
 
