@@ -29,6 +29,8 @@ These notebooks are simple, CPU-friendly companions for
 | [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/10-lab-profiling-and-quantization.ipynb) |  |
 | `11-quantization-llm-from-scratch.ipynb` | INT8 quantization from scratch applied to a tiny decoder-only transformer (~60K params) trained on Hamlet's soliloquy — same three-line math extended to a real LLM |
 | [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/11-quantization-llm-from-scratch.ipynb) |  |
+| `12-quantization-real-llm.ipynb` | Same INT8 quantizer applied to **Qwen 2.5 0.5B** (494M params, downloaded from Hugging Face Hub) — ~4× model shrink, <1% next-token CE degradation |
+| [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/12-quantization-real-llm.ipynb) |  |
 
 ## Notes
 
