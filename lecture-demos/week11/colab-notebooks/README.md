@@ -23,6 +23,8 @@ These notebooks are simple, CPU-friendly companions for
 | [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/07-pruning-basics.ipynb) |  |
 | `08-distillation-basics.ipynb` | teacher-student training on a small dataset |
 | [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/08-distillation-basics.ipynb) |  |
+| `09-quantization-from-scratch.ipynb` | INT8 symmetric quantization from scratch (no `torch.quantization`, no sklearn) on a two-moons MLP |
+| [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/09-quantization-from-scratch.ipynb) |  |
 | `10-lab-profiling-and-quantization.ipynb` | **student lab** — exercises covering FP / params / profiling / batching / quantization |
 | [Open in Colab](https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week11/colab-notebooks/10-lab-profiling-and-quantization.ipynb) |  |
 
