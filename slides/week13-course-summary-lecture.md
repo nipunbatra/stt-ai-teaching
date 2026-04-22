@@ -16,70 +16,82 @@ paginate: true
 
 ---
 
-# The Journey
+# The Journey — Data Side
 
-In January, you could write a Python script.
-
-Now you can:
+In January, you could write a Python script. Now you can:
 
 - **Collect** data from APIs, web pages, sensors
 - **Validate** it with schemas before it poisons your model
-- **Label** it efficiently (and know when to let an LLM help)
+- **Label** it efficiently (manual, active, weak, LLM-assisted)
 - **Augment** it when you don't have enough
-- **Call LLMs** and stream structured outputs
-- **Evaluate** models properly — not just accuracy
-- **Tune** hyperparameters without wasting a week
-- **Track** experiments so you never lose a good run
-- **Dockerize** your work so anyone can reproduce it
-- **Detect drift** when the world moves on without you
-- **Profile & quantize** models for real-world constraints
+
+---
+
+# The Journey — Models & Production
+
+- **Call LLMs** with structured outputs, multimodal inputs
+- **Evaluate** properly — not just accuracy
+- **Tune & track** hyperparameters
+- **Reproduce** runs across machines (Docker, seeds)
+- **Monitor** drift in production
+- **Profile & quantize** for real-world constraints
 - **Build agents** that use tools to take actions
 
 ---
 
-# One-Liner Per Lecture
+# One-Liner Per Lecture — Data
 
-| # | Week | Takeaway in one sentence |
+| # | Week | Takeaway |
 |:-:|:-:|:--|
-| 1 | Data Collection | *Never trust an API that doesn't return a status code; paginate, retry, cache.* |
-| 2 | Data Validation | *Validate at the boundary — turn bad inputs into loud errors, not silent bugs.* |
-| 3 | Data Labeling | *The annotation guidelines matter more than the tool; write them first.* |
-| 4 | Optimizing Labeling | *Active learning + weak supervision turn labels from a headcount problem into a code problem.* |
-| 5 | Data Augmentation | *Augmentation is free data — but only if the transform preserves the label.* |
-| 6 | LLM APIs | *Prompts are functions; put them in version control and test their outputs like code.* |
-| 7 | Model Evaluation | *A single train/test split is a coin flip; 5-fold CV is the minimum viable evaluation.* |
-| 8 | Tuning + Tracking | *Random beats grid for ≥3 hyperparameters; Optuna beats random when evals are expensive.* |
-| 9 | Reproducibility | *Control the machine (Docker), the math (seeds), and the memory (tracking) — all three.* |
-| 10 | Data Drift | *The model you deployed is not the model you have tomorrow; monitor distributions, not just metrics.* |
-| 11 | Profiling + Quantization | *Profile before you optimize; INT8 is ~4× free compression on every Linear layer.* |
-| 12 | AI Agents | *An agent is just an LLM in a while-loop with tools; the same pattern powers Claude Code / Cursor / Devin.* |
-| + | Web Apps / CI/CD / APIs | *If nobody can run it in 5 minutes, it doesn't exist.* |
+| 1 | Data Collection | *Paginate, retry, validate status codes.* |
+| 2 | Data Validation | *Validate at the boundary — loud errors, not silent bugs.* |
+| 3 | Data Labeling | *Annotation guidelines matter more than the tool.* |
+| 4 | Optimizing Labeling | *Active + weak supervision turn labels into code.* |
+| 5 | Data Augmentation | *Free data — if the transform preserves the label.* |
 
 ---
 
-# The Full Stack, One Slide
+# One-Liner Per Lecture — Models
+
+| # | Week | Takeaway |
+|:-:|:-:|:--|
+| 6 | LLM APIs | *Prompts are functions; version and test them.* |
+| 7 | Model Evaluation | *Single split = coin flip; 5-fold CV is the floor.* |
+| 8 | Tuning + Tracking | *Random > grid past 3 HPs; Optuna > random when evals are expensive.* |
+
+---
+
+# One-Liner Per Lecture — Production
+
+| # | Week | Takeaway |
+|:-:|:-:|:--|
+| 9 | Reproducibility | *Fix the machine, the math, and the memory — all three.* |
+| 10 | Data Drift | *Monitor distributions, not just metrics.* |
+| 11 | Profiling + Quantization | *Profile first; INT8 is ~4× free compression.* |
+| 12 | AI Agents | *LLM + tools + while-loop = Claude Code, Cursor, Devin.* |
+| — | Web Apps / CI/CD / APIs | *If it doesn't run in 5 minutes, it doesn't exist.* |
+
+---
+
+# The Full Stack
 
 ```
 Raw Data
   │
-  ├── Collect (APIs, scraping, sensors)     ← Week 1-2
-  ├── Validate (schemas, types, ranges)     ← Week 2
-  ├── Label (manual, active, weak, LLMs)    ← Week 3-4
-  ├── Augment (transforms, synthetic)       ← Week 5
-  │
-  ├── Call LLM APIs (Gemini, prompts)       ← Week 6
-  ├── Train & Evaluate (CV, bias-variance)  ← Week 7
-  ├── Tune & Track (Optuna, TrackIO)        ← Week 8
-  │
-  ├── Reproduce (Docker, seeds)             ← Week 9
-  ├── Monitor (drift detection)             ← Week 10
-  ├── Profile & Optimize (INT8, ONNX)       ← Week 11
-  ├── Build Agents (tools, loops)           ← Week 12
-  │
-  └── Production ML System
+  ├── Collect    (APIs, scraping)             ← Week 1-2
+  ├── Validate   (schemas, types, ranges)     ← Week 2
+  ├── Label      (manual, active, weak, LLM)  ← Week 3-4
+  ├── Augment    (transforms, synthetic)      ← Week 5
+  ├── LLM APIs   (Gemini, prompts)            ← Week 6
+  ├── Evaluate   (CV, bias-variance)          ← Week 7
+  ├── Tune/Track (Optuna, TrackIO)            ← Week 8
+  ├── Reproduce  (Docker, seeds)              ← Week 9
+  ├── Monitor    (drift detection)            ← Week 10
+  ├── Profile    (INT8, ONNX, pruning)        ← Week 11
+  └── Agent      (tools, loops)               ← Week 12
 ```
 
-Each layer above depends on the ones below. Skip one, ship a bug.
+Each layer depends on the ones above. Skip one, ship a bug.
 
 ---
 
@@ -88,36 +100,43 @@ Each layer above depends on the ones below. Skip one, ship a bug.
 
 # Part I — Data (Weeks 1–5)
 
-*"80% of machine learning is data work."*
+*"80% of ML is data work."*
 
 ---
 
-# Data Collection: What We Learned
+# Data Collection — APIs
 
-**APIs** — structured data from services (JSON, REST)
 ```python
 r = requests.get("https://api.example.com/data", timeout=5)
-r.raise_for_status()   # crash loudly, don't silently corrupt
+r.raise_for_status()     # crash loudly, don't silently corrupt
 data = r.json()
 ```
 
-**Web Scraping** — extracting data from HTML pages
+**Key insight:** the data you collect sets your model's *ceiling*.
+No algorithm fixes bad data.
+
+---
+
+# Data Collection — Scraping & Gotchas
+
 ```python
 from bs4 import BeautifulSoup
 soup = BeautifulSoup(html, "html.parser")
 titles = [h.get_text().strip() for h in soup.find_all("h2")]
 ```
 
-**Key insight:** The data you collect determines your model's **ceiling**.
-No algorithm fixes bad data.
+**Gotchas you met this semester:**
 
-*Gotchas you met this semester:* rate limits, pagination, JavaScript-rendered pages, character encoding, time-zone bugs.
+- Rate limits & backoff
+- Pagination cursors
+- JS-rendered pages (needs Playwright/Selenium)
+- Character encoding (`utf-8` vs `latin-1`)
+- Time-zone bugs
 
 ---
 
-# Data Validation: What We Learned
+# Data Validation — Pydantic
 
-**Pydantic** — validate with Python type hints
 ```python
 class SensorReading(BaseModel):
     temperature: float = Field(ge=-50, le=60)
@@ -125,61 +144,65 @@ class SensorReading(BaseModel):
     timestamp:   datetime
 ```
 
-**Why this matters:** a bad row at 3 AM will otherwise poison your
-training set and you will only notice two weeks later when accuracy
-drops.
-
-**Key insight:** Validate at the **boundary**. Catch bad data before
-it enters your pipeline — *not* after your model produces garbage.
+**Key insight:** validate at the **boundary**. Catch bad data before
+it enters your pipeline — not after your model produces garbage.
 
 ---
 
-# Labeling: The Bottleneck
+# Labeling — Strategies
 
 | Strategy | When to use | Cost / sample |
 |:--|:--|:--|
-| **Manual** | Small, high-stakes data | Highest |
-| **Active learning** | Large unlabeled pool, uncertain model | Medium |
-| **Weak supervision** | Domain heuristics, noisy labels | Low |
-| **LLM-assisted** | Text tasks, budget for API calls | Low but ≠ free |
+| **Manual** | Small, high-stakes | Highest |
+| **Active learning** | Large unlabeled pool | Medium |
+| **Weak supervision** | Domain heuristics | Low |
+| **LLM-assisted** | Text tasks, budget for API | Low but ≠ free |
 
-Active learning in one line:
-$$\text{next\_to\_label} = \arg\max_{x \in \mathcal{U}} \; H\bigl(p(y \mid x)\bigr)$$
+Labeling is usually the **most expensive part of ML**.
 
-— pick the most *uncertain* unlabeled example. You annotate 10× fewer samples for the same accuracy.
+---
+
+# Active Learning in One Line
+
+$$\text{next\_to\_label} \;=\; \arg\max_{x \in \mathcal{U}} \; H\bigl(p(y \mid x)\bigr)$$
+
+Pick the **most uncertain** unlabeled example.
+
+- Ties the model's own confidence to the labeling budget
+- Typically 5–10× fewer labels for the same accuracy
+- Entropy is the standard uncertainty measure; margin / disagreement also work
 
 ---
 
 # Weak Supervision in 10 Lines
 
 ```python
-def lf_has_positive_word(text):
-    return 1 if any(w in text for w in ["great", "excellent", "love"]) else -1
+def lf_positive(text):
+    return 1 if any(w in text for w in ["great", "excellent"]) else -1
 
-def lf_has_negative_word(text):
-    return 0 if any(w in text for w in ["bad", "terrible", "hate"]) else -1
+def lf_negative(text):
+    return 0 if any(w in text for w in ["bad", "terrible"]) else -1
 
-# Majority-vote aggregation
-labels = [lf_has_positive_word(t), lf_has_negative_word(t), ...]
+labels = [lf_positive(t), lf_negative(t)]
 noisy_label = Counter(l for l in labels if l != -1).most_common(1)[0][0]
 ```
 
-**Key insight:** You can get 70–90% of manual-labeling accuracy with
-hand-written rules + a denoiser. That's the Snorkel playbook.
+**Key insight:** 70–90% of manual-labeling accuracy from hand-written
+rules + a denoiser. That's the Snorkel playbook.
 
 ---
 
-# Augmentation: Free Data (*if* label-preserving)
+# Augmentation — Free Data *(if label-preserving)*
 
 | Domain | Techniques |
 |:--|:--|
 | Images | flip, rotate, crop, color jitter, RandAugment |
-| Text | synonym replacement, back-translation, paraphrase |
+| Text | synonym replacement, back-translation |
 | Audio | time shift, pitch shift, noise injection |
 | Tabular | SMOTE, noise injection, mixup |
 
-⚠ **The canonical mistake:** flipping a handwritten `6` and calling it
-a `9`. Always ask: *does this transform preserve the label?*
+⚠ **Canonical mistake:** flipping a handwritten `6` into a `9`.
+Always ask: *does this transform preserve the label?*
 
 ---
 
@@ -192,7 +215,7 @@ a `9`. Always ask: *does this transform preserve the label?*
 
 ---
 
-# LLM APIs: What We Learned
+# LLM APIs
 
 ```python
 from google import genai
@@ -206,12 +229,7 @@ response = client.models.generate_content(
 )
 ```
 
-- **Structured outputs** via JSON schema
-- **Multimodal** — images + text in one call
-- **Streaming** for UX
-- **Prompts are code** — version them, test them
-
-**Key insight:** Prompt engineering ≠ magic. It's testable software.
+**Four skills:** structured outputs · multimodal · streaming · prompt versioning.
 
 ---
 
@@ -221,61 +239,58 @@ response = client.models.generate_content(
 |:--|:--|
 | Exact arithmetic | A calculator |
 | Date parsing | `datetime.strptime` |
-| Structured extraction from text | regex or a small fine-tuned model |
-| Classification with ≥1000 labelled examples | logistic regression / BERT |
+| Structured extraction | regex / small fine-tuned model |
+| Classification with lots of labels | logistic regression / BERT |
 | Anything that must be deterministic | Pretty much anything else |
 
 *LLMs are a tool, not a default.*
 
 ---
 
-# Evaluation: Beyond Accuracy
+# Evaluation — Beyond Accuracy
 
 | Concept | Why it matters |
 |:--|:--|
-| **Cross-validation** | Single split = coin flip |
+| **Cross-validation** | Single split is a coin flip |
 | **Stratified K-Fold** | Preserves class balance |
-| **Bias–Variance** | Underfitting vs overfitting, visualized |
-| **Leakage** | #1 cause of too-good-to-be-true results |
 | **Nested CV** | Needed when you tune hyperparameters |
+| **TimeSeriesSplit** | Time-ordered data needs time-ordered folds |
+| **GroupKFold** | Patients / users must not span folds |
 
-**Key insight:** If you only do one thing, do **5-fold stratified
-cross-validation** instead of one train/test split. That's the floor.
+Minimum viable evaluation: **5-fold stratified CV**.
 
 ---
 
-# Bias-Variance in One Formula
+# Bias–Variance in One Formula
 
 $$
 \mathbb{E}[(y - \hat f(x))^2]
-= \underbrace{\bigl(\mathbb{E}[\hat f(x)] - f(x)\bigr)^2}_{\text{bias}^2}
-+ \underbrace{\operatorname{Var}\!\bigl[\hat f(x)\bigr]}_{\text{variance}}
+= \underbrace{\bigl(\mathbb{E}[\hat f] - f\bigr)^2}_{\text{bias}^2}
++ \underbrace{\operatorname{Var}\!\bigl[\hat f\bigr]}_{\text{variance}}
 + \sigma^2
 $$
 
 - Simple models → high bias, low variance (underfit)
 - Complex models → low bias, high variance (overfit)
-- The "sweet spot" is where **test error** bottoms out, not training error
-
-*Regularization, more data, and CV all attack the variance term.*
+- Pick where **test** error bottoms out, not training error
 
 ---
 
-# Data Leakage: The #1 Killer
+# Data Leakage — The #1 Killer
 
-Any time **test-time information** sneaks into training:
+Test-time information sneaking into training:
 
-- Scaling on the full dataset *before* the train/test split
+- **Scaling on the full dataset before splitting**
 - Using a target-derived feature (`log_of_price` to predict `price`)
-- Time-series data split randomly instead of by time
-- Duplicated rows across train and test
+- Time-series data split randomly instead of chronologically
+- Duplicated rows across train / test
+- Test set peeking during hyperparameter tuning
 
-**Rule of thumb:** if your test accuracy is 99% on a problem everyone
-else solves at 85%, you have a leak. Look harder.
+**Rule of thumb:** 99% where everyone else is at 85% → you have a leak.
 
 ---
 
-# Tuning: Don't Waste Time
+# Tuning — Don't Waste Time
 
 | Method | Tries | When |
 |:--|:--|:--|
@@ -284,9 +299,8 @@ else solves at 85%, you have a leak. Look harder.
 | **Bayesian (Optuna)** | adaptive | expensive evals |
 | **Hyperband / ASHA** | early stopping | deep learning |
 
-Bergstra & Bengio 2012 showed **random beats grid** because only ~2 of
-your 5 hyperparameters actually matter, and random explores those
-coordinates more densely.
+Bergstra & Bengio 2012: only ~2 of your 5 hyperparams matter,
+and random explores those coordinates more densely than grid.
 
 ---
 
@@ -300,12 +314,8 @@ for epoch in range(100):
 run.finish()
 ```
 
-- Never lose a good run again
-- Sweeps + comparison dashboards
-- Hyperparameter importance via TPE / fANOVA
-
-**Key insight:** *"Which run was the good one?"* is the question
-tracking answers. Without it, you're re-running experiments by hand.
+Answers *"which run was the good one?"* — without this you're
+re-running experiments by hand.
 
 ---
 
@@ -318,25 +328,15 @@ tracking answers. Without it, you're re-running experiments by hand.
 
 ---
 
-# Reproducibility: Three Layers
+# Reproducibility — Three Layers
 
 | Layer | Symptom | Cure |
 |:--|:--|:--|
-| The Math | Different results each run | seeds (`numpy`, `torch`, `random`) |
-| The Memory | Lost the best hyperparams | experiment tracking (TrackIO) |
+| The Math | Different results each run | seeds everywhere |
+| The Memory | Lost the best hyperparams | experiment tracking |
 | The Machine | "Works on my laptop" | Docker / `pyproject.toml` |
 
-```python
-# The Math
-import random, numpy as np, torch
-random.seed(0); np.random.seed(0); torch.manual_seed(0)
-
-# The Memory
-trackio.init(project="proj"); trackio.log({"acc": 0.95})
-
-# The Machine
-# Dockerfile → docker build -t app . → docker run -p 7860:7860 app
-```
+All three matter. Missing one is a reproducibility bug.
 
 ---
 
@@ -351,56 +351,56 @@ COPY . .
 CMD ["python", "app.py"]
 ```
 
-- `docker build` → one command turns your code into a portable image
-- `docker run -p 7860:7860` → ships to any Linux box, Mac, CI server
-- No more *"can you install these 14 things first"*
-
-**Key insight:** Docker isn't about containers, it's about **recipes
-that always work.**
+- `docker build` turns your code into a portable image
+- `docker run -p 7860:7860` ships to any Linux / Mac / CI server
+- No more *"install these 14 things first"*
 
 ---
 
-# Data Drift: Is Your Model Still Good?
-
-Models degrade silently as the world changes.
+# Data Drift — Tests
 
 | Test | Detects |
 |:--|:--|
 | **KS test** | Shift in continuous features |
-| **PSI** | Population stability between train and prod |
+| **PSI** | Population stability (train vs prod) |
 | **Chi-squared** | Categorical feature shifts |
 | **Jensen–Shannon / Wasserstein** | General distribution distance |
 
-$$\mathrm{KS} = \max_x \; \lvert F_{\text{train}}(x) - F_{\text{prod}}(x) \rvert$$
+---
 
-**Key insight:** 95% accuracy at deployment can silently drop to 70%
-two months later. Monitor **distributions**, not just metrics.
+# Data Drift — KS Statistic
+
+$$\mathrm{KS} \;=\; \max_x \; \bigl\lvert F_{\text{train}}(x) - F_{\text{prod}}(x) \bigr\rvert$$
+
+- $F$ = empirical CDF of each distribution
+- Big KS ⇒ distributions drifted apart
+- Pair with a p-value from the two-sample KS test
+
+**Key insight:** 95% accuracy at deployment → silent 70% two months
+later if the input distribution shifts.
 
 ---
 
-# Profiling: Find Before You Fix
+# Profiling — Find Before You Fix
 
 ```
 print(time.time() - t0)   # first check: how slow?
 cProfile                  # which function?
 line_profiler             # which line?
 memory_profiler           # which allocation?
-torch.profiler            # GPU too
+torch.profiler            # GPU timing & kernel breakdown
 ```
 
-**Key insight:** The #1 speedup in most student projects this semester
-was *loading the model once at startup* instead of once per request.
-
-Premature optimization is the root of all evil — and the #1 cause of
-bugs.
+**Key insight:** the #1 speedup in student projects this semester was
+loading the model **once at startup** instead of per request.
 
 ---
 
 # Quantization in Three Lines
 
 $$
-\text{scale} = \frac{\max|W|}{127}, \qquad
-q = \operatorname{round}(W / \text{scale}), \qquad
+\text{scale} = \frac{\max|W|}{127}, \quad
+q = \operatorname{round}\!\bigl(W / \text{scale}\bigr), \quad
 \hat W = q \cdot \text{scale}
 $$
 
@@ -411,21 +411,75 @@ def quantize_tensor(x):
     return q, s
 ```
 
-4× smaller weights, **<1%** typical accuracy drop, runs anywhere.
+4× smaller weights, typically **< 1%** accuracy drop.
 
 ---
 
-# Quantization Scales from MLP → 0.5B LLM
+# Quantization Scales — Toy to 0.5B LLM
 
-We applied the same three-line quantizer to three models, in sequence:
+Same 3-line routine applied to progressively bigger models:
 
-| Notebook | Model | Params | INT8 accuracy drop |
+| Notebook | Model | Params | INT8 vs FP32 |
 |:--|:--|--:|:--:|
-| `09-quantization-from-scratch` | 2-layer MLP, `make_moons` | ~400 | ≈ 0 |
-| `11-quantization-llm-from-scratch` | 2-layer Transformer, Hamlet corpus | ~60K | ~0.005 loss |
-| `12-quantization-real-llm` | **Qwen 2.5 0.5B** (Hugging Face) | **494M** | **< 1% CE** |
+| `09-…from-scratch` | MLP · `make_moons` | ~400 | ≈ 0 |
+| `11-…llm-from-scratch` | 2-layer Transformer · Hamlet | ~60K | Δ loss ≈ 0.005 |
+| `12-…real-llm` | **Qwen 2.5 0.5B** (HF) | **494M** | < 1% CE |
 
-The same 3 lines work on a toy and a production LLM. That's the whole point.
+The math doesn't care about model size.
+
+---
+
+# Beyond Quantization — Compression Toolbox
+
+| Technique | Idea | Typical gain |
+|:--|:--|:--|
+| **Quantization** | Fewer bits per weight | 4× (INT8), 8× (INT4) |
+| **Pruning** | Zero out small weights | 50–90% sparsity |
+| **Distillation** | Small "student" mimics big "teacher" | 5–10× smaller model |
+| **ONNX export** | Portable graph format | Runs anywhere (mobile, browser, edge) |
+
+Real deployments stack these: distill → prune → quantize → ONNX.
+
+---
+
+# Ship It — Demo Apps
+
+```python
+# Gradio
+import gradio as gr
+gr.Interface(predict, "text", "label").launch()
+
+# Streamlit
+import streamlit as st
+x = st.text_input("Prompt"); st.write(model(x))
+
+# FastAPI
+@app.post("/predict")
+def predict(body: Input) -> Output: ...
+```
+
+**Gradio** for quick ML demos · **Streamlit** for dashboards ·
+**FastAPI** for production APIs.
+
+---
+
+# CI / CD in One Slide
+
+```yaml
+# .github/workflows/ci.yml
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements.txt
+      - run: pytest
+      - run: docker build -t app .
+```
+
+Every commit: install, test, build a Docker image. **If it breaks,
+you find out in 30 seconds, not two weeks later.**
 
 ---
 
@@ -438,35 +492,27 @@ The same 3 lines work on a toy and a production LLM. That's the whole point.
 
 ---
 
-# Agents: LLMs That Take Actions
+# Agents — The Architecture
 
-$$
-\textbf{agent} = \textbf{LLM} + \textbf{tools} + \textbf{loop}
-$$
+$$\textbf{agent} \;=\; \textbf{LLM} + \textbf{tools} + \textbf{loop}$$
 
 | Piece | Role | Analogy |
 |:--|:--|:--|
-| **LLM** | Thinks, reasons, decides | The brain |
-| **Tools** | Functions the LLM can call | The hands |
-| **Loop** | Keep going until done | The work ethic |
+| **LLM** | Think, reason, decide | Brain |
+| **Tools** | Functions the LLM can call | Hands |
+| **Loop** | Keep going until done | Work ethic |
 
-You built a full agent with **Gemma 4** on a free Colab T4: four tools,
-multi-step reasoning, **~100 lines** of Python.
+You built a 4-tool agent with Gemma 4 on free Colab in ~100 lines.
 
 ---
 
-# Tool Calling — The Minimum Viable Agent
+# Tool Calling — Minimum Viable Loop
 
 ```python
-def calculate(expr: str) -> str:
-    return str(eval(expr, {"__builtins__": {}}, SAFE_FUNCS))
-
-TOOLS = [{
-    "type": "function",
-    "function": {"name": "calculate", "description": "Do math",
-                 "parameters": {"type": "object",
-                                "properties": {"expr": {"type": "string"}}}}
-}]
+TOOLS = [{"type": "function",
+          "function": {"name": "calculate",
+                       "description": "Do math",
+                       "parameters": {...}}}]
 
 while not done:
     response = llm(messages, tools=TOOLS)
@@ -475,51 +521,82 @@ while not done:
         messages.append({"role": "tool", "content": result})
 ```
 
-**Key insight:** Claude Code, Cursor, Devin, Perplexity — all the same
-pattern. Bigger tools, same architecture.
+Bigger tools, same architecture. Claude Code, Cursor, Devin, Perplexity — all follow this shape.
+
+---
+
+# Advanced Calculator — Why It's Not a Toy
+
+The lab exercise: upgrade `calculate` to handle `sqrt, sin, log,
+factorial, np.mean, np.dot, matmul`, and keep `eval()` safe.
+
+- **Exposes** that "tool = Python function" scales to arbitrary math
+- **Teaches** sandboxing (`{"__builtins__": {}}`, AST walking)
+- **Shows** that an LLM + numpy tool beats any LLM doing arithmetic alone
+
+*This is the real-world recipe:* LLM + expert tool >> LLM alone.
 
 ---
 
 <!-- _class: lead -->
 <!-- _paginate: false -->
 
-# Connecting the Dots
+# Common Mistakes & Lessons
 
 ---
 
-# The Tools Map
-
-```
-PLAN              BUILD               SHIP                EXTEND
-────              ─────               ────                ──────
-Validation        sklearn             Docker              cProfile
-Schemas           Pipelines           TrackIO             Quantization
-Labeling          CV / Tuning         Seeds               ONNX
-Augmentation      Optuna              Drift detection     Pruning
-                  LLM APIs            CI/CD               Distillation
-                  HF Transformers     Gradio/Streamlit    Agents
-                                      FastAPI             Tool calling
-```
-
-You don't need all of these for every project — but you need to know
-they **exist** so you can pick the right tool for the job.
-
----
-
-# Common Mistakes I Saw This Semester
+# Top 10 Mistakes I Saw — Part 1
 
 1. **Scaling before splitting** → data leakage → fake accuracy
 2. **No seed set** → "my model worked yesterday"
-3. **One train/test split** reported as final accuracy → coin flip
-4. **Pickled the model without requirements.txt** → unreproducible
+3. **One train/test split** reported as final → coin flip
+4. **Pickled the model without `requirements.txt`** → unreproducible
 5. **Hardcoded paths** (`/home/student/...`) → breaks for the next person
+
+---
+
+# Top 10 Mistakes I Saw — Part 2
+
 6. **No README** → nobody can run it
-7. **Test set peeking** during hyperparameter tuning → optimistic bias
+7. **Test set peeking** during tuning → optimistic bias
 8. **Committed API keys / secrets** → please read `.gitignore` docs
 9. **Caught every exception broadly** → silent failures
-10. **Optimized the wrong bottleneck** — profiling would have shown the fix in 30 seconds
+10. **Optimized the wrong bottleneck** — profiling would have shown the fix in 30 s
 
-If you avoid just these 10, you're already ahead of most production codebases.
+Avoid these 10 → you're ahead of most production codebases.
+
+---
+
+<!-- _class: lead -->
+<!-- _paginate: false -->
+
+# Cheat Sheet — When Things Go Wrong
+
+---
+
+# Cheat Sheet — Part 1
+
+| Symptom | Diagnosis | Lecture |
+|:--|:--|:-:|
+| "Accuracy changes every run" | No seed | 9 |
+| "My script doesn't run for the TA" | Docker + pinned deps | 9 |
+| "Accuracy dropped in production" | Data drift | 10 |
+| "Test 99%, prod 70%" | Data leakage | 7 |
+| "Model too slow" | Profile first | 11 |
+
+---
+
+# Cheat Sheet — Part 2
+
+| Symptom | Diagnosis | Lecture |
+|:--|:--|:-:|
+| "Model too big for device" | Quantize / prune / distill | 11 |
+| "LLM hallucinates numbers" | Give it a calculator tool | 12 |
+| "Lost my best hyperparams" | TrackIO / W&B | 8 |
+| "Can't get enough labels" | Active / weak supervision | 4 |
+| "Not enough data to train" | Augmentation | 5 |
+
+Screenshot these two slides. Come back in 5 years.
 
 ---
 
@@ -527,83 +604,56 @@ If you avoid just these 10, you're already ahead of most production codebases.
 
 ```bash
 my-project/
-├── data/                  # raw + processed data (gitignored)
+├── data/                  # raw + processed (gitignored)
 ├── notebooks/             # exploration only
 ├── src/
-│   ├── train.py          # training, with seeds + tracking
+│   ├── train.py          # training with seeds + tracking
 │   ├── evaluate.py       # reproducible metrics
-│   └── app.py            # Gradio/Streamlit/FastAPI demo
+│   └── app.py            # Gradio / Streamlit / FastAPI
 ├── tests/                 # at least one smoke test
 ├── requirements.txt       # pinned versions
-├── Dockerfile             # optional but impressive
-└── README.md              # how to run it in < 5 min
+├── Dockerfile             # recipes that always work
+└── README.md              # runnable in < 5 min
 ```
 
-Must have: seeds set, **5-fold CV**, TrackIO logging, working demo.
+Must have: seeds · 5-fold CV · tracking · a working demo.
 
 ---
 
 # What This Course Didn't Cover
 
-| Topic | Why it matters | Where to learn |
-|:--|:--|:--|
-| Deep Learning | CNNs, transformers, fine-tuning | CS 337, fast.ai |
-| MLOps | CI/CD, model registries, pipelines | *Made With ML* |
-| Cloud Deployment | AWS/GCP/Azure, k8s | cloud docs |
-| Data Engineering | ETL, warehouses | `dbt`, Airflow |
-| ML System Design | Scaling, A/B tests, feedback loops | Chip Huyen's book |
-| MCP / A2A | Universal tool standards for agents | Anthropic / Google docs |
+| Topic | Where to learn |
+|:--|:--|
+| Deep Learning (CNNs / transformers / fine-tuning) | CS 337, fast.ai |
+| MLOps (registries, pipelines) | *Made With ML* |
+| Cloud Deployment (AWS / GCP / Azure / k8s) | cloud docs |
+| Data Engineering (ETL, warehouses) | `dbt`, Airflow |
+| ML System Design (scaling, A/B, feedback) | Chip Huyen's book |
+| MCP / A2A (agent tool standards) | Anthropic / Google docs |
 
-This course gave you the **foundations**. These are the next steps.
-
----
-
-# Cheat Sheet — *"I have a problem, which slide?"*
-
-| Symptom | Diagnosis | Lecture |
-|:--|:--|:--:|
-| "Accuracy changes every run" | No seed set | 9 |
-| "Accuracy dropped in production" | Data drift | 10 |
-| "Test accuracy 99%, prod 70%" | Data leakage | 7 |
-| "Model is too slow" | Profile first | 11 |
-| "Model too big for device" | Quantize (INT8) | 11 |
-| "LLM hallucinates numbers" | Give it a calculator tool | 12 |
-| "I lost my best hyperparams" | TrackIO | 8 |
-| "My script doesn't run for the TA" | Docker + requirements.txt | 9 |
-| "I can't get enough labels" | Active learning / weak supervision | 4 |
-| "Not enough data to train" | Augmentation | 5 |
-
-Screenshot this slide. Come back to it in 5 years.
+Foundations → yours. Next steps → above.
 
 ---
 
-# Advice for Your Future Projects
+# Advice for Future Projects
 
-1. **Start with the data, not the model.** 80% of ML is data work.
-2. **Simple models first.** Logistic regression before transformers.
-   You'll be surprised how often simple wins.
-3. **Automate the boring stuff.** Seeds, tracking, Docker,
-   `requirements.txt` — set these up on day 1, not day last.
-4. **Make it runnable.** If someone can't clone your repo and run your
-   code in 5 minutes, it doesn't exist.
-5. **Read error messages.** The answer is almost always in the
-   traceback. Read it before asking ChatGPT.
-6. **Version everything.** Code, data, models, configs, prompts.
-7. **Ship early, iterate.** A 70% demo today beats a 95% plan for
-   next month.
+1. **Data before model.** 80% of ML is data work.
+2. **Simple first.** Logistic regression before transformers.
+3. **Automate day 1.** Seeds, tracking, Docker, `requirements.txt`.
+4. **Make it runnable.** 5-minute clone → run, or it doesn't exist.
+5. **Read the traceback** before asking ChatGPT.
+6. **Version everything** — code, data, models, prompts.
+7. **Ship early.** 70% demo today > 95% plan next month.
 
 ---
 
-# What to Do Monday Morning at a New ML Job
+# Monday Morning at a New ML Job
 
-1. Read the existing codebase. Find the `train.py`. Run it. Does it
-   reproduce? *That alone impresses people.*
-2. Ask: "What's the source of truth for the training data?" If the
-   answer is "this one CSV in somebody's Downloads folder", you have
-   work to do.
-3. Look for seeds. Add them if missing.
-4. Check if experiments are tracked. Add TrackIO / W&B if not.
-5. Write a Dockerfile. It won't be perfect. Ship it anyway.
+1. Find the `train.py`. Run it. Does it reproduce?
+2. Ask: where is the source of truth for training data?
+3. Add seeds if missing.
+4. Add experiment tracking if missing.
+5. Write a Dockerfile. Ship it even if imperfect.
 
 You now know enough to be **the person** who does these things.
 
@@ -613,23 +663,13 @@ You now know enough to be **the person** who does these things.
 
 This was **CS 203: Software Tools and Techniques for AI**.
 
-You started with scripts.
-You end with reproducible, monitored, optimized ML systems — and
-agents that can take actions.
+You started with scripts. You end with reproducible, monitored,
+optimized ML systems — and agents that can take actions.
 
-```
-  Collect → Validate → Label → Augment
-           ↓
-    Train → Evaluate → Tune → Track
-           ↓
-  Reproduce → Monitor → Profile → Quantize
-           ↓
-         Agent → Production
-```
+All slides, code, videos, labs:
+<https://nipunbatra.github.io/stt-ai-teaching/>
 
 **Go build something.**
-
-Slides, code, videos: <https://nipunbatra.github.io/stt-ai-teaching/>
 
 ---
 
