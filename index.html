@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>CS 203: Software Tools and Techniques for AI</title>
+<title>CS 203 · Software tools and techniques for AI - CS 203: Software tools and techniques for AI</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -40,7 +40,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -72,7 +72,7 @@ ul.task-list li input[type="checkbox"] {
 
 </head>
 
-<body class="nav-fixed fullcontent">
+<body class="nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -80,7 +80,7 @@ ul.task-list li input[type="checkbox"] {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">CS 203</span>
+    <span class="navbar-title">CS 203 · Software tools and techniques for AI</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -88,14 +88,18 @@ ul.task-list li input[type="checkbox"] {
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav navbar-nav-scroll me-auto">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
     <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="https://nipunbatra.github.io/stt-ai-26/"> 
-<span class="menu-text">Course Website</span></a>
+<span class="menu-text">Course website</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://nipunbatra.github.io"> 
+<span class="menu-text">Instructor</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -106,22 +110,22 @@ ul.task-list li input[type="checkbox"] {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content column-page" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">CS 203: Software Tools and Techniques for AI</h1>
-<p class="subtitle lead">IIT Gandhinagar · Jan 2026 · Prof.&nbsp;Nipun Batra</p>
+<h1 class="title">CS 203: Software tools and techniques for AI</h1>
+<p class="subtitle lead">January 2026 · IIT Gandhinagar</p>
 </div>
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-page">
 
     
   
@@ -133,162 +137,177 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><a href="https://nipunbatra.github.io/stt-ai-26/" class="btn btn-primary btn-sm">Course website</a> <a href="https://github.com/nipunbatra/stt-ai-teaching" class="btn btn-outline-secondary btn-sm">GitHub repo</a></p>
-<hr>
-<section id="part-i-data-weeks-15" class="level2 data-section">
-<h2 class="data-section anchored" data-anchor-id="part-i-data-weeks-15">Part I: Data (Weeks 1–5)</h2>
+<div class="lead">
+<p>The teaching material for CS 203: how to collect, validate, label and augment data; how to call LLMs and evaluate and tune models; and the engineering that keeps them reproducible, monitored, fast and useful. Every lecture's slides, labs, notebooks, cheat sheet and short videos are listed below. The schedule, deadlines and recordings are on the <a href="https://nipunbatra.github.io/stt-ai-26/">course website</a>, and the source for this page is in the <a href="https://github.com/nipunbatra/stt-ai-teaching">GitHub repo</a>.</p>
+</div>
+<p>Each row is one week's lecture, grouped by part of the course. The Shorts are also collected, in course order, on the <a href="https://nipunbatra.github.io/stai-in-1-minute.html">Software tools for AI in 1 minute</a> page and in a <a href="https://www.youtube.com/playlist?list=PLVUr9iweHl_I">YouTube playlist</a>.</p>
+<p><span class="res-key"><strong>Slides</strong>: the lecture slides as a web page (HTML) or PDF · <strong>Notebook</strong>: the worked lecture demo · <strong>Lab</strong>: the hands-on exercise, some of which open in Colab · <strong>Cheat sheet</strong>: a two-page A4 summary (PDF) · <strong>Shorts</strong>: one-minute videos, each answering one question; point at a number to see the question.</span></p>
+<div class="lecture-library">
+<section id="part-i-data" class="level2">
+<h2 class="anchored" data-anchor-id="part-i-data">Part I: Data</h2>
 <table class="table">
 <thead>
 <tr class="header">
-<th style="text-align: center;">Week</th>
-<th>Topic</th>
-<th style="text-align: center;">Slides</th>
-<th style="text-align: center;">Hands-On</th>
+<th style="text-align: right;">Week</th>
+<th style="text-align: left;">Lecture</th>
+<th style="text-align: left;">Resources</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">1</td>
-<td>Data Collection</td>
-<td style="text-align: center;"><a href="html/week01-data-collection-lecture.html">HTML</a> · <a href="pdf/week01-data-collection-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="labs/week01-data-collection-lab.html">Lab</a></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;"><strong>Data collection</strong> <span class="lec-desc">HTTP requests and status codes, JSON from APIs, rate limits and retries, and scraping web pages with CSS selectors.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week01-data-collection-lecture.html">HTML</a>, <a href="pdf/week01-data-collection-lecture.pdf">PDF</a></span> <span class="res"><a href="labs/week01-data-collection-lab.html">Lab</a></span> <!-- res:1 --><span class="res res-sheet"><span class="res-k">Cheat sheets</span>&nbsp;<a href="cheatsheets/ST01-cheatsheet.pdf" title="Collecting data over HTTP and APIs (PDF, 2 pages)">Collecting data over HTTP and APIs</a>, <a href="cheatsheets/ST02-cheatsheet.pdf" title="Scraping web pages (PDF, 2 pages)">Scraping web pages</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/YXQW48OMAYw" title="An API returns two errors: 404 and 500. Which one is your fault?" aria-label="Short 1: An API returns two errors: 404 and 500. Which one is your fault?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/VZiODGchfFg" title="An API sends {&quot;year&quot;: &quot;2010&quot;}. What does data[&quot;year&quot;] + 1 give?" aria-label="Short 2: An API sends {&quot;year&quot;: &quot;2010&quot;}. What does data[&quot;year&quot;] + 1 give?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/h8-PNytK2WI" title="A request fails 4 times. You wait 1 s, then double the wait. Total wait before try 5?" aria-label="Short 3: A request fails 4 times. You wait 1 s, then double the wait. Total wait before try 5?" target="_blank" rel="noopener">3</a> <a class="short-n" href="https://youtu.be/vzswZlaAxxs" title="A page has 3 titles: 2 in movie cards, 1 in a sidebar. How many match &quot;.movie .title&quot;?" aria-label="Short 4: A page has 3 titles: 2 in movie cards, 1 in a sidebar. How many match &quot;.movie .title&quot;?" target="_blank" rel="noopener">4</a></span><!-- /res --></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">2</td>
-<td>Data Validation &amp; Quality</td>
-<td style="text-align: center;"><a href="html/week02-data-validation-lecture.html">HTML</a> · <a href="pdf/week02-data-validation-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="labs/week02-data-validation-lab.html">Lab</a></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;"><strong>Data validation and quality</strong> <span class="lec-desc">Types, missing values, duplicates and encodings, inspected with Unix tools and checked with JSON Schema and Pydantic.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week02-data-validation-lecture.html">HTML</a>, <a href="pdf/week02-data-validation-lecture.pdf">PDF</a></span> <span class="res"><a href="labs/week02-data-validation-lab.html">Lab</a></span> <!-- res:2 --><span class="res res-sheet"><a href="cheatsheets/ST03-cheatsheet.pdf" title="Cheat sheet: Validating data before training (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/O0KYjYxScOc" title="A Pydantic model says year is an int. You pass the text &quot;2010&quot;. What happens?" aria-label="Short 1: A Pydantic model says year is an int. You pass the text &quot;2010&quot;. What happens?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/Jsl5IpbqVDY" title="A UTF-8 file says Amélie. You open it as Latin-1. What do you see?" aria-label="Short 2: A UTF-8 file says Amélie. You open it as Latin-1. What do you see?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/4PS31BgDWHM" title="The header has 3 columns. How many pieces does split(&quot;,&quot;) cut this CSV row into?" aria-label="Short 3: The header has 3 columns. How many pieces does split(&quot;,&quot;) cut this CSV row into?" target="_blank" rel="noopener">3</a> <a class="short-n" href="https://youtu.be/kzjyot2zemU" title="1,000 movies: 13 lack a year, 108 a rating, 366 box office. How many complete rows?" aria-label="Short 4: 1,000 movies: 13 lack a year, 108 a rating, 366 box office. How many complete rows?" target="_blank" rel="noopener">4</a></span><!-- /res --></td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">3</td>
-<td>Data Labeling &amp; Annotation</td>
-<td style="text-align: center;"><a href="html/week03-data-labeling-lecture.html">HTML</a> · <a href="pdf/week03-data-labeling-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="labs/week03-data-labeling-lab.html">Lab</a></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: left;"><strong>Data labeling and annotation</strong> <span class="lec-desc">Label types from classes to boxes and masks, annotation tools, and measuring agreement with Cohen's kappa and IoU.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week03-data-labeling-lecture.html">HTML</a>, <a href="pdf/week03-data-labeling-lecture.pdf">PDF</a></span> <span class="res"><a href="labs/week03-data-labeling-lab.html">Lab</a></span> <!-- res:3 --><span class="res res-sheet"><a href="cheatsheets/ST04-cheatsheet.pdf" title="Cheat sheet: Labelling data (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/2Kz9kqVPB_s" title="Two annotators agree on 8 of 10 emails. Is 80% agreement impressive?" aria-label="Short 1: Two annotators agree on 8 of 10 emails. Is 80% agreement impressive?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/Jj2fVNI7U9o" title="Two annotators box one object, one box half a box right. Overlap ÷ area they cover?" aria-label="Short 2: Two annotators box one object, one box half a box right. Overlap ÷ area they cover?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/meAqkoLLQns" title="A label file gives a car's box as [100, 200, 400, 300]. How wide is the car?" aria-label="Short 3: A label file gives a car's box as [100, 200, 400, 300]. How wide is the car?" target="_blank" rel="noopener">3</a></span><!-- /res --></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">4</td>
-<td>Optimizing Labeling</td>
-<td style="text-align: center;"><a href="html/week04-optimizing-labeling-lecture.html">HTML</a> · <a href="pdf/week04-optimizing-labeling-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="labs/week04-optimizing-labeling-lab.html">Lab</a></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;"><strong>Optimizing labeling</strong> <span class="lec-desc">Labeling less: active learning, weak supervision with labeling functions, LLMs as labelers, and finding noisy labels.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week04-optimizing-labeling-lecture.html">HTML</a>, <a href="pdf/week04-optimizing-labeling-lecture.pdf">PDF</a></span> <span class="res"><a href="labs/week04-optimizing-labeling-lab.html">Lab</a></span> <!-- res:4 --><span class="res res-sheet"><a href="cheatsheets/ST05-cheatsheet.pdf" title="Cheat sheet: Labelling less: active learning, weak supervision, LLM labels (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/b7DJ7tOCRgU" title="Model: 99% positive, 98% negative, 52% positive. Which review is worth a paid label?" aria-label="Short 1: Model: 99% positive, 98% negative, 52% positive. Which review is worth a paid label?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/0fr-c7lRq4Y" title="Rule A (right 80%) says positive; B (right 90%) says negative. Chance it's positive?" aria-label="Short 2: Rule A (right 80%) says positive; B (right 90%) says negative. Chance it's positive?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/wUE7B_cqauU" title="10,000 labels: people at $0.30 each, an LLM at $0.002. How many times cheaper is it?" aria-label="Short 3: 10,000 labels: people at $0.30 each, an LLM at $0.002. How many times cheaper is it?" target="_blank" rel="noopener">3</a> <a class="short-n" href="https://youtu.be/nOx5c1SWP_4" title="&quot;Not good at all&quot; is labelled POSITIVE. A model that never saw it says 92% NEGATIVE. Wrong?" aria-label="Short 4: &quot;Not good at all&quot; is labelled POSITIVE. A model that never saw it says 92% NEGATIVE. Wrong?" target="_blank" rel="noopener">4</a></span><!-- /res --></td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">5</td>
-<td>Data Augmentation</td>
-<td style="text-align: center;"><a href="html/week05-data-augmentation-lecture.html">HTML</a> · <a href="pdf/week05-data-augmentation-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="labs/week05-data-augmentation-lab.html">Lab</a></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: left;"><strong>Data augmentation</strong> <span class="lec-desc">Label-preserving transforms for images, text and audio, mixup and CutMix, and which transforms are safe for a task.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week05-data-augmentation-lecture.html">HTML</a>, <a href="pdf/week05-data-augmentation-lecture.pdf">PDF</a></span> <span class="res"><a href="labs/week05-data-augmentation-lab.html">Lab</a></span> <!-- res:5 --><span class="res res-sheet"><a href="cheatsheets/ST06-cheatsheet.pdf" title="Cheat sheet: Data augmentation (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/rsyuUBes9d8" title="Is it safe to turn a handwritten 6 upside down to get more training data?" aria-label="Short 1: Is it safe to turn a handwritten 6 upside down to get more training data?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/xzk9ACoqip0" title="CutMix pastes a 16 × 16 dog patch into a 32 × 32 cat photo. What is the new label?" aria-label="Short 2: CutMix pastes a 16 × 16 dog patch into a 32 × 32 cat photo. What is the new label?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/_b3DSOEHX-E" title="Is flipping images left to right a safe way to get more training data?" aria-label="Short 3: Is flipping images left to right a safe way to get more training data?" target="_blank" rel="noopener">3</a> <a class="short-n" href="https://youtu.be/gc4Rr9XR7dU" title="A photo 400 px wide is flipped left to right. Its nose box ran 180 to 250. Where is it now?" aria-label="Short 4: A photo 400 px wide is flipped left to right. Its nose box ran 180 to 250. Where is it now?" target="_blank" rel="noopener">4</a></span><!-- /res --></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="part-ii-models-weeks-68" class="level2 models-section">
-<h2 class="models-section anchored" data-anchor-id="part-ii-models-weeks-68">Part II: Models (Weeks 6–8)</h2>
+<section id="part-ii-models" class="level2">
+<h2 class="anchored" data-anchor-id="part-ii-models">Part II: Models</h2>
 <table class="table">
 <thead>
 <tr class="header">
-<th style="text-align: center;">Week</th>
-<th>Topic</th>
-<th style="text-align: center;">Slides</th>
-<th style="text-align: center;">Hands-On</th>
+<th style="text-align: right;">Week</th>
+<th style="text-align: left;">Lecture</th>
+<th style="text-align: left;">Resources</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">6</td>
-<td>LLM APIs &amp; Multimodal AI</td>
-<td style="text-align: center;"><a href="html/week06-llm-apis-lecture.html">HTML</a> · <a href="pdf/week06-llm-apis-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="labs/week06-llm-apis-lab.html">Lab</a></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: left;"><strong>LLM APIs and multimodal AI</strong> <span class="lec-desc">Calling foundation models from code: prompts, temperature, tokens and rate limits, structured JSON output, and images and audio as input.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week06-llm-apis-lecture.html">HTML</a>, <a href="pdf/week06-llm-apis-lecture.pdf">PDF</a></span> <span class="res"><a href="labs/week06-llm-apis-lab.html">Lab</a></span> <!-- res:6 --><span class="res res-sheet"><a href="cheatsheets/ST07-cheatsheet.pdf" title="Cheat sheet: LLM APIs and multimodal models (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/LvZmp_wXvM4" title="Next word: great 60%, good 30%, fine 10%. At temperature 0, how often is it &quot;great&quot;?" aria-label="Short 1: Next word: great 60%, good 30%, fine 10%. At temperature 0, how often is it &quot;great&quot;?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/FB0w4rlFSWU" title="Free tier: 15 requests a minute. How long to label 900 reviews, one per request?" aria-label="Short 2: Free tier: 15 requests a minute. How long to label 900 reviews, one per request?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/bX9GdP6mWTw" title="A free tier gives 1 million tokens a day. About how many words is that?" aria-label="Short 3: A free tier gives 1 million tokens a day. About how many words is that?" target="_blank" rel="noopener">3</a></span><!-- /res --></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">7</td>
-<td>Model Evaluation</td>
-<td style="text-align: center;"><a href="html/week07-model-development-lecture.html">HTML</a> · <a href="pdf/week07-model-development-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="lecture-demos/week07/week07_evaluation_notebook.html">Notebook</a> · <a href="labs/week07-model-development-lab.html">Lab</a></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: left;"><strong>Model evaluation</strong> <span class="lec-desc">Train, validation and test splits; k-fold, stratified, group and time-series cross-validation; bias and variance.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week07-model-development-lecture.html">HTML</a>, <a href="pdf/week07-model-development-lecture.pdf">PDF</a></span> <span class="res"><a href="lecture-demos/week07/week07_evaluation_notebook.html">Notebook</a></span> <span class="res"><span class="res-k">Labs</span>&nbsp;<a href="labs/week07-model-development-lab.html">Model development</a>, <a href="https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/labs/week07-cross-validation-lab.ipynb">Cross-validation (Colab)</a></span> <!-- res:7 --><span class="res res-sheet"><a href="cheatsheets/ST08-cheatsheet.pdf" title="Cheat sheet: Evaluating models honestly (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/rCF1LVPCHK4" title="Predicting tomorrow's stock move: split 200 days at random into train and test?" aria-label="Short 1: Predicting tomorrow's stock move: split 200 days at random into train and test?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/E0eM96B8VeE" title="14 scans from 5 patients, split at random. Can one patient be in train and test?" aria-label="Short 2: 14 scans from 5 patients, split at random. Can one patient be in train and test?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/AEYUAc5fhO8" title="You try 100 tree depths and keep the best test score, 87%. Will new data give about 87%?" aria-label="Short 3: You try 100 tree depths and keep the best test score, 87%. Will new data give about 87%?" target="_blank" rel="noopener">3</a></span><!-- /res --></td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">8</td>
-<td>Tuning, AutoML &amp; Tracking</td>
-<td style="text-align: center;"><a href="html/week08-tuning-tracking-lecture.html">HTML</a> · <a href="pdf/week08-tuning-tracking-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="lecture-demos/week08/tuning_tracking_notebook.html">Notebook</a></td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;"><strong>Tuning, AutoML and tracking</strong> <span class="lec-desc">Hyperparameters, grid and random search, Bayesian optimization with Optuna and pruning, AutoML, and logging experiments.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week08-tuning-tracking-lecture.html">HTML</a>, <a href="pdf/week08-tuning-tracking-lecture.pdf">PDF</a></span> <span class="res"><a href="lecture-demos/week08/tuning_tracking_notebook.html">Notebook</a></span> <span class="res"><a href="https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/labs/week08-hyperparameter-tuning-lab.ipynb">Lab (Colab)</a></span> <!-- res:8 --><span class="res res-sheet"><a href="cheatsheets/ST09-cheatsheet.pdf" title="Cheat sheet: Tuning and experiment tracking (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/gNGpHkuaOGQ" title="9 runs to tune 2 settings, and only one matters. Grid search or random search?" aria-label="Short 1: 9 runs to tune 2 settings, and only one matters. Grid search or random search?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/g3FZNKk7L_M" title="Grid search over 3 settings with 5-fold cross-validation. How many models to train?" aria-label="Short 2: Grid search over 3 settings with 5-fold cross-validation. How many models to train?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/URNpO-k-2pU" title="You will try 100 learning rates from 0.001 to 1. Which way tries more values below 0.01?" aria-label="Short 3: You will try 100 learning rates from 0.001 to 1. Which way tries more values below 0.01?" target="_blank" rel="noopener">3</a> <a class="short-n" href="https://youtu.be/rZvXF6CpCb8" title="50 steps per trial. At step 2, trial 2 is at 46%, the others near 75%. Keep training it?" aria-label="Short 4: 50 steps per trial. At step 2, trial 2 is at 46%, the others near 75%. Keep training it?" target="_blank" rel="noopener">4</a></span><!-- /res --></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="part-iii-engineering-weeks-913" class="level2 engineering-section">
-<h2 class="engineering-section anchored" data-anchor-id="part-iii-engineering-weeks-913">Part III: Engineering (Weeks 9–13)</h2>
+<section id="part-iii-engineering" class="level2">
+<h2 class="anchored" data-anchor-id="part-iii-engineering">Part III: Engineering</h2>
 <table class="table">
 <thead>
 <tr class="header">
-<th style="text-align: center;">Week</th>
-<th>Topic</th>
-<th style="text-align: center;">Slides</th>
-<th style="text-align: center;">Hands-On</th>
+<th style="text-align: right;">Week</th>
+<th style="text-align: left;">Lecture</th>
+<th style="text-align: left;">Resources</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;">9</td>
-<td>Reproducibility: Docker, Seeds &amp; Tracking</td>
-<td style="text-align: center;"><a href="html/week09-reproducibility-lecture.html">HTML</a> · <a href="pdf/week09-reproducibility-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="https://github.com/nipunbatra/docker-ml-demos">Docker Demos</a></td>
+<td style="text-align: right;">9</td>
+<td style="text-align: left;"><strong>Reproducibility: Docker, seeds and tracking</strong> <span class="lec-desc">Why the same code gives different results, and how seeds, pinned environments and Docker images make a run repeatable.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week09-reproducibility-lecture.html">HTML</a>, <a href="pdf/week09-reproducibility-lecture.pdf">PDF</a></span> <span class="res"><a href="https://github.com/nipunbatra/docker-ml-demos">Docker demos</a></span> <span class="res"><a href="https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/labs/week09-reproducibility-lab.ipynb">Lab (Colab)</a></span> <!-- res:9 --><span class="res res-sheet"><a href="cheatsheets/ST10-cheatsheet.pdf" title="Cheat sheet: Reproducible runs: seeds, environments, Docker (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/nwJ1u6yvIGo" title="Same code, same data, and three runs give 92%, 85% and 88%. Why?" aria-label="Short 1: Same code, same data, and three runs give 92%, 85% and 88%. Why?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/VJt-e_yJDXk" title="Edit one line of app.py and rebuild the Docker image. Do all packages reinstall?" aria-label="Short 2: Edit one line of app.py and rebuild the Docker image. Do all packages reinstall?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/oKOL6O0cync" title="A Docker container saves model.pkl and exits. What is in outputs/ on your laptop?" aria-label="Short 3: A Docker container saves model.pkl and exits. What is in outputs/ on your laptop?" target="_blank" rel="noopener">3</a></span><!-- /res --></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">10</td>
-<td>Data Drift &amp; Model Monitoring</td>
-<td style="text-align: center;"><a href="html/week10-data-drift-lecture.html">HTML</a></td>
-<td style="text-align: center;"><a href="lecture-demos/week10/data_drift_notebook.html">Notebook</a></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: left;"><strong>Data drift and model monitoring</strong> <span class="lec-desc">Data, concept and label drift, comparing distributions with the KS test and PSI, and watching a deployed model.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week10-data-drift-lecture.html">HTML</a></span> <span class="res"><a href="lecture-demos/week10/data_drift_notebook.html">Notebook</a></span> <!-- res:10 --><span class="res res-sheet"><a href="cheatsheets/ST12-cheatsheet.pdf" title="Cheat sheet: Data drift and monitoring (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/RPAoVkWLg40" title="Car-price model learned on 5,000 to 60,000 km. Now cars average 82,000 km. Its error?" aria-label="Short 1: Car-price model learned on 5,000 to 60,000 km. Now cars average 82,000 km. Its error?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/yoUqEiianKk" title="Shuffle the 10 values into two random groups of 5. How often is the gap 7.0 or more?" aria-label="Short 2: Shuffle the 10 values into two random groups of 5. How often is the gap 7.0 or more?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/Y-IajKIHu0w" title="Fraud rises from 1% to 5%. You still review only scores above 0.80. What happens?" aria-label="Short 3: Fraud rises from 1% to 5%. You still review only scores above 0.80. What happens?" target="_blank" rel="noopener">3</a> <a class="short-n" href="https://youtu.be/HnklLhkDDaw" title="4 orders a week, Rs 500: premium in January, regular now. Will input charts show it?" aria-label="Short 4: 4 orders a week, Rs 500: premium in January, regular now. Will input charts show it?" target="_blank" rel="noopener">4</a></span><!-- /res --></td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">11</td>
-<td>Profiling &amp; Quantization</td>
-<td style="text-align: center;"><a href="html/week11-profiling-quantization-lecture.html">HTML</a> · <a href="pdf/week11-profiling-quantization-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="lecture-demos/week11/colab-notebooks/">Colab Notebooks</a></td>
+<td style="text-align: right;">11</td>
+<td style="text-align: left;"><strong>Profiling and quantization</strong> <span class="lec-desc">Measuring where time and memory go, how many bytes a model needs, and shrinking it with quantization and pruning.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week11-profiling-quantization-lecture.html">HTML</a>, <a href="pdf/week11-profiling-quantization-lecture.pdf">PDF</a></span> <span class="res"><a href="lecture-demos/week11/colab-notebooks/">Colab notebooks</a></span> <span class="res"><a href="https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/labs/week11-profiling-quantization-lab.ipynb">Lab (Colab)</a></span> <!-- res:11 --><span class="res res-sheet"><a href="cheatsheets/ST14-cheatsheet.pdf" title="Cheat sheet: Profiling and quantization (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/MNaE7TXkYLQ" title="In Python, is 0.1 + 0.2 == 0.3?" aria-label="Short 1: In Python, is 0.1 + 0.2 == 0.3?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/o4Uy-v8HBZU" title="A model has 7 billion weights, each a 32-bit float. How much memory do they need?" aria-label="Short 2: A model has 7 billion weights, each a 32-bit float. How much memory do they need?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/Iy2hDSGE15s" title="This code runs on every request and takes 2.4 s. Which step should you fix?" aria-label="Short 3: This code runs on every request and takes 2.4 s. Which step should you fix?" target="_blank" rel="noopener">3</a> <a class="short-n" href="https://youtu.be/0yuHYDr5S6g" title="A tiny 70 KB model is stored as 8-bit integers: now 22 KB. Does it run faster on a CPU?" aria-label="Short 4: A tiny 70 KB model is stored as 8-bit integers: now 22 KB. Does it run faster on a CPU?" target="_blank" rel="noopener">4</a> <a class="short-n" href="https://youtu.be/UAB-_ArTbfc" title="A model file is 600 KB. You set its smallest 40% of weights to 0. Size now?" aria-label="Short 5: A model file is 600 KB. You set its smallest 40% of weights to 0. Size now?" target="_blank" rel="noopener">5</a></span><!-- /res --></td>
 </tr>
 <tr class="even">
-<td style="text-align: center;">12</td>
-<td>Building AI Agents</td>
-<td style="text-align: center;"><a href="html/week12-agents-lecture.html">HTML</a> · <a href="pdf/week12-agents-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/colab-notebooks/01-agents-from-scratch.ipynb">Colab Notebook</a></td>
+<td style="text-align: right;">12</td>
+<td style="text-align: left;"><strong>Building AI agents</strong> <span class="lec-desc">An LLM in a loop with tools: function calling, the agent loop, searching your own notes, and step limits.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week12-agents-lecture.html">HTML</a>, <a href="pdf/week12-agents-lecture.pdf">PDF</a></span> <span class="res"><a href="https://colab.research.google.com/github/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/colab-notebooks/01-agents-from-scratch.ipynb">Notebook (Colab)</a></span> <!-- res:12 --><span class="res res-sheet"><a href="cheatsheets/ST15-cheatsheet.pdf" title="Cheat sheet: Building AI agents from scratch (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/f8DmJwKeKcg" title="An LLM &quot;calls&quot; get_weather(&quot;Gandhinagar&quot;). Who actually runs that function?" aria-label="Short 1: An LLM &quot;calls&quot; get_weather(&quot;Gandhinagar&quot;). Who actually runs that function?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/0qtVfU09iu4" title="&quot;Square root of 144, plus Mumbai's temperature in °F?&quot; How many tool calls?" aria-label="Short 2: &quot;Square root of 144, plus Mumbai's temperature in °F?&quot; How many tool calls?" target="_blank" rel="noopener">2</a> <a class="short-n" href="https://youtu.be/X8QPzX8N1_M" title="An LLM never saw your course notes, and they change weekly. How should it answer from them?" aria-label="Short 3: An LLM never saw your course notes, and they change weekly. How should it answer from them?" target="_blank" rel="noopener">3</a> <a class="short-n" href="https://youtu.be/TdEwZ-Z9tzg" title="An agent may call the model 3 times. The question needs 3 tool calls. Does it answer?" aria-label="Short 4: An agent may call the model 3 times. The question needs 3 tool calls. Does it answer?" target="_blank" rel="noopener">4</a></span><!-- /res --></td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;">13</td>
-<td>Course Summary</td>
-<td style="text-align: center;"><a href="html/week13-course-summary-lecture.html">HTML</a> · <a href="pdf/week13-course-summary-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"></td>
+<td style="text-align: right;">13</td>
+<td style="text-align: left;"><strong>Course summary</strong> <span class="lec-desc">A recap of the course, one part at a time, and the most common mistakes.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week13-course-summary-lecture.html">HTML</a>, <a href="pdf/week13-course-summary-lecture.pdf">PDF</a></span> <!-- res:13 --><!-- /res --></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="additional-content" class="level2 additional-section">
-<h2 class="additional-section anchored" data-anchor-id="additional-content">Additional Content</h2>
+<section id="additional-content" class="level2">
+<h2 class="anchored" data-anchor-id="additional-content">Additional content</h2>
+<p>Covered in the labs rather than in a lecture slot.</p>
 <table class="table">
 <thead>
 <tr class="header">
-<th>Topic</th>
-<th style="text-align: center;">Slides</th>
-<th style="text-align: center;">Hands-On</th>
+<th style="text-align: right;">Week</th>
+<th style="text-align: left;">Topic</th>
+<th style="text-align: left;">Resources</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>From Script to Web App</td>
-<td style="text-align: center;"><a href="html/week10-web-apps-lecture.html">HTML</a> · <a href="pdf/week10-web-apps-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><strong>From script to web app</strong> <span class="lec-desc">Turning a trained model into a demo with Flask, Streamlit and Gradio, and deploying it on Hugging Face Spaces.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week10-web-apps-lecture.html">HTML</a>, <a href="pdf/week10-web-apps-lecture.pdf">PDF</a></span> <!-- res:a-webapps --><span class="res res-sheet"><a href="cheatsheets/ST13-cheatsheet.pdf" title="Cheat sheet: From script to web app and API (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/DL1OfUEkDAE" title="You open a Streamlit app and click Classify 10 times. How many times does the model load?" aria-label="Short 1: You open a Streamlit app and click Classify 10 times. How many times does the model load?" target="_blank" rel="noopener">1</a></span><!-- /res --></td>
 </tr>
 <tr class="even">
-<td>CI/CD &amp; Automation</td>
-<td style="text-align: center;"><a href="html/week11-cicd-lecture.html">HTML</a> · <a href="pdf/week11-cicd-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><strong>CI/CD and automation</strong> <span class="lec-desc">Tests and checks that run by themselves on every push.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week11-cicd-lecture.html">HTML</a>, <a href="pdf/week11-cicd-lecture.pdf">PDF</a></span> <!-- res:a-cicd --><span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/geGWgsJXO0I" title="A CI test needs accuracy above 0.85. Laptop: 0.86. CI server: 0.84. Is the code broken?" aria-label="Short 1: A CI test needs accuracy above 0.85. Laptop: 0.86. CI server: 0.84. Is the code broken?" target="_blank" rel="noopener">1</a></span><!-- /res --></td>
 </tr>
 <tr class="odd">
-<td>APIs &amp; Demos</td>
-<td style="text-align: center;"><a href="html/week12-apis-lecture.html">HTML</a> · <a href="pdf/week12-apis-lecture.pdf">PDF</a></td>
-<td style="text-align: center;"><a href="https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh">Follow-along</a> · <a href="lecture-demos/week12/apis_followalong.pdf">PDF</a></td>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><strong>APIs and demos</strong> <span class="lec-desc">Serving a model behind a FastAPI endpoint with a Pydantic request model, and a Gradio demo on top.</span></td>
+<td style="text-align: left;"><span class="res"><span class="res-k">Slides</span>&nbsp;<a href="html/week12-apis-lecture.html">HTML</a>, <a href="pdf/week12-apis-lecture.pdf">PDF</a></span> <span class="res"><span class="res-k">Follow-along</span>&nbsp;<a href="https://github.com/nipunbatra/stt-ai-teaching/blob/master/lecture-demos/week12/apis_followalong.sh">script</a>, <a href="lecture-demos/week12/apis_followalong.pdf">PDF</a></span> <!-- res:a-apis --><span class="res res-sheet"><a href="cheatsheets/ST13-cheatsheet.pdf" title="Cheat sheet: From script to web app and API (PDF, 2 pages)">Cheat sheet</a></span><!-- /res --></td>
 </tr>
 </tbody>
 </table>
+</section>
+<section id="also-in-the-series" class="level2">
+<h2 class="anchored" data-anchor-id="also-in-the-series">Also in the series</h2>
+<p>A topic with a cheat sheet and Shorts that was not a separate lecture in 2026.</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 40%">
+<col style="width: 52%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Week</th>
+<th style="text-align: left;">Topic</th>
+<th style="text-align: left;">Resources</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><strong>Git for ML projects</strong> <span class="lec-desc">Commits, the staging area, branches and merges, and what to keep out of a repository.</span></td>
+<td style="text-align: left;"><!-- res:x-git --><span class="res res-sheet"><a href="cheatsheets/ST11-cheatsheet.pdf" title="Cheat sheet: Git for ML projects (PDF, 2 pages)">Cheat sheet</a></span> <span class="res res-shorts"><span class="res-k">Shorts</span>&nbsp;<a class="short-n" href="https://youtu.be/qtwt8R-uUeE" title="Your project is 2 GB. You make a new Git branch. How big is the branch?" aria-label="Short 1: Your project is 2 GB. You make a new Git branch. How big is the branch?" target="_blank" rel="noopener">1</a> <a class="short-n" href="https://youtu.be/XUNawLPgBzM" title="You edit 3 files, run git add on one, then git commit. How many edits does the commit save?" aria-label="Short 2: You edit 3 files, run git add on one, then git commit. How many edits does the commit save?" target="_blank" rel="noopener">2</a></span><!-- /res --></td>
+</tr>
+</tbody>
+</table>
+</section>
+</div>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -530,6 +549,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         if (link.dataset.originalHref !== undefined) {
           link.href = link.dataset.originalHref;
         }
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
       }
     }
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
@@ -848,21 +872,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>Course materials by Prof.&nbsp;Nipun Batra, IIT Gandhinagar</p>
+<p>CS 203 Software tools and techniques for AI · IIT Gandhinagar · January 2026</p>
 </div>   
     <div class="nav-footer-center">
       &nbsp;
     </div>
     <div class="nav-footer-right">
-      <ul class="footer-items list-unstyled">
-    <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/nipunbatra/stt-ai-teaching">
-      <i class="bi bi-github" role="img">
-</i> 
-    </a>
-  </li>  
-</ul>
-    </div>
+<p>© 2026 <a href="https://nipunbatra.github.io">Nipun Batra</a> · Source on <a href="https://github.com/nipunbatra/stt-ai-teaching">GitHub</a> · Made with <a href="https://quarto.org">Quarto</a></p>
+</div>
   </div>
 </footer>
 
