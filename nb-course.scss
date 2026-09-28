@@ -1,5 +1,5 @@
 /*
- * Changelog 2026-09-28: search icon visible in light and dark at toggle size; footer contained to the page width; resource links never break inside a label.
+ * Changelog 2026-09-28: search icon visible in light and dark at toggle size; footer contained to the page width; resource links move to the next line whole and wrap inside only when longer than the column (inline-block, not nowrap).
  *
  * nb-course.scss: shared theme layer for Nipun Batra's course sites (Quarto, over cosmo).
  *
@@ -562,8 +562,9 @@ main.content section.level3 > h3 { margin-top: 1.75rem !important; }
 
 // Resource links: "Slides · Notebooks · Cheat sheet · Shorts 1 2 3 · 3-min summary · Recording"
 .res { display: inline; }
-// A label never breaks inside itself ("3-min summary", "Cheat sheet"); lines break between links.
-.res a { white-space: nowrap; }
+// A label moves to the next line whole ("3-min summary", "Cheat sheet"); only a label longer than the column
+// wraps inside itself, so a phone never scrolls sideways. inline-block does both; nowrap would overflow.
+.res a { display: inline-block; max-width: 100%; white-space: normal; }
 .res:not(:last-child)::after {
   // The dot hangs on the end of the previous item, so a line never starts with it.
   content: "\00a0\00a0·";
