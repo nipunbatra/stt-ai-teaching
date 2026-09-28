@@ -8,23 +8,31 @@ project:
     - "!slides/"
 
 website:
-  title: "CS 203: Software Tools and Techniques for AI"
+  title: "CS 203 · Software tools and techniques for AI"
+  description: "Slides, labs, cheat sheets and short videos for CS 203 Software tools and techniques for AI at IIT Gandhinagar"
   navbar:
-    title: "CS 203"
-    left:
-      - text: "Home"
-        href: index.qmd
-      - text: "Course Website"
-        href: https://nipunbatra.github.io/stt-ai-26/
-  page-footer:
-    left: "Course materials by Prof. Nipun Batra, IIT Gandhinagar"
+    title: "CS 203 · Software tools and techniques for AI"
     right:
-      - icon: github
-        href: https://github.com/nipunbatra/stt-ai-teaching
+      - text: Home
+        href: index.qmd
+      - text: Course website
+        href: https://nipunbatra.github.io/stt-ai-26/
+      - text: Instructor
+        href: https://nipunbatra.github.io
+  page-footer:
+    left: "CS 203 Software tools and techniques for AI · IIT Gandhinagar · January 2026"
+    right: "© 2026 [Nipun Batra](https://nipunbatra.github.io) · Source on [GitHub](https://github.com/nipunbatra/stt-ai-teaching) · Made with [Quarto](https://quarto.org)"
 
 format:
   html:
+    from: markdown-smart
     theme:
-      light: [cosmo, custom.scss]
-      dark: [darkly, custom.scss]
+      light: [cosmo, nb-course.scss]
+      dark: [darkly, nb-course.scss]
     toc: false
+    smooth-scroll: false
+    highlight-style: github
+    code-copy: true
+    link-external-newwindow: true
+    anchor-sections: true
+    fig-responsive: true
