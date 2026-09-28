@@ -1,4 +1,6 @@
 /*
+ * Changelog 2026-09-28: search icon visible in light and dark at toggle size; footer contained to the page width; resource links never break inside a label.
+ *
  * nb-course.scss: shared theme layer for Nipun Batra's course sites (Quarto, over cosmo).
  *
  * The design tokens (colours, fonts, 1080px container) come from nipunbatra.github.io/common.css.
@@ -337,6 +339,22 @@ main.content .callout ol {
   color: var(--muted) !important;
 }
 .navbar .quarto-navigation-tool:hover { color: var(--accent) !important; }
+// Search icon: Quarto colours it with the base navbar's foreground (near white on cosmo) at 26px;
+// draw it in the muted token at the size of the colour-scheme toggle.
+.navbar #quarto-search.type-overlay .aa-Autocomplete svg.aa-SubmitIcon,
+.navbar #quarto-search svg.aa-SubmitIcon {
+  width: 16px;
+  height: 16px;
+  color: var(--muted) !important;
+  opacity: 1;
+}
+.navbar #quarto-search .aa-DetachedSearchButton {
+  background: transparent;
+  border: 0;
+  padding: 0 0.25rem;
+  min-width: 0;
+}
+.navbar #quarto-search .aa-DetachedSearchButton:hover svg.aa-SubmitIcon { color: var(--accent) !important; }
 // Quarto draws the colour-scheme toggle as an SVG whose fill is fixed at compile time; redraw it in
 // the muted token of this bundle.
 $nb-icon-fill: if($nb-dark, "rgba(181, 175, 191, 1)", "rgba(89, 97, 116, 1)");
@@ -544,6 +562,8 @@ main.content section.level3 > h3 { margin-top: 1.75rem !important; }
 
 // Resource links: "Slides · Notebooks · Cheat sheet · Shorts 1 2 3 · 3-min summary · Recording"
 .res { display: inline; }
+// A label never breaks inside itself ("3-min summary", "Cheat sheet"); lines break between links.
+.res a { white-space: nowrap; }
 .res:not(:last-child)::after {
   // The dot hangs on the end of the previous item, so a line never starts with it.
   content: "\00a0\00a0·";
@@ -737,6 +757,8 @@ footer.footer {
 .nav-footer a:hover { color: var(--accent) !important; text-decoration: underline; }
 .nav-footer .footer-items .nav-link { padding: 0 0.5rem; }
 @media (min-width: 768px) {
+  // footer.footer .nav-footer: Quarto's own padding rule uses this selector, so match it.
+  footer.footer .nav-footer,
   .nav-footer {
     padding-left: max(24px, calc((100% - var(--container)) / 2 + 24px));
     padding-right: max(24px, calc((100% - var(--container)) / 2 + 24px));
@@ -773,6 +795,7 @@ footer.footer {
   h2, .h2 { font-size: 1.375rem; }
   .lecture-library h2 { font-size: 1.375rem; }
   main.content { overflow-wrap: break-word; }
+  footer.footer .nav-footer,
   .nav-footer { flex-direction: column; align-items: flex-start; padding: 0.75rem 16px; }
   .nav-footer > * { padding: 0.25rem 0; text-align: left !important; justify-content: flex-start !important; }
 }
